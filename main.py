@@ -1,12 +1,13 @@
-import sqlite3
+import sqlite3  #to use sqlite
 
-# filename to form database
-DB_FILENAME = "planner.db"
+#Constants
+DB_FILENAME = "planner.db" # filename to form database
+
 
 # function that initializes the db
 def initDatabase():
     conn = sqlite3.connect(DB_FILENAME)
 
-# Press the green button in the gutter to run the script.
+
 if __name__ == '__main__':
     initDatabase()

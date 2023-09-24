@@ -63,6 +63,10 @@ def connectDatabase():
 
     cursor = conn.cursor()
 
+    #insert_query = "insert into course (course_id, course_num) values (%s,%s)"
+    #cursor.execute(insert_query, (2, 313))
+    conn.commit()
+
     cursor.execute("select * from course")
 
     names = list(map(lambda x: x[0], cursor.description))
@@ -72,6 +76,9 @@ def connectDatabase():
 
     print(records)
     print(names)
+
+    # Closing the connection
+    conn.close()
 
 """
 def init_postgresql_remote():

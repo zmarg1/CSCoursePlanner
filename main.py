@@ -74,8 +74,12 @@ def connectDatabase():
     # retrieve the records from the database
     records = cursor.fetchall()
 
-    print(records)
     print(names)
+    for row in records:
+        print(row)
+    #print(records)
+
+
 
     # Closing the connection
     conn.close()

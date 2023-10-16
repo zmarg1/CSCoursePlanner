@@ -12,8 +12,8 @@ from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 app.secret_key = "planUMBCkey" #Secret key needed for sessions to get the encrypted data
-"""Uncomment to edit database
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:2&?jL!Un?SV$Q5j@db.qwydklzwvbrgvdomhxjb.supabase.co:5432/postgres'
+"""TODO: Uncomment to edit database
+app.config['SQLALCHEMY_DATABASE_URI'] = postgresql://postgres:2&?jL!Un?SV$Q5j@db.qwydklzwvbrgvdomhxjb.supabase.co:5432/postgres
 """
 app.permanent_session_lifetime = timedelta(minutes = 5) #How long the session data will be saved for
 

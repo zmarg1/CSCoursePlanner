@@ -218,7 +218,6 @@ class semester(db.Model):
         db.session.delete(self)
         db.session.commit()
 
-"""TODO: Taken"""
 class taken(db.Model):
     _id = db.Column('taken_id', db.Integer, primary_key=True)
 

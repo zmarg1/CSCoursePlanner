@@ -24,6 +24,8 @@ The User will have an id, name, 'user'
 ForeignKeys:
  The plan the user has made or has
  The users current degree
+
+ TODO: Need to edit to sen to auth and not public
 """
 class user(db.Model):
     _id = db.Column("user_id", db.Integer, primary_key=True)

@@ -269,9 +269,13 @@ def test_course():
 
 @app.route("/view")
 def view():
+    #To test with Postman by returning the json file of the courses
     courses = course.query.all()
     courses_json = [course.to_json() for course in courses]
     return jsonify(courses_json) 
+    """To view on UI to the designated template if needed
+    return render_template("template.html", courses=Courses.query.all())
+    """
 
 if __name__ == "__main__":
     with app.app_context():

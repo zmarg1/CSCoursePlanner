@@ -10,6 +10,12 @@ from flask import Flask, redirect, url_for, render_template, request, session, f
 from datetime import timedelta
 from flask_sqlalchemy import SQLAlchemy
 
+import os
+from supabase import auth, create_client, Client
+url: str = os.environ.get("https://qwydklzwvbrgvdomhxjb.supabase.co")
+key: str = os.environ.get("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF3eWRrbHp3dmJyZ3Zkb21oeGpiIiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTU0MDcxNjcsImV4cCI6MjAxMDk4MzE2N30.UNZJCMI1NxpSyFr8bBooIIGPqTbDe3N-_YV9ZHbE_1g")
+supabase: Client = create_client(url, key)
+
 app = Flask(__name__)
 app.secret_key = "planUMBCkey" #Secret key needed for sessions to get the encrypted data
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:2&?jL!Un?SV$Q5j@db.qwydklzwvbrgvdomhxjb.supabase.co:5432/postgres'
@@ -22,24 +28,28 @@ The User will have an id, name, 'user'
 ForeignKeys:
  The plan the user has made or has
  The users current degree
-
- TODO: Need to edit to sen to auth and not public
 """
-"""
-class user(db.Model):
-    user_id = db.Column("user_id", db.Integer, primary_key=True)
-    usr_name = db.Column(db.String(100))
+""""""
+"""#TODO: Rework using supabase
+class user():
+    user_obj = supabase.auth.get_user()
+    #user_id = supabase.table('user').select("id").execute()
+    #user_email = supabase.table('user').select("email").execute()
+    plan_id = None
+    deg_id = None
 
-    plan_id = db.Column('student_plan_id', db.Integer, db.ForeignKey('plan.plan_id'))
-    plan = db.relationship('plan', primaryjoin='user.plan_id == plan.plan_id', backref=db.backref('plan', lazy='dynamic'))
-
-    deg_id = db.Column('student_degree', db.String(100), db.ForeignKey('degree.deg_id'))
-    degree = db.relationship('degree', primaryjoin='user.deg_id == degree.deg_id', backref=db.backref('degree', lazy='dynamic'))
-
-    def __init__(self, id, name, user):
-        self.user_id = id
-        self.usr_name = name
-        self.user = user
+    #Split into sign up and sign in
+    def __init__(self, email, password):
+        in_database = supabase.table('user').select('*').match({'email': email}).execute()
+        if not in_database:
+            user = supabase.auth.sign_up({
+                "email": email,
+                "password": password
+                })
+            self.user_obj = user
+        else:
+            data = supabase.auth.sign_in_with_password({"email": email, "password": password}) 
+            self.user_email = email
 
     def add_commit(self):
         db.session.add(self)

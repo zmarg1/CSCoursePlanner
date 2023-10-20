@@ -10,11 +10,11 @@ from flask import Flask, redirect, url_for, render_template, request, session, f
 from datetime import timedelta
 from flask_sqlalchemy import SQLAlchemy
 
-import os
+"""import os
 from supabase import auth, create_client, Client
 url: str = os.environ.get("https://qwydklzwvbrgvdomhxjb.supabase.co")
 key: str = os.environ.get("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF3eWRrbHp3dmJyZ3Zkb21oeGpiIiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTU0MDcxNjcsImV4cCI6MjAxMDk4MzE2N30.UNZJCMI1NxpSyFr8bBooIIGPqTbDe3N-_YV9ZHbE_1g")
-supabase: Client = create_client(url, key)
+supabase: Client = create_client(url, key)"""
 
 app = Flask(__name__)
 app.secret_key = "planUMBCkey" #Secret key needed for sessions to get the encrypted data
@@ -29,7 +29,7 @@ ForeignKeys:
  The plan the user has made or has
  The users current degree
 """
-""""""
+
 """#TODO: Rework using supabase
 class user():
     user_obj = supabase.auth.get_user()
@@ -59,10 +59,10 @@ class user():
         db.session.delete(self)
         db.session.commit()
 """
+
 """
 plan has an id, 'number', name, and will store the courses for that plan
 """
-
 class plan(db.Model):
     plan_id = db.Column( db.Integer, primary_key=True)
     plan_num = db.Column(db.Integer)

@@ -9,12 +9,11 @@ TODO: Finish the classes, app.routes to send and receive from site
 from flask import Flask, redirect, url_for, render_template, request, session, flash, jsonify
 from datetime import timedelta
 from flask_sqlalchemy import SQLAlchemy
+import supabase
 
-"""import os
-from supabase import auth, create_client, Client
-url: str = os.environ.get("https://qwydklzwvbrgvdomhxjb.supabase.co")
-key: str = os.environ.get("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF3eWRrbHp3dmJyZ3Zkb21oeGpiIiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTU0MDcxNjcsImV4cCI6MjAxMDk4MzE2N30.UNZJCMI1NxpSyFr8bBooIIGPqTbDe3N-_YV9ZHbE_1g")
-supabase: Client = create_client(url, key)"""
+url = "https://qwydklzwvbrgvdomhxjb.supabase.co"
+key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF3eWRrbHp3dmJyZ3Zkb21oeGpiIiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTU0MDcxNjcsImV4cCI6MjAxMDk4MzE2N30.UNZJCMI1NxpSyFr8bBooIIGPqTbDe3N-_YV9ZHbE_1g"
+supabase = supabase.create_client(url, key)
 
 app = Flask(__name__)
 app.secret_key = "planUMBCkey" #Secret key needed for sessions to get the encrypted data
@@ -30,25 +29,23 @@ ForeignKeys:
  The users current degree
 """
 
-"""#TODO: Rework using supabase
+#TODO: Rework using supabase
 class user():
-    user_obj = supabase.auth.get_user()
-    #user_id = supabase.table('user').select("id").execute()
-    #user_email = supabase.table('user').select("email").execute()
+    user_obj = None
+    user_email = None
     plan_id = None
     deg_id = None
 
-    #Split into sign up and sign in
+    #TODO:Split into sign up and sign in functions
+    #Just signs up a new user
     def __init__(self, email, password):
-        in_database = supabase.table('user').select('*').match({'email': email}).execute()
-        if not in_database:
+        in_auth = supabase.auth.get_user("email" == email)
+        if not in_auth:
             user = supabase.auth.sign_up({
                 "email": email,
                 "password": password
                 })
             self.user_obj = user
-        else:
-            data = supabase.auth.sign_in_with_password({"email": email, "password": password}) 
             self.user_email = email
 
     def add_commit(self):
@@ -58,7 +55,6 @@ class user():
     def delete(self):
         db.session.delete(self)
         db.session.commit()
-"""
 
 """
 plan has an id, 'number', name, and will store the courses for that plan
@@ -276,6 +272,14 @@ def test_course():
 
         new_crs = course(c_id,c_title, c_num, c_credits)
         return "Course made successfully"
+    
+@app.route("/users", methods=["POST", "GET"])
+def users():
+    email = request.form["email"]
+    session["email"] = email
+    password = request.form["password"]
+    session["password"] = password
+    new_user = user(email, password)
 
 @app.route("/view")
 def view():

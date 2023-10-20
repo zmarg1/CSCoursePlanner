@@ -1,60 +1,75 @@
-import sqlite3  #to use sqlite
+import sqlite3  # to use sqlite
 import psycopg2
-from flask import Flask, request, flash, redirect, url_for, render_template
+from flask import Flask, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
 
-#Constants
-DB_FILENAME = "planner.db"  # filename to form database for sqlite
+# create a flask app instance
+app = Flask(__name__)
 
-"""
-# function that initializes the db locally for sqlite
-def init_sqlite_database():
-    # try to connect to the database first
-    try:
-        conn = sqlite3.connect(DB_FILENAME)
-        print(f"Database {DB_FILENAME} created successfully.")
-    except:
-        print(f"Database {DB_FILENAME} not created.")
+# SQLALCHEMY configuration
+app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:2&?jL!Un?SV$Q5j@db.qwydklzwvbrgvdomhxjb.supabase.co:5432/postgres"
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  
 
-    # Close the connection
-    conn.close()
-"""
+# maps the database to an object
+db = SQLAlchemy(app)
 
-"""
-# initializes the db locally for postgresql
-def init_postgresql_local():
-    # establishing the db connection
-    conn = psycopg2.connect(database="postgres",
-                            user="postgres",
-                            host='localhost',
-                            password="NiJD557#",
-                            port=5432)
-    #
-    conn.autocommit = True
 
-    # Creating a cursor to do database operations
-    cursor = conn.cursor()
+class Course(db.Model):
+    __tablename__ = 'course'  # Specify the table name
 
-    # create a database via sql query
-    sql = ''' CREATE database plannerDB ''';
+    # Define the columns of the 'course' table
+    course_id = db.Column('course_id', db.Integer, primary_key = True)
+    subject_id = db.Column('subject_id', db.Integer,nullable = False)
+    course_title = db.Column('course_title', db.String(100), nullable = True)
+    course_num = db.Column('course_num', db.Integer,nullable = True)
+    credits = db.Column('credits', db.Integer,nullable = True)
 
-    # executes the database creation query
-    cursor.execute(sql)
-    print("Database has been created successfully !!");
+    # Add more columns here as needed
 
-    # Closing the connection
-    conn.close()
+    def __init__(self,course_title):
+        self.course_title = course_title
+        self.subject_id = subject_id
+        self.course_num = course_num
+        self.credits = credits
 
-"""
 
-# connects to database
-def connect_database():
+    def __repr__(self):
+        return f"Course_ID: {self.course_id} ({self.subject_id}), Course: {self.course_num} - {self.course_title} ({self.credits})"
+        
+@app.route('/')
+def hello():
+    print("Hey")
+
+# endpoint for getting one courses
+@app.route('/courses/<course_id>', methods = ['GET'])
+def get_course(course_id):
+    course = Course.query.filter_by(course_id = course_id).one()
+    return {'course:': repr(course)}
+
+# endpoint for getting all course
+@app.route('/courses/get_all_courses', methods = ['GET'])
+def get_all_courses():
+    courses = Course.query.order_by(Course.course_id.asc()).all() 
+    course_list = []
+    for course in courses:
+        course_list.append(repr(course))
+    return {'course:': course_list}
+
+# endpoint for creating a course
+@app.route('/courses/create_course', methods = ['POST'])
+def create_course():
+    new_course = Course(request.json['course_title'])
+    #db.session.add(new_course)
+    #db.session.commit()
+    return jsonify ({"success": "Success Post"})
+
+"""def connect_database():
 
     conn = psycopg2.connect(
-        host = 'db.qwydklzwvbrgvdomhxjb.supabase.co',
-        port = 5432,
-        user = 'postgres',
-        password = '2&?jL!Un?SV$Q5j',
+        host='db.qwydklzwvbrgvdomhxjb.supabase.co',
+        port=5432,
+        user='postgres',
+        password='2&?jL!Un?SV$Q5j',
         database='postgres'
     )
 
@@ -62,8 +77,8 @@ def connect_database():
 
     cursor = conn.cursor()
 
-    #insert_query = "insert into course (course_id, course_num) values (%s,%s)"
-    #cursor.execute(insert_query, (2, 313))
+    # insert_query = "insert into course (course_id, course_num) values (%s,%s)"
+    # cursor.execute(insert_query, (2, 313))
     conn.commit()
 
     cursor.execute("select * from course")
@@ -79,31 +94,9 @@ def connect_database():
 
     # Closing the connection
     conn.close()
-
-
-
 """
-def init_postgresql_remote():
-    API_URL = 'https://qwydklzwvbrgvdomhxjb.supabase.co'
-    API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF3eWRrbHp3dmJyZ3Zkb21oeGpiIiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTU0MDcxNjcsImV4cCI6MjAxMDk4MzE2N30.UNZJCMI1NxpSyFr8bBooIIGPqTbDe3N-_YV9ZHbE_1g'
-    supabase = create_client(API_URL, API_KEY)
-    supabase
 
-    conn.autocommit = True
-
-    cursor = conn.cursor()
-
-    cursor.execute("select * from course")
-
-    names = list(map(lambda x: x[0], cursor.description))
-
-    # retrieve the records from the database
-    records = cursor.fetchall()
-
-    print(records)
-    print(names)
-"""
 
 if __name__ == '__main__':
-    connect_database()
-    print("done")
+    app.run(debug=True)
+      

@@ -39,14 +39,18 @@ class user():
     #TODO:Split into sign up and sign in functions
     #Just signs up a new user
     def __init__(self, email, password):
-        in_auth = supabase.auth.get_user("email" == email)
-        if not in_auth:
-            user = supabase.auth.sign_up({
-                "email": email,
-                "password": password
-                })
-            self.user_obj = user
-            self.user_email = email
+        try:
+            in_auth = supabase.auth.get_user("email" == email)
+            print(in_auth)
+            if not in_auth:
+                user = supabase.auth.sign_up({
+                    "email": email,
+                    "password": password
+                    })
+                self.user_obj = user
+                self.user_email = email
+        except Exception as e:
+            print(f"Authentication error: {e} for {email}")
 
     def add_commit(self):
         db.session.add(self)
@@ -275,21 +279,14 @@ def test_course():
     
 @app.route("/users", methods=["POST", "GET"])
 def users():
-    email = request.form["email"]
-    session["email"] = email
-    password = request.form["password"]
-    session["password"] = password
-    new_user = user(email, password)
+    if request.method == "POST":
+        email = request.form["email"]
+        session["email"] = email
+        password = request.form["password"]
+        session["password"] = password
+        new_user = user(email, password)
+        return "Successfully added user"
 
-@app.route("/view")
-def view():
-    #To test with Postman by returning the json file of the courses
-    courses = course.query.all()
-    courses_json = [course.to_json() for course in courses]
-    return jsonify(courses_json) 
-    """To view on UI to the designated template if needed
-    return render_template("template.html", courses=Courses.query.all())
-    """
 
 if __name__ == "__main__":
     with app.app_context():

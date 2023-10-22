@@ -1,0 +1,98 @@
+course_id,subject_id,course_title,course_num,credits
+1,1,Computer Science I,201,4
+2,1,Computer Science II,202,4
+3,1,Discrete Structures,203,3
+4,1,Social and Ethical Issues in Information Technology,304,3
+5,1,Computer Organization and Assembly Language Programming,313,3
+6,1,Principles of Programming Language,331,3
+7,1,Data Structures,341,3
+8,1,Computer Architecture,411,3
+9,1,Principles of Operating Systems,421,3
+10,1,Design and Analysis of Algorithms,441,3
+11,1,Software Engineering I,447,3
+12,3,Calculus and Analytic Geometry I,151,4
+13,3,Calculus and Analytic Geometry II,152,4
+14,3,Introduction to Linear Algebra,221,3
+15,4,Introduction to Probability and Statistics for Scientists and Engineers,355,4
+16,4,Introduction to Probability Theory,451,3
+17,5,"Foundations of Biology: Cells, Energy and Organisms ",141,4
+18,5,Foundations of Biology: Ecology and Evolution,142,4
+19,6,Principles of Chemistry I,101,4
+20,6,Principles of Chemistry II,102,4
+21,7,Introductory Physics I,121,4
+22,7,Introductory Physics II,122,4
+23,6,Introductory Chemistry Lab I,102L,2
+24,8,Exploring the Environment: A Geo-Spatial Perspective,286,4
+25,7,Introductory Physics Laboratory,122L,3
+26,9,Quantitative Reasoning: Measurement and Skills Lab,101L,2
+27,3,Precalculus Mathematics,150,4
+28,3,Applied Calculus,155,4
+29,3,Differential Calculus,140,3
+30,10,Composition,100,3
+31,1,Advanced Computing,210,3
+32,2,Principles of Digital Design,212,4
+33,2,Systems Design and Programming,310,4
+34,2,"Probability, Statistics, and Random Processes",320,3
+35,4,Introduction to Probability and Statistics for Scientists and Engineers,355,4
+36,1,Intro to Computer Science,100,
+37,1,Intro to Computer Science,100H,
+38,1,Comput Thinking & Design,101,
+39,1,Prob Solving & Computer Prog,104,3
+40,1,Prob Sol & Computer Prog,104Y,4
+41,1,Computer Science II - Honors,202H,4
+42,1,Discrete Structures,203H,3
+43,1,Special Topics In CMSC,291,
+44,1,Ind Study:Computer Sci,299,
+45,1,Data Analysis and Structures,310,3
+46,1,Advanced C++,340,3
+47,1,Data Structures,341H,3
+48,1,Software Design/Develop,345,
+49,1,"Women,Gender & Info Technology",352,3
+50,1,"Women,Gender & Info Technology",352H,3
+51,1,Special Topics In CMSC,391,
+52,1,Undergrad Teaching Fellowship,396,
+53,1,The History of Computers and Computing,404,3
+54,1,Princ Computer Security,426,3
+55,1,Wearable Computing,427,3
+56,1,Compiler Design Princ,431,3
+57,1,Object-Orient Program,432,3
+58,1,Scripting Languages,433,3
+59,1,Computer Graphics,435,3
+60,1,Data Visualization,436,3
+61,1,Data Visualization Honors,436H,3
+62,1,Graphical User Interface Prog,437,3
+63,1,Graphics for Games,438,3
+64,1,Infomation & Coding Theory,442,3
+65,1,Cryptology,443,3
+66,1,Information Assurance,444,3
+67,1,Software Engineering II,445,3
+68,1,Design Patterns,446,3
+69,1,Software Engineering II,448,3
+70,1,Malware Analysis,449,3
+71,1,Automata Theory & Formal Lang,451,3
+72,1,Automata Thry& Form Lang,451H,3
+73,1,Logic For Comp Sci,452,3
+74,1,Appld Comb & Graph Thry,453,3
+75,1,Numerical Computations,455,3
+76,1,Symbolic Computation,456,3
+77,1,Quantum Computation,457,3
+78,1,Database Mangmt Systems,461,3
+79,1,Introduction to Data Science,462,3
+80,1,Artificial Intelligence,471,3
+81,1,Natural Lang Processing,473,3
+82,1,Introduction to Brain-Computer Interaction,474,3
+83,1,Neural Networks,475,3
+84,1,Information Retrieval,476,3
+85,1,Agent Architectures and Multi-Agent Systems,477,3
+86,1,Intro to Machine Learning,478,3
+87,1,Intro to Machine Learning,478H,3
+88,1,Introduction To Robotics,479,3
+89,1,Computer Networks,481,3
+90,1,Parallel & Distr Process,483,3
+91,1,Mobile Radio Comm,486,3
+92,1,Intro Network Security,487,3
+93,1,Spec Topics In Comp Sci,491,3
+94,1,Games Group Project,493,3
+95,1,Honors Thesis,495,3
+96,1,Independent Study in Computer Science for CMSC Interns and Coop Students ,498,3
+97,1,Independent Study in Computer Science,499,

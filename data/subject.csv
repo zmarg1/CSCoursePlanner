@@ -1,0 +1,11 @@
+subject_id,subject_code,subject_name
+1,CMSC,Computer Science
+2,CMPE,Computer Engineering
+3,MATH,Mathematics
+4,STAT,Statistics
+5,BIOL,Biological Sciences
+6,CHEM,Chemistry
+7,PHYS,Physics
+8,GES,Geography & Environmental Systems
+9,SCI,Science
+10,ENGL,English

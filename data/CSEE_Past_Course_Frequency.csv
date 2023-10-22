@@ -1,0 +1,112 @@
+class_code,class_number, class_name,Fall 2018,Winter 2020,Spring 2019,Summer 2019,Fall 2019,Winter 2020,Spring 2020,Summer 2020,Fall 2020,Winter 2021,Spring 2021,Summer 2021,Fall 2021,Winter 2022,Spring 2022,Summer 2022,Fall 2022,Winter 2023,Spring 2023,Summer 2023,Fall 2023
+CMSC,100,Intro to Computer Science,,,,,,,,,,,,,,,,,,,,,
+CMSC,100H,Intro to Computer Science,,,,,,,,,,,,,,,,,,,,,
+CMSC,101,Comput Thinking & Design,,,,,,,,,,,,,,,,,,,,,
+CMSC,104,Prob Solving & Computer Prog,2,,2,,2,,2,1,2,1,2,1,2,1,2,,2,1,2,,2
+CMSC,104Y,Prob Sol & Computer Prog,,,,,,,,,,,,,,,,,,,,,
+CMSC,201,Computer Science I,38,,22,,38,,21,,38,,21,,39,,21,,38,,21,,28
+CMSC,202,Computer Science II,17,,26,,17,,29,,17,,30,,17,,24,,18,,24,,18
+CMSC,202H,Computer Science II - Honors,,,,,,,,,,,,,,,,,,,,,
+CMSC,203,Discrete Structures,4,,6,1,4,,6,1,4,,7,1,4,,6,1,4,,6,1,5
+CMSC,203H,Discrete Structures,,,,,,,,,,,,,,,,,,,1,,
+CMSC,210,Advanced Computing,,,,,,,,,,,,,,,1,,,,,,
+CMSC,291,Special Topics In CMSC,,,,,1,,1,,1,,1,,,,,,,,,,
+CMSC,299,Ind Study:Computer Sci,1,,,,1,,,,,,,,,,1,1,1,,1,,
+CMSC,304,Social/Ethical Iss In IT,4,,6,1,6,,6,,6,,6,1,8,,5,1,7,,8,1,7
+CMSC,313,Comp Organ & Assemb Lang,4,,4,,4,,5,,6,,5,1,6,,6,1,6,,6,1,5
+CMSC,331,Prin Of Prog Languages,3,,4,1,4,,4,1,4,,5,1,7,,6,1,5,,6,1,5
+CMSC,340,Advanced C++,,,,,,,,,2,,,,2,,,,2,,,,2
+CMSC,341,Data Structures,7,,6,,7,,6,1,9,,6,1,9,,6,1,8,,5,1,8
+CMSC,341H,Data Structures,,,,,,,,,,,,,,,,,,,,,
+CMSC,345,Software Design/Develop,,,,,,,,,,,,,,,,,,,,,
+CMSC,352,"Women,Gender & Info Technology",,,1,,,,1,,,,1,,,,1,,,,1,,
+CMSC,391,Special Topics In CMSC,,,,,,,,,,,,,2,,2,,1,,1,,1
+CMSC,396,Undergrad Teaching Fellowship,,,,,,,,,1,,1,,1,,1,,2,,2,,1
+CMSC,411,Computer Architecture,4,,4,1,5,,5,1,5,,5,1,8,,6,1,7,,6,1,6
+CMSC,421,Princ Of Operating Systems,4,,4,,5,,4,,5,,5,1,5,,6,,5,,4,,5
+CMSC,426,Princ Computer Security,2,,3,,2,,2,1,3,,3,1,5,,4,1,4,,3,1,4
+CMSC,427,Wearable Computing,,,,,,,,,,,,,,,,,,,,,
+CMSC,431,Compiler Design Princ,,,,,,,,,,,,,,,,,,,,,
+CMSC,432,Object-Orient Program,,,,,,,,,,,,,,,,,,,,,
+CMSC,433,Scripting Languages,,,,1,,,,1,,,,1,,,,1,,,,1,
+CMSC,435,Computer Graphics,1,,1,,1,,1,,1,,1,,1,,1,,1,,1,,1
+CMSC,436,Data Visualization,,,,,1,,,,1,,,,1,,,,2,,1,,1
+CMSC,436H,Data Visualization Honors,,,,,,,,,,,,,,,,,1,,,,
+CMSC,437,Graphical User Interface Prog,,,,1,,,,1,,,,1,1,,1,1,1,,1,1,
+CMSC,441,Design& Analysis of Algorithms,4,,3,,4,,5,,5,,4,,6,,8,,7,,6,,7
+CMSC,442,Infomation & Coding Theory,1,,,,,,,,,,1,,,,2,,,,1,,
+CMSC,443,Cryptology,,,1,,,,1,,,,,,,,,,,,,,
+CMSC,444,Information Assurance,,,,,,,,,,,,,,,,,,,,,
+CMSC,445,Software Engineering II,,,,,,,,,,,,,,,,,,,,,
+CMSC,446,Design Patterns,,,,,,,,,,,,,,,,,,,,,
+CMSC,447,Software Engineering I,4,,4,,5,,5,,6,,5,,6,,7,,6,,7,,4
+CMSC,448,Software Engineering II,,,,,,,,,,,,,,,,,,,,,
+CMSC,449,Malware Analysis,,,,,,,,,,,,,,,1,,1,,1,,1
+CMSC,451,Automata Theory & Formal Lang,1,,,,1,,1,,,,1,1,1,,1,,1,,1,,1
+CMSC,451H,Automata Thry& Form Lang,,,,,,,,,,,,,,,,,,,,,
+CMSC,452,Logic For Comp Sci,,,,,,,,,,,,,,,,,,,,,
+CMSC,453,Appld Comb & Graph Thry,,,,,,,,,,,,,,,,,,,,,
+CMSC,455,Numerical Computations,1,,1,,1,,1,1,1,,1,1,1,,,,,,,,1
+CMSC,456,Symbolic Computation,,,,,,,,,,,,,,,,,,,,,
+CMSC,457,Quantum Computation,,,,,,,,,,,,,,,,,,,,,
+CMSC,461,Database Mangmt Systems,2,,2,1,3,,1,1,2,,1,1,2,,2,1,2,,2,1,2
+CMSC,462,Introduction to Data Science,,,,,,,,,,,1,,1,,1,,1,,1,,3
+CMSC,471,Artificial Intelligence,2,,3,,3,,5,,3,,4,1,5,,5,,2,,5,,2
+CMSC,473,Natural Lang Processing,1,,,,1,,,,1,,,,1,,,,1,,,,1
+CMSC,475,Neural Networks,,,,,,,,,,,,,,,,,,,,,
+CMSC,476,Information Retrieval,,,1,,,,1,,,,1,,,,1,,,,1,,
+CMSC,478,Intro to Machine Learning,1,,1,,1,,1,,1,,2,,3,,3,,2,,4,,4
+CMSC,479,Introduction To Robotics,,,,,,,1,,,,1,,,,,,,,,,
+CMSC,481,Computer Networks,1,,2,,1,,1,,2,,2,,4,,4,,2,,3,,2
+CMSC,483,Parallel & Distr Process,,,1,,,,1,,,,1,,,,1,,,,1,,
+CMSC,486,Mobile Radio Comm,,,,,,,,,,,,,,,,,,,,,
+CMSC,487,Intro Network Security,,,1,,,,1,,,,1,,,,1,,2,,1,,2
+CMSC,491,Spec Topics In Comp Sci,8,,4,1,7,,6,1,6,,5,,8,,9,,6,,5,,4
+CMSC,493,Games Group Project,,,1,,,,1,,,,1,,,,1,,,,1,,
+CMSC,495,Honors Thesis,,,,,,,,,,,,,,,,,,,,,
+CMSC,498,Indep Study:Intern/Coop,1,,1,,1,,1,,1,,,,1,,1,,1,,1,,1
+CMSC,499,Indep Study Computer Sci,4,,5,,4,1,4,1,5,,3,1,3,,3,1,6,,8,1,3
+CMSC,601,Research Skills For Cs,,,,,,,,,,,,,,,,,,,,,
+CMSC,608,Graduate Seminar,,,,,,,,,,,,,,,,,,,,,
+CMSC,611,Adv Computer Architectre,2,,2,,2,,1,,2,,2,,1,,1,,1,,1,,1
+CMSC,621,Adv Operating Systems,1,,2,,1,,1,,1,,1,,1,,1,,1,,1,,1
+CMSC,626,Princ Computer Security,,,2,,2,,,1,1,,1,,2,,1,,1,,2,,1
+CMSC,627,Wearable Computing,,,,,,,,,,,,,,,,,,,,,
+CMSC,628,Intro Mobile Comput,,,1,,,,,,,,1,,,,1,,,,1,,
+CMSC,634,Computer Graphics,1,,1,,1,,1,,1,,1,,1,,1,,1,,1,,1
+CMSC,635,Adv Comp Graphics,,,,,,,,,,,,,,,,,,,,,
+CMSC,636,Data Visualization,,,,,1,,,,1,,,,1,,,,2,,1,,1
+CMSC,641,Design & Analy Algorthms,2,,1,,2,,1,,1,,1,,3,,2,,2,,2,,2
+CMSC,643,Quantum Computation,,,1,,,,,,1,,,,1,,,,1,,,,1
+CMSC,644,Information Assurance,,,,,,,,,,,,,,,,,,,,,
+CMSC,645,Adv Software Engineering,,,,,,,,,,,,,,,,,,,,,
+CMSC,651,Automata Thry/Forml Lang,,,,,,,,,,,,,,,,,,,,,
+CMSC,652,Cryptography & Data Sec,,,2,,,,1,,,,,,,,,,,,,,
+CMSC,653,Coding Thry/Applications,2,,,,,,,,,,1,,,,1,,,,2,,
+CMSC,655,Numerical Computations,2,,,,1,,,,1,,,,1,,,,1,,,,1
+CMSC,656,Symbolic/Algebraic Proc,,,,,,,,,,,,,,,,,,,,,
+CMSC,661,Prin Of Database Sys,,,,,,,,,,,,,,,,,,,,,
+CMSC,668,Service Oriented Computing,2,,,,2,,,,1,,,,1,,,,1,,,,1
+CMSC,671,Prin Artificial Intell,2,,,,1,,,,1,,,,1,,,,1,,,,1
+CMSC,673,Intro Nat Lang Process,1,,,,1,,,,1,,,,1,,,,1,,,,1
+CMSC,675,Neural Networks,,,,,,,,,,,,,,,,,,,,,
+CMSC,676,Information Retrieval,,,1,,,,2,,,,1,,,,1,,,,1,,
+CMSC,677,Agent Arch/Multi-Agt Sys,,,,,,,,,,,,,,,,,,,,,
+CMSC,678,Intro Machine Learning,2,,2,,1,,2,,1,,1,,1,,1,,2,,1,,2
+CMSC,679,Intro To Robotics,,,,,,,1,,,,1,,,,,,,,,,
+CMSC,681,Advanced Comp Networks,1,,,,1,,,,1,,,,1,,,,1,,,,
+CMSC,682,Networking Technol,,,2,,,,1,,,,1,,,,1,,,,1,,
+CMSC,684,Wireless Sensor Networks,1,,,,,,1,,,,2,,,,,,1,,,,
+CMSC,687,Intro Network Security,,,1,,,,2,,,,1,,,,1,,1,,1,,1
+CMSC,688,Software Reverse Engineering,,,,,,,,,,,,,,,,,1,,,,1
+CMSC,691,Spec Topics In Comp Sci,7,,4,,7,,7,,5,,6,,8,,8,,8,,6,,5
+CMSC,696,Internship And Coop,,,,,,,,,,,,,,,1,1,1,,1,1,1
+CMSC,698,Proj In Computer Science,3,,7,1,7,,10,,4,,6,,1,,3,,1,,8,,
+CMSC,699,Ind Study In Comp Sci,11,,11,,6,,13,3,13,,12,2,6,,16,3,16,,19,1,5
+CMSC,7700,Master's Special Study,,,1,,1,,2,,1,,1,,1,,1,,1,,,,
+CMSC,791,Adv Graduate Seminar,1,,,,1,,,,1,,,,,,,,,,,,
+CMSC,799,Master's Thesis Research,11,,15,,13,,13,1,14,,12,1,9,,10,1,9,,10,,1
+CMSC,871,Adv Top Artifcial Intell,1,,,,1,,,,,,,,,,,,,,,,
+CMSC,8800,Doctoral Special Study,,,,,,,1,,,,1,,,,1,,,,,,
+CMSC,898,Pre Doc Candidacy Rsch,14,,15,1,17,,16,,16,,18,,18,,14,,10,,10,1,2
+CMSC,899,Doctoral Diss Research,13,,11,3,11,,9,1,12,,14,2,16,,14,4,14,,15,,3

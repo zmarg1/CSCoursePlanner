@@ -45,11 +45,54 @@ for _, row in original_df.iterrows():
 # Create a new DataFrame with the transformed data
 transformed_df = pd.DataFrame({
     "subject_code": subject_code_list,
-    "class_number": class_number_list,
+    "course_num": class_number_list,
     "term": term_list,  # Changed the column name to "term"
     "year": year_list,
     "frequency_count": frequency_count_list
 })
+
+# Define the course, subject, and term dataframes as lookup tables
+course_df = pd.read_excel("database_tables.xlsx", sheet_name="course")
+subject_df = pd.read_excel("database_tables.xlsx", sheet_name="subject")
+semester_df = pd.read_excel("database_tables.xlsx", sheet_name="semester")
+
+# Convert "course_num" to string data type
+transformed_df["course_num"] = transformed_df["course_num"].astype(str)
+
+# Merge to replace subject_code with subject_id
+transformed_df = transformed_df.merge(subject_df, on="subject_code", how="left")
+
+# Drop the subject_code column
+transformed_df = transformed_df.drop("subject_code", axis=1)
+
+# Clean the 'course_num' column by stripping white spaces
+transformed_df['course_num'] = transformed_df['course_num'].str.strip()
+
+# Convert the 'year' column in the transformed data to int64
+transformed_df['year'] = transformed_df['year'].astype('int64')
+
+# Replace "term" and "year" with "semester_id" from the term table
+transformed_df = transformed_df.merge(semester_df, left_on=["term", "year"], right_on=["term", "year"], how="left")
+transformed_df.drop(columns=["term", "year"], inplace=True)
+
+#print(transformed_df.head())
+#print(transformed_df.dtypes)
+#print(course_df.dtypes)
+
+# Step 3: Ensure data types and merge with the course table
+course_df['course_num'] = course_df['course_num'].astype(str)
+transformed_df['subject_id'] = transformed_df['subject_id'].astype(int)
+course_df['subject_id'] = course_df['subject_id'].astype(int)
+course_df['course_id'] = course_df['course_id'].astype(int)
+
+# Merge with the course table on both 'subject_id' and 'course_num'
+transformed_df = transformed_df.merge(course_df, on=['subject_id', 'course_num'], how='left')
+
+# Add an "offered_id" column
+transformed_df['offered_id'] = range(1, len(transformed_df) + 1)
+
+# Reorder the columns
+transformed_df = transformed_df[['offered_id', 'course_id', 'semester_id', 'frequency_count']]
 
 # Write the final transformed data to an Excel file
 transformed_df.to_excel("final_transformed_data.xlsx", index=False)

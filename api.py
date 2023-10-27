@@ -7,7 +7,7 @@ TODO: Finish the classes, app.routes to send and receive from site
 """
 
 from flask import Flask, redirect, url_for, render_template, request, session, flash, jsonify
-from datetime import timedelta
+from datetime import timedelta, datetime
 from flask_sqlalchemy import SQLAlchemy
 import supabase
 
@@ -28,11 +28,14 @@ ForeignKeys:
  The plan the user has made or has
  The users current degree
 """
-
-#TODO: Rework using supabase
+#TODO: Make def for adding plan_id and deg_id to the class variables from user obj in database
 class user():
+    #Example of how to interact with items from user_obj
+    #self.user_id = user_obj['id'] This can get the id, email
+    #custom_data = user_obj.get('app_metadata', {}) This gets the plan_id, degree_id, campus_id
     user_obj = None
-    user_email = None
+    user_id = None
+    user_campus_id = None
     plan_id = None
     deg_id = None
 
@@ -45,10 +48,17 @@ class user():
             if not in_auth:
                 user = supabase.auth.sign_up({
                     "email": email,
-                    "password": password
+                    "password": password,
+                    "options":{
+                        "data":{
+                            "plan_id": None,
+                            "degree_id": None,
+                            "campus_id": None
+                        }
+                    }
                     })
                 self.user_obj = user
-                self.user_email = email
+                self.user_id = user['id']
         except Exception as e:
             print(f"Authentication error: {e} for {email}")
 
@@ -63,19 +73,27 @@ class user():
 """
 plan has an id, 'number', name, and will store the courses for that plan
 """
+#TODO: Test to make sure Time, id, ForeignKey work add conditionals for inputs to check they are right
 class plan(db.Model):
     plan_id = db.Column( db.Integer, primary_key=True)
+
+    usr_id = db.Column('user_id', db.Integer, db.ForeignKey('auth.user.user_id'))
+    user = db.relationship('user', primaryjoin='plan.usr_id == user.user_id', backref=db.backref('user', lazy='dynamic'))
+
     plan_num = db.Column(db.Integer)
     plan_name = db.Column(db.String(100))
-    created_at = db.Column(db.Time)#might work
+    created_at = db.Column(db.Time)#need to test
 
-    #usr_id = db.Column('user_id', db.Integer, db.ForeignKey('user.user_id'))
-    #user = db.relationship('user', primaryjoin='plan.usr_id == user.user_id', backref=db.backref('user', lazy='dynamic'))
+    def __init__(self, num, name):
+        last_id = plan.query.order_by(plan.plan_id.desc()).first() #Should get last id in list if any
 
-    def __init__(self, id, num, name):
-        self.plan_id = id
+        if last_id:
+            self.plan_id = last_id[0] + 1
+        else:
+            self.plan_id = 1
         self.plan_num = num
         self.plan_name = name
+        self.created_at = datetime.now()
 
     def add_commit(self):
         db.session.add(self)
@@ -86,21 +104,23 @@ class plan(db.Model):
         db.session.commit()
 
 """
-The users degree with name and type
-ForeignKeys requirement type and subtype
+The users degree with name of degree and type of degree
 """
 class degree(db.Model):
     degree_id = db.Column(db.Integer, primary_key=True)
     deg_name = db.Column(db.String(100))
     deg_type = db.Column(db.String(100))
 
-    deg_req = db.Column('degree_requirement', db.String(100), db.ForeignKey('requirement.type'))
-    requirment = db.relationship('requirement', primaryjoin='degree.deg_req == requirement.type', backref=db.backref('requirement', lazy='dynamic'))
-
-    deg_sub_req = db.Column('degree_requirement_subtype', db.String(100), db.ForeignKey('requirement.subtype'))
-    requirment = db.relationship('requirement', primaryjoin='degree.deg_sub_req == requirement.subtype', backref=db.backref('requirement', lazy='dynamic'))
-
     def __init__(self, name, type):
+        #TODO: uncomment if plan last_id works
+        """
+        last_id = degree.query.order_by(degree.degree_id.desc()).first() #Should get last id in list if any
+
+        if last_id:
+            self.degree_id = last_id[0] + 1
+        else:
+            self.degree_id = 1
+        """
         self.deg_name = name
         self.deg_type = type
 
@@ -117,13 +137,23 @@ The requirements for the Degree containing its type and subtype
 """
 class requirement(db.Model):
     requirement_id = db.Column(db.Integer, primary_key=True)
-    type = db.Column(db.String(100))
-    subtype = db.Column(db.String(100))
 
     degree_id = db.Column(db.Integer, db.ForeignKey('degree.degree_id'))
     degree = db.relationship('degree', primaryjoin='requirement.degree_id == degree.degree_id', backref=db.backref('degree', lazy='dynamic'))
 
+    requirement_type = db.Column(db.String(100))
+    requirement_subtype = db.Column(db.String(100))
+
     def __init__(self, type, subtype):
+        #TODO: uncomment if plan last_id works
+        """
+        last_id = requirement.query.order_by(requirement.requirement_id.desc()).first() #Should get last id in list if any
+
+        if last_id:
+            self.requirement_id = last_id[0] + 1
+        else:
+            self.requirement_id = 1
+        """
         self.type = type
         self.subtype = subtype
 
@@ -135,12 +165,16 @@ class requirement(db.Model):
         db.session.delete(self)
         db.session.commit()
 
+#TODO: test ARRAY works
 class prereq(db.Model):
     prereq_id = db.Column(db.Integer, primary_key=True)
-    prereq_courses = db.Column(db.ARRAY(db.Integer))
 
     crs_id = db.Column('course_id', db.Integer, db.ForeignKey('course.course_id'))
     course = db.relationship('course', primaryjoin='prereq.crs_id == course.course_id', backref=db.backref('course', lazy='dynamic'))
+
+    prereq_courses = db.Column(db.ARRAY(db.Integer))
+    grade_required = db.Column(db.Integer)
+    
 
 """
 A course with its id, title, number, credits, and its prereq
@@ -148,6 +182,7 @@ ForeignKeys:
 subject it belongs to using the subjects code
 when it is offered using the term
 """
+#TODO: add definitions to modify, get, and check the course table and its child tables
 class course(db.Model):
     course_id = db.Column(db.Integer, primary_key=True)
     subject_id = db.Column(db.Integer)
@@ -220,12 +255,22 @@ class subject(db.Model):
 """
 Semester class holds the term and year a course is offered if offered
 """
+#TODO: add definitions to get term and year
 class semester(db.Model):
     semester_id = db.Column(primary_key=True)
     term = db.Column(db.String(100))
     year = db.Column(db.Integer)
 
     def __init__(self, term, year):
+        #TODO: uncomment if plan last_id works
+        """
+        last_id = requirement.query.order_by(semester.semester_id.desc()).first() #Should get last id in list if any
+
+        if last_id:
+            self.semester_id = last_id[0] + 1
+        else:
+            self.semester_id = 1
+        """
         self.term = term
         self.year = year
 
@@ -236,6 +281,7 @@ class semester(db.Model):
     def delete(self):
         db.session.delete(self)
         db.session.commit()
+
 
 class taken(db.Model):
     taken_id = db.Column(db.Integer, primary_key=True)

@@ -289,6 +289,7 @@ class semester(db.Model):
 """
 Takes the planned course and assigns it to the plan with the semester of the plan and the chosen requirement type from the course
 """
+#TODO: add def __init__, add_commit, delete, requirment_choice
 class taken(db.Model):
     taken_id = db.Column(db.Integer, primary_key=True)
 

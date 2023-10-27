@@ -9,7 +9,7 @@ TODO: Finish the classes, app.routes to send and receive from site
 from flask import Flask, redirect, url_for, render_template, request, session, flash, jsonify
 from datetime import timedelta, datetime
 from flask_sqlalchemy import SQLAlchemy
-import supabase
+import supabase #import supabase.py not supabase
 
 url = "https://qwydklzwvbrgvdomhxjb.supabase.co"
 key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF3eWRrbHp3dmJyZ3Zkb21oeGpiIiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTU0MDcxNjcsImV4cCI6MjAxMDk4MzE2N30.UNZJCMI1NxpSyFr8bBooIIGPqTbDe3N-_YV9ZHbE_1g"
@@ -38,6 +38,7 @@ class user():
     user_campus_id = None
     plan_id = None
     deg_id = None
+    admin = False
 
     #TODO:Split into sign up and sign in functions
     #Just signs up a new user
@@ -84,13 +85,8 @@ class plan(db.Model):
     plan_name = db.Column(db.String(100))
     created_at = db.Column(db.Time)#need to test
 
-    def __init__(self, num, name):
-        last_id = plan.query.order_by(plan.plan_id.desc()).first() #Should get last id in list if any
-
-        if last_id:
-            self.plan_id = last_id[0] + 1
-        else:
-            self.plan_id = 1
+    def __init__(self, id, num, name):
+        self.plan_id = id
         self.plan_num = num
         self.plan_name = name
         self.created_at = datetime.now()
@@ -202,9 +198,9 @@ class course(db.Model):
     db.Column('offered_id', db.Integer, primary_key=True),
     db.Column('course_id', db.Integer, db.ForeignKey('course.course_id')),
     db.Column('semester_id', db.Integer, db.ForeignKey('semester.semester_id')),
-    db.Column('is_offered', db.Boolean) )
+    db.Column('frequency', db.Integer) )
 
-    def __init__(self, id, title='NA', num=None, credits=None):
+    def __init__(self, id, title, num, credits):
         self.course_id = id
         self.crs_title = title
         self.crs_num = num
@@ -303,26 +299,43 @@ class taken(db.Model):
 @app.route("/test-course", methods=["POST", "GET"])
 def test_course():
     if request.method == "POST":
+        #Main Course table variables
         c_id = request.form["c_id"]
         session["c_id"] = c_id
+        c_subj_id = request.form["c_subj_id"]
+        session["c_subj_id"] = c_subj_id
         c_title = request.form ["c_title"]
         session["c_tittle"] = c_title
         c_num = request.form["c_num"]
         session["c_num"] = c_num
         c_credits = request.form["c_credits"]
-        """session["c_credits"] = c_credits
-        subj_id = request.form["subj_id"]
-        session["subj_id"] = subj_id
-        sem_offered = request.form["sem_offered"]
-        session["sem_offered"] = sem_offered
-        crs_req = request.form["crs_req"]
-        session["crs_req"] = crs_req
-        crs_offered = request.form["crs_offered"]
-        session["crs_offered"] = crs_offered"""
+        session["c_credits"] = c_credits
+
+        #Sub table Course required table variables
+        crs_req_r_id = request.form["crs_req_r_id"]
+        session["crs_req_r_id"] = crs_req_r_id
+        crs_req_c_id = request.form["crs_req_c_id"]
+        session["crs_req_c_id"] = crs_req_c_id
+
+        #Sub table Course offered table variables
+        crs_off_o_id = request.form["crs_off_o_id"]
+        session["crs_off_o_id"] = crs_off_o_id
+        crs_off_c_id = request.form["crs_off_c_id"]
+        session["crs_off_c_id"] = crs_off_c_id
+        crs_off_s_id = request.form["crs_off_s_id"]
+        session["crs_off_s_id"] = crs_off_s_id
+        crs_off_freq = request.form["crs_off_freq"]
+        session["crs_off_freq"] = crs_off_freq
+
 
         new_crs = course(c_id,c_title, c_num, c_credits)
+        new_crs.add_commit()
         return "Course made successfully"
     
+@app.route("/prereq", methods=["POST", "GET"])
+def test_prereq():
+    return "Test"
+
 @app.route("/users", methods=["POST", "GET"])
 def users():
     if request.method == "POST":
@@ -330,7 +343,7 @@ def users():
         session["email"] = email
         password = request.form["password"]
         session["password"] = password
-        new_user = user(email, password)
+        user(email, password)
         return "Successfully added user"
 
 

@@ -13,7 +13,7 @@ import supabase
 
 url = "https://qwydklzwvbrgvdomhxjb.supabase.co"
 key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF3eWRrbHp3dmJyZ3Zkb21oeGpiIiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTU0MDcxNjcsImV4cCI6MjAxMDk4MzE2N30.UNZJCMI1NxpSyFr8bBooIIGPqTbDe3N-_YV9ZHbE_1g"
-supabase = supabase.create_client(url, key)
+client = supabase.create_client(url, key)
 
 app = Flask(__name__)
 app.secret_key = "planUMBCkey" #Secret key needed for sessions to get the encrypted data
@@ -43,10 +43,10 @@ class user():
     #Just signs up a new user
     def __init__(self, email, password):
         try:
-            in_auth = supabase.auth.get_user("email" == email)
+            in_auth = client.auth.get_user("email" == email)
             print(in_auth)
             if not in_auth:
-                user = supabase.auth.sign_up({
+                user = client.auth.sign_up({
                     "email": email,
                     "password": password,
                     "options":{
@@ -85,7 +85,10 @@ class plan(db.Model):
     created_at = db.Column(db.Time)#need to test
 
     def __init__(self, num, name):
-        last_id = plan.query.order_by(plan.plan_id.desc()).first() #Should get last id in list if any
+        #supabase docs way test
+        last_id = client.table('auth.users').select('id').limit(1).order('id', ascending=True).execute() #Should get last id in list if any
+        #SQLalchemy way test
+        #last_id = plan.query.order_by(plan.plan_id.ascending()).first() #Should get last id in list if any
 
         if last_id:
             self.plan_id = last_id[0] + 1
@@ -112,7 +115,7 @@ class degree(db.Model):
     deg_type = db.Column(db.String(100))
 
     def __init__(self, name, type):
-        #TODO: uncomment if plan last_id works
+        #TODO: uncomment if plan last_id works 
         """
         last_id = degree.query.order_by(degree.degree_id.desc()).first() #Should get last id in list if any
 
@@ -323,6 +326,15 @@ def test_course():
         new_crs = course(c_id,c_title, c_num, c_credits)
         return "Course made successfully"
     
+@app.route("/test-plan", methods=["POST", "GET"])
+def test_plan():
+    if request.method == "POST":
+        plan_num = request.form["plan_num"]
+        session["plan_num"] = plan_num
+        plan_name = request.form["plan_name"]
+        session["plan_name"] = plan_name
+        new_plan = plan(plan_name, plan_num)
+
 @app.route("/users", methods=["POST", "GET"])
 def users():
     if request.method == "POST":

@@ -75,10 +75,6 @@ transformed_df['year'] = transformed_df['year'].astype('int64')
 transformed_df = transformed_df.merge(semester_df, left_on=["term", "year"], right_on=["term", "year"], how="left")
 transformed_df.drop(columns=["term", "year"], inplace=True)
 
-#print(transformed_df.head())
-#print(transformed_df.dtypes)
-#print(course_df.dtypes)
-
 # Step 3: Ensure data types and merge with the course table
 course_df['course_num'] = course_df['course_num'].astype(str)
 transformed_df['subject_id'] = transformed_df['subject_id'].astype(int)
@@ -91,8 +87,11 @@ transformed_df = transformed_df.merge(course_df, on=['subject_id', 'course_num']
 # Add an "offered_id" column
 transformed_df['offered_id'] = range(1, len(transformed_df) + 1)
 
+# Rename the "frequency_count" column to "frequency"
+transformed_df.rename(columns={"frequency_count": "frequency"}, inplace=True)
+
 # Reorder the columns
-transformed_df = transformed_df[['offered_id', 'course_id', 'semester_id', 'frequency_count']]
+transformed_df = transformed_df[['offered_id', 'course_id', 'semester_id', 'frequency']]
 
 # Write the final transformed data to an Excel file
 transformed_df.to_excel("final_transformed_data.xlsx", index=False)

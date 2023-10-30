@@ -10,6 +10,7 @@ from flask import Flask, redirect, url_for, render_template, request, session, f
 from datetime import timedelta, datetime
 from flask_sqlalchemy import SQLAlchemy
 import supabase #import supabase.py not supabase
+import time
 
 url = "https://qwydklzwvbrgvdomhxjb.supabase.co"
 key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF3eWRrbHp3dmJyZ3Zkb21oeGpiIiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTU0MDcxNjcsImV4cCI6MjAxMDk4MzE2N30.UNZJCMI1NxpSyFr8bBooIIGPqTbDe3N-_YV9ZHbE_1g"
@@ -29,7 +30,7 @@ ForeignKeys:
  The users current degree
 """
 #TODO: Make def for adding plan_id and deg_id to the class variables from user obj in database
-class user():
+class users():
     #Example of how to interact with items from user_obj
     #self.user_id = user_obj['id'] This can get the id, email
     #custom_data = user_obj.get('app_metadata', {}) This gets the plan_id, degree_id, campus_id
@@ -40,28 +41,35 @@ class user():
     deg_id = None
     admin = False
 
-    #TODO:Split into sign up and sign in functions
-    #Just signs up a new user
+    #TODO:Make a sign in function
+
+    #Signs up a new user
     def __init__(self, email, password):
-        try:
-            in_auth = client.auth.get_user("email" == email)
-            print(in_auth)
-            if not in_auth:
-                user = client.auth.sign_up({
-                    "email": email,
-                    "password": password,
-                    "options":{
-                        "data":{
-                            "plan_id": None,
-                            "degree_id": None,
-                            "campus_id": None
+        max_retries = 3
+        retry_count = 0
+        while retry_count < max_retries:
+            try:
+                in_auth = client.auth.get_user("email" == email)
+            
+                if not in_auth:
+                    user = client.auth.sign_up({
+                        "email": email,
+                        "password": password,
+                        "options":{
+                            "data":{
+                                "plan_id": None,
+                                "degree_id": None,
+                                "campus_id": None
+                            }
                         }
-                    }
-                    })
-                self.user_obj = user
-                self.user_id = user['id']
-        except Exception as e:
-            print(f"Authentication error: {e} for {email}")
+                        })
+                    self.user_obj = user
+                    self.user_id = user.user.id
+            except Exception as e:
+                print(f"Authentication error: {e} for {email}")
+                retry_count += 1
+                if retry_count < max_retries:
+                    time.sleep(10)
 
     def add_commit(self):
         db.session.add(self)
@@ -78,8 +86,7 @@ plan has an id, 'number', name, and will store the courses for that plan
 class plan(db.Model):
     plan_id = db.Column( db.Integer, primary_key=True)
 
-    usr_id = db.Column('user_id', db.Integer, db.ForeignKey('auth.user.user_id'))
-    user = db.relationship('user', primaryjoin='plan.usr_id == user.user_id', backref=db.backref('user', lazy='dynamic'))
+    user_id = db.Column(db.Integer)
 
     plan_num = db.Column(db.Integer)
     plan_name = db.Column(db.String(100))
@@ -87,17 +94,21 @@ class plan(db.Model):
 
     def __init__(self, num, name):
         #supabase docs way test
-        last_id = client.table('auth.users').select('id').limit(1).order('id', ascending=True).execute() #Should get last id in list if any
-        #SQLalchemy way test
-        #last_id = plan.query.order_by(plan.plan_id.ascending()).first() #Should get last id in list if any
-
-        if last_id:
+        last_id = client.table('plan').select('plan_id').limit(1).order('plan_id', desc=False).execute() #Should get last id in list if any
+       
+       #Testing view output
+        print("\nLast id " , last_id, "\n")
+        if last_id.data:
             self.plan_id = last_id[0] + 1
         else:
             self.plan_id = 1
         self.plan_num = num
         self.plan_name = name
         self.created_at = datetime.now()
+
+        curr_user = client.auth.get_user()
+        self.user_id = curr_user.user.id
+        print("User id ", self.user_id)
 
     def add_commit(self):
         db.session.add(self)
@@ -189,11 +200,9 @@ when it is offered using the term
 #TODO: add definitions to modify, get, and check the course table and its child tables
 class course(db.Model):
     course_id = db.Column(db.Integer, primary_key=True)
-    subject_id = db.Column(db.Integer)
-    """TODO:After changed to Foreignkey in databse uncomment and delete ^subject_id
     subj_id = db.Column('course_subject_id', db.Integer, db.ForeignKey('subject.subject_id'))
     subject = db.relationship('subject', primaryjoin='course.subj_id == subject.subject_id', backref=db.backref('subject', lazy='dynamic'))
-    """
+
     crs_title = db.Column('course_title',db.String(100))
     crs_num = db.Column('course_num',db.Integer)
     credits = db.Column(db.Integer)
@@ -307,8 +316,40 @@ class taken(db.Model):
 
     grade = db.Column(db.Integer)
 
+"""
+Add a course to the plan using the taken class
+First makes a plan and connects it to the current user
+Gets: 
+chosen course's id  
+requirements for that course
+semester course will be taken or has been taken
+grade for course if you have taken it
+"""
+@app.route("/test-make-plan", methods=["POST", "GET"])
+def test_make_plan():
+    if request.method == "POST":
+        std_class =  request.form["std_class"]
+        session["std_class"] = std_class
+
+        test_num = 1
+        test_name = "Amir_Plan"
+        #Testing using test user
+        curr_usr = client.auth.sign_in_with_password({"email": "test_user@umbc.edu", "password": "password"})
+        new_plan = plan(test_num, test_name)
+        new_plan.add_commit()
+        return "Successfully made plan"
+
+
+"""
+Will go through users plans and using their id's to go through
+taken and see if any of the courses have a grade and remove them from the view
+"""
+@app.route("/test-view-available-courses", methods=["POST", "GET"])
+def test_view_avl_courses():
+    pass
+
 @app.route("/test-course", methods=["POST", "GET"])
-def test_course():
+def test_add_course():
     if request.method == "POST":
         #Main Course table variables
         c_id = request.form["c_id"]
@@ -344,14 +385,14 @@ def test_course():
         return "Course made successfully"
     
 @app.route("/users", methods=["POST", "GET"])
-def users():
+def user_signup():
     if request.method == "POST":
         email = request.form["email"]
         session["email"] = email
         password = request.form["password"]
         session["password"] = password
-        user(email, password)
-        return "Successfully added user"
+        users(email, password)
+        return "Successfully signed up user"
 
 
 if __name__ == "__main__":

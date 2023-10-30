@@ -92,8 +92,8 @@ class plan(db.Model):
     plan_name = db.Column(db.String(100))
     created_at = db.Column(db.Time)#need to test
 
+    #Makes a plan for the user
     def __init__(self, num, name):
-        #supabase docs way test
         last_id = client.table('plan').select('plan_id').limit(1).order('plan_id', desc=False).execute() #Should get last id in list if any
        
        #Testing view output
@@ -308,13 +308,28 @@ class taken(db.Model):
     course_id = db.Column(db.String(100), db.ForeignKey('course.course_id'))
     course = db.relationship('course', primaryjoin='taken.course_id == course.course_id', backref=db.backref('course_taken', lazy='dynamic'))
 
-    req_id = db.Column('requirement_id', db.String(100), db.ForeignKey('requirement.requirement_id'))
-    requirement = db.relationship('requirement', primaryjoin='taken.req_id == requirement.requirement_id', backref=db.backref('requirement_taken', lazy='dynamic'))
+    requirement_id = db.Column(db.String(100), db.ForeignKey('requirement.requirement_id'))
+    requirement = db.relationship('requirement', primaryjoin='taken.requirement_id == requirement.requirement_id', backref=db.backref('requirement_taken', lazy='dynamic'))
 
-    sem_id = db.Column('semester_id', db.String(100), db.ForeignKey('semester.semester_id'))
-    semester = db.relationship('semester', primaryjoin='taken.sem_id == semester.semester_id', backref=db.backref('semester', lazy='dynamic'))
+    semester_id = db.Column(db.String(100), db.ForeignKey('semester.semester_id'))
+    semester = db.relationship('semester', primaryjoin='taken.semester_id == semester.semester_id', backref=db.backref('semester', lazy='dynamic'))
 
     grade = db.Column(db.Integer)
+
+    def __init__(self, pln_id, crs_id, req_id, sem_id, new_grade=None):
+        self.plan_id = pln_id
+        self.course_id = crs_id
+        self.requirement_id = req_id
+        self.semester_id = sem_id
+        self.grade = new_grade
+
+    def add_commit(self):
+        db.session.add(self)
+        db.session.commit()
+
+    def delete(self):
+        db.session.delete(self)
+        db.session.commit()
 
 """
 Add a course to the plan using the taken class
@@ -339,6 +354,23 @@ def test_make_plan():
         new_plan.add_commit()
         return "Successfully made plan"
 
+#adds a course to users plan using taken
+@app.route("/test-taken-add", methods=["POST", "GET"])
+def test_taken_add():
+    plan_id = request.form["plan_id"]
+    session["plan_id"] = plan_id
+    crs_id = request.form["crs_id"]
+    session["crs_id"] = crs_id
+    req_id = request.form["req_id"]
+    session["req_id"] = req_id
+    sem_id = request.form["sem_id"]
+    session["sem_id"] = sem_id
+    grade = None
+
+    add_to_plan = taken(plan_id, crs_id, req_id, sem_id, grade)
+    add_to_plan.add_commit()
+    return "Successfully added planned course"
+
 
 """
 Will go through users plans and using their id's to go through
@@ -348,42 +380,6 @@ taken and see if any of the courses have a grade and remove them from the view
 def test_view_avl_courses():
     pass
 
-@app.route("/test-course", methods=["POST", "GET"])
-def test_add_course():
-    if request.method == "POST":
-        #Main Course table variables
-        c_id = request.form["c_id"]
-        session["c_id"] = c_id
-        c_subj_id = request.form["c_subj_id"]
-        session["c_subj_id"] = c_subj_id
-        c_title = request.form ["c_title"]
-        session["c_tittle"] = c_title
-        c_num = request.form["c_num"]
-        session["c_num"] = c_num
-        c_credits = request.form["c_credits"]
-        session["c_credits"] = c_credits
-
-        #Sub table Course required table variables
-        crs_req_r_id = request.form["crs_req_r_id"]
-        session["crs_req_r_id"] = crs_req_r_id
-        crs_req_c_id = request.form["crs_req_c_id"]
-        session["crs_req_c_id"] = crs_req_c_id
-
-        #Sub table Course offered table variables
-        crs_off_o_id = request.form["crs_off_o_id"]
-        session["crs_off_o_id"] = crs_off_o_id
-        crs_off_c_id = request.form["crs_off_c_id"]
-        session["crs_off_c_id"] = crs_off_c_id
-        crs_off_s_id = request.form["crs_off_s_id"]
-        session["crs_off_s_id"] = crs_off_s_id
-        crs_off_freq = request.form["crs_off_freq"]
-        session["crs_off_freq"] = crs_off_freq
-
-
-        new_crs = course(c_id,c_title, c_num, c_credits)
-        new_crs.add_commit()
-        return "Course made successfully"
-    
 @app.route("/users", methods=["POST", "GET"])
 def user_signup():
     if request.method == "POST":

@@ -93,22 +93,27 @@ class plan(db.Model):
     created_at = db.Column(db.Time)#need to test
 
     #Makes a plan for the user
-    def __init__(self, num, name):
-        last_id = client.table('plan').select('plan_id').limit(1).order('plan_id', desc=False).execute() #Should get last id in list if any
-       
-       #Testing view output
-        print("\nLast id " , last_id, "\n")
-        if last_id.data:
-            self.plan_id = last_id[0] + 1
-        else:
-            self.plan_id = 1
-        self.plan_num = num
-        self.plan_name = name
-        self.created_at = datetime.now()
-
+    def __init__(self, num=1, name="default plan 0"):
         curr_user = client.auth.get_user()
         self.user_id = curr_user.user.id
-        print("User id ", self.user_id)
+
+        last_id = plan.query.order_by(plan.plan_id.desc()).first() #Should get last id in list if any
+        last_num = plan.query.filter(plan.user_id == self.user_id).order_by(plan.plan_num.desc()).first()
+
+       #Testing view output
+        if last_id:
+            self.plan_id = last_id.plan_id + 1
+        else:
+            self.plan_id = 1
+
+        if last_num:
+            self.plan_num = last_num.plan_num + 1
+            self.plan_name = f"default plan {self.plan_num}"
+        else:
+            self.plan_num = num
+            self.plan_name = name
+
+        self.created_at = datetime.now()
 
     def add_commit(self):
         db.session.add(self)
@@ -332,29 +337,19 @@ class taken(db.Model):
         db.session.commit()
 
 """
-Add a course to the plan using the taken class
-First makes a plan and connects it to the current user
-Gets: 
-chosen course's id  
-requirements for that course
-semester course will be taken or has been taken
-grade for course if you have taken it
+Makes an empty plan for the user
 """
+#TODO: add safety checks
 @app.route("/test-make-plan", methods=["POST", "GET"])
 def test_make_plan():
-    if request.method == "POST":
-        std_class =  request.form["std_class"]
-        session["std_class"] = std_class
-
-        test_num = 1
-        test_name = "Amir_Plan"
-        #Testing using test user
-        curr_usr = client.auth.sign_in_with_password({"email": "test_user@umbc.edu", "password": "password"})
-        new_plan = plan(test_num, test_name)
-        new_plan.add_commit()
-        return "Successfully made plan"
+    #Testing using test user
+    curr_usr = client.auth.sign_in_with_password({"email": "test_user@umbc.edu", "password": "password"})
+    new_plan = plan()
+    new_plan.add_commit()
+    return "Successfully made plan"
 
 #adds a course to users plan using taken
+#TODO: add safety checks
 @app.route("/test-taken-add", methods=["POST", "GET"])
 def test_taken_add():
     plan_id = request.form["plan_id"]
@@ -376,10 +371,18 @@ def test_taken_add():
 Will go through users plans and using their id's to go through
 taken and see if any of the courses have a grade and remove them from the view
 """
+#TODO: To do it
 @app.route("/test-view-available-courses", methods=["POST", "GET"])
 def test_view_avl_courses():
     pass
 
+"""
+Signs up the user
+Inputs:
+user email
+user password
+"""
+#TODO: add safety checks
 @app.route("/users", methods=["POST", "GET"])
 def user_signup():
     if request.method == "POST":

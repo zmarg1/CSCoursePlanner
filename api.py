@@ -41,12 +41,11 @@ class users():
     deg_id = None
     admin = False
 
-    #TODO:Make a sign in function
-
     #Signs up a new user
-    def __init__(self, email, password):
+    def signup(self, email, password):
         max_retries = 3
         retry_count = 0
+        user = None
         while retry_count < max_retries:
             try:
                 in_auth = client.auth.get_user("email" == email)
@@ -70,6 +69,15 @@ class users():
                 retry_count += 1
                 if retry_count < max_retries:
                     time.sleep(10)
+    
+    def signin(self, email, password):
+        try:
+            curr_usr = client.auth.sign_in_with_password({"email": email, "password": password})
+        except Exception as e:
+            print(f"Authentication error: {e} for {email}")
+            return None
+        
+        return curr_usr
 
     def add_commit(self):
         db.session.add(self)
@@ -97,7 +105,7 @@ class plan(db.Model):
         curr_user = client.auth.get_user()
         self.user_id = curr_user.user.id
 
-        last_id = plan.query.order_by(plan.plan_id.desc()).first() #Should get last id in list if any
+        last_id = plan.query.order_by(plan.plan_id.desc()).first() #Get last id in list if any
         last_num = plan.query.filter(plan.user_id == self.user_id).order_by(plan.plan_num.desc()).first()
 
        #Testing view output
@@ -195,7 +203,6 @@ class prereq(db.Model):
     prereq_courses = db.Column(db.ARRAY(db.Integer))
     grade_required = db.Column(db.Integer)
     
-
 """
 A course with its id, title, number, credits, and its prereq
 ForeignKeys: 
@@ -337,13 +344,57 @@ class taken(db.Model):
         db.session.commit()
 
 """
+Signs up the user
+Inputs:
+user email
+user password
+"""
+#TODO: add safety checks
+@app.route("/user-signup", methods=["POST", "GET"])
+def user_signup():
+    if request.method == "POST":
+        email = request.form["email"]
+        password = request.form["password"]
+        cur_user = users()
+        cur_user.signup(email, password)
+        if cur_user:
+            return "Successfully signed up user"
+        
+        return "Failed to sign up user"
+    
+"""
+Sign in the user
+Inputs:
+user email
+user password
+"""
+#TODO: add safety checks
+@app.route("/user-signin", methods=["POST", "GET"])
+def user_signin():
+    if request.method == "POST":
+        email = request.form["email"]
+        password = request.form["password"]
+        curr_user = users()
+        in_auth = curr_user.signin(email, password)
+        if in_auth == None:
+            return "Failed to sign in user"
+        
+        session["user_id"] = curr_user.user_id
+        return "Successfully signed in user"
+
+"""
 Makes an empty plan for the user
 """
 #TODO: add safety checks
 @app.route("/test-make-plan", methods=["POST", "GET"])
 def test_make_plan():
     #Testing using test user
-    curr_usr = client.auth.sign_in_with_password({"email": "test_user@umbc.edu", "password": "password"})
+    email = "test_user@umbc.edu"
+    password = "password"
+    
+    curr_usr = users()
+    curr_usr.signin(email, password)
+
     new_plan = plan()
     new_plan.add_commit()
     return "Successfully made plan"
@@ -375,23 +426,6 @@ taken and see if any of the courses have a grade and remove them from the view
 @app.route("/test-view-available-courses", methods=["POST", "GET"])
 def test_view_avl_courses():
     pass
-
-"""
-Signs up the user
-Inputs:
-user email
-user password
-"""
-#TODO: add safety checks
-@app.route("/users", methods=["POST", "GET"])
-def user_signup():
-    if request.method == "POST":
-        email = request.form["email"]
-        session["email"] = email
-        password = request.form["password"]
-        session["password"] = password
-        users(email, password)
-        return "Successfully signed up user"
 
 
 if __name__ == "__main__":

@@ -64,11 +64,13 @@ class users():
                         })
                     self.user_obj = user
                     self.user_id = user.user.id
+                    return True
             except Exception as e:
                 print(f"Authentication error: {e} for {email}")
                 retry_count += 1
                 if retry_count < max_retries:
                     time.sleep(10)
+        return False
     
     def signin(self, email, password):
         try:

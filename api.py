@@ -221,7 +221,8 @@ class course(db.Model):
 
     crs_required = db.Table('courses_required',
     db.Column('requirement_id', db.Integer, db.ForeignKey('requirement.requirement_id')),
-    db.Column('course_id', db.Integer, db.ForeignKey('course.course_id')))
+    db.Column('course_id', db.Integer, db.ForeignKey('course.course_id')),
+    db.Column('course_options', db.Integer))
 
     crs_offered = db.Table('course_offered',
     db.Column('offered_id', db.Integer, primary_key=True),

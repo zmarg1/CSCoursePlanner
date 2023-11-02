@@ -389,8 +389,8 @@ Makes an empty plan for the user
 @app.route("/test-make-plan", methods=["POST", "GET"])
 def test_make_plan():
     #Testing using test user
-    email = "test_user@umbc.edu"
-    password = "password"
+    email = request.form["email"]
+    password = request.form["password"]
     
     curr_usr = users()
     curr_usr.signin(email, password)

@@ -1,7 +1,7 @@
 """
 Author: Amir Hawkins-Stewart
 
-Description: Currently class definitions for the planUMBC tables in supabase
+Description: Makes objects of the databse tables, sends and recieves data from the supabase databse.
 
 TODO: Finish the classes, app.routes to send and receive from site 
 """
@@ -78,8 +78,10 @@ class users():
         except Exception as e:
             print(f"Authentication error: {e} for {email}")
             return None
-        
         return curr_usr
+    
+    def signout(self):
+        pass
 
     def add_commit(self):
         db.session.add(self)
@@ -103,7 +105,7 @@ class plan(db.Model):
     created_at = db.Column(db.Time)#need to test
 
     #Makes a plan for the user
-    def __init__(self, num=1, name="default plan 0"):
+    def __init__(self, num=0, name="default plan 0"):
         curr_user = client.auth.get_user()
         self.user_id = curr_user.user.id
 
@@ -118,7 +120,7 @@ class plan(db.Model):
 
         if last_num:
             self.plan_num = last_num.plan_num + 1
-            self.plan_name = f"default plan {self.plan_num}"
+            self.plan_name = f"default plan {self.plan_num - 1}"
         else:
             self.plan_num = num
             self.plan_name = name
@@ -195,7 +197,6 @@ class requirement(db.Model):
         db.session.delete(self)
         db.session.commit()
 
-#TODO: test ARRAY works
 class prereq(db.Model):
     prereq_id = db.Column(db.Integer, primary_key=True)
 
@@ -214,17 +215,12 @@ when it is offered using the term
 #TODO: add definitions to modify, get, and check the course table and its child tables
 class course(db.Model):
     course_id = db.Column(db.Integer, primary_key=True)
-    subj_id = db.Column('course_subject_id', db.Integer, db.ForeignKey('subject.subject_id'))
-    subject = db.relationship('subject', primaryjoin='course.subj_id == subject.subject_id', backref=db.backref('subject', lazy='dynamic'))
+    subject_id = db.Column(db.Integer, db.ForeignKey('subject.subject_id'))
+    subject = db.relationship('subject', primaryjoin='course.subject_id == subject.subject_id', backref=db.backref('subject', lazy='dynamic'))
 
-    crs_title = db.Column('course_title',db.String(100))
-    crs_num = db.Column('course_num',db.Integer)
+    course_title = db.Column(db.String(100))
+    course_num = db.Column(db.Integer)
     credits = db.Column(db.Integer)
-
-    crs_required = db.Table('courses_required',
-    db.Column('requirement_id', db.Integer, db.ForeignKey('requirement.requirement_id')),
-    db.Column('course_id', db.Integer, db.ForeignKey('course.course_id')),
-    db.Column('course_options', db.Integer))
 
     crs_offered = db.Table('course_offered',
     db.Column('offered_id', db.Integer, primary_key=True),
@@ -232,7 +228,13 @@ class course(db.Model):
     db.Column('semester_id', db.Integer, db.ForeignKey('semester.semester_id')),
     db.Column('frequency', db.Integer) )
 
-    def __init__(self, id, title, num, credits):
+    crs_required = db.Table('courses_required',
+    db.Column('requirement_id', db.Integer, db.ForeignKey('requirement.requirement_id')),
+    db.Column('course_id', db.Integer, db.ForeignKey('course.course_id')),
+    db.Column('course_options', db.ARRAY(db.Integer)))
+
+
+    def add_course(self, id, title, num, credits):
         self.course_id = id
         self.crs_title = title
         self.crs_num = num
@@ -249,16 +251,6 @@ class course(db.Model):
     def add_prereq(self, req):
         self.prereq = req
         db.session.commit()
-
-    #For use with Postman
-    def to_json(self):
-        return{
-            "course_id": self.course_id,
-            "subject_id": self.subject_id,
-            "course_title": self.crs_title,
-            "course_num": self.crs_num,
-            "credits": self.credits,
-        }
 
 """
 Subject of the course containing the subject id, code, and name
@@ -353,17 +345,16 @@ user email
 user password
 """
 #TODO: add safety checks
-@app.route("/user-signup", methods=["POST", "GET"])
+@app.route("/user-signup", methods=["POST"])
 def user_signup():
-    if request.method == "POST":
-        email = request.form["email"]
-        password = request.form["password"]
-        cur_user = users()
-        cur_user.signup(email, password)
-        if cur_user:
-            return "Successfully signed up user"
+    email = request.form["email"]
+    password = request.form["password"]
+    cur_user = users()
+    cur_user.signup(email, password)
+    if cur_user:
+        return "Successfully signed up user"
         
-        return "Failed to sign up user"
+    return "Failed to sign up user"
     
 """
 Sign in the user
@@ -372,18 +363,17 @@ user email
 user password
 """
 #TODO: add safety checks
-@app.route("/user-signin", methods=["POST", "GET"])
+@app.route("/user-signin", methods=["POST"])
 def user_signin():
-    if request.method == "POST":
-        email = request.form["email"]
-        password = request.form["password"]
-        curr_user = users()
-        in_auth = curr_user.signin(email, password)
-        if in_auth == None:
-            return "Failed to sign in user"
+    email = request.form["email"]
+    password = request.form["password"]
+    curr_user = users()
+    in_auth = curr_user.signin(email, password)
+    if in_auth == None:
+        return "Failed to sign in user"
         
-        session["user_id"] = curr_user.user_id
-        return "Successfully signed in user"
+    session["user_id"] = curr_user.user_id
+    return "Successfully signed in user"
 
 """
 Makes an empty plan for the user
@@ -420,15 +410,27 @@ def test_taken_add():
     add_to_plan.add_commit()
     return "Successfully added planned course"
 
+"""
+Returns all the courses in the database
+"""
+@app.route("/view-all-courses", methods=["GET"])
+def test_view_all_courses():
+    courses = course.query.all()
+    result = []
 
-"""
-Will go through users plans and using their id's to go through
-taken and see if any of the courses have a grade and remove them from the view
-"""
-#TODO: To do it
-@app.route("/test-view-available-courses", methods=["POST", "GET"])
-def test_view_avl_courses():
-    pass
+    for crs in courses:
+        subj_code = crs.subject.sub_code
+        result.append([subj_code,crs.course_num,crs.course_title,crs.credits])
+        """Dictionary version
+        result.append({
+            'subject_code': subj_code,
+            'course_num': crs.course_num,
+            'course_title': crs.course_title ,
+            'credits': crs.credits
+        })
+        """
+
+    return jsonify(result)
 
 
 if __name__ == "__main__":

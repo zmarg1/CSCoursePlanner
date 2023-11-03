@@ -1,27 +1,31 @@
 import { lazy, Suspense } from "react";
-import { Switch, Route } from "react-router-dom";
+import { Routes , Route } from "react-router-dom";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
 import routes from "./config";
 import { Styles } from "../styles/styles";
+import SignIn from "../components/SignIn";
 
 const Router = () => {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<div>Loading...</div>}>
       <Styles />
       <Header />
-      <Switch>
+      <Routes>
         {routes.map((routeItem) => {
+          // Dynamically create the JSX element for the lazy component
+          const Component = lazy(() => import(`../pages/${routeItem.component}`));
           return (
             <Route
-              key={routeItem.component}
+              key={routeItem.key} // Make sure to use a unique key for each route
               path={routeItem.path}
-              exact={routeItem.exact}
-              component={lazy(() => import(`../pages/${routeItem.component}`))}
+              element={<Component />} // Use the 'element' prop for JSX elements
             />
           );
         })}
-      </Switch>
+        {/* Add the SignIn route directly */}
+        <Route path="/user-signin" element={<SignIn />} />
+      </Routes>
       <Footer />
     </Suspense>
   );

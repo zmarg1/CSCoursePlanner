@@ -11,6 +11,16 @@ import {
   MinTitle,
   MinPara,
 } from "./styles";
+import { useNavigate } from "react-router-dom";
+import {Button} from "../../../common/Button";
+
+const scrollTo = (id: string) => {
+  const element = document.getElementById(id) as HTMLDivElement;
+  element.scrollIntoView({
+    behavior: "smooth",
+  });
+}
+
 
 const LeftContentBlock = ({
   icon,
@@ -20,6 +30,20 @@ const LeftContentBlock = ({
   t,
   id,
 }: ContentBlockProps) => {
+  const navigate = useNavigate(); // useNavigate must be called within the component
+
+  const handleNavigate = (buttonLabel: string) => {
+    console.log(`Button clicked: ${buttonLabel}`); // For debugging
+
+    if (buttonLabel === 'Course Plans') {
+      console.log('Navigating to /test-make-plan'); // For debugging
+      navigate('/test-make-plan');
+    } else {
+      console.log('Scrolling to about'); // For debugging
+      scrollTo("about"); // scrollTo should be defined or handled here
+    }
+  };
+
   return (
     <LeftContentSection>
       <Fade direction="right">
@@ -45,6 +69,9 @@ const LeftContentBlock = ({
                     })}
                 </Row>
               </ServiceWrapper>
+              <Button onClick={() => handleNavigate('Course Plans')}>
+                {t('Course Plans')}
+              </Button>
             </ContentWrapper>
           </Col>
         </Row>

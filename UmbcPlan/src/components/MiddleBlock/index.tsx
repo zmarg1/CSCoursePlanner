@@ -3,6 +3,7 @@ import { withTranslation } from "react-i18next";
 import { Fade } from "react-awesome-reveal";
 import { Button } from "../../common/Button";
 import { MiddleBlockSection, Content, ContentWrapper } from "./styles";
+import { useNavigate } from "react-router-dom";
 
 interface MiddleBlockProps {
   title: string;
@@ -19,6 +20,21 @@ const MiddleBlock = ({ title, content, button, id, t }: MiddleBlockProps) => {
       behavior: "smooth",
     });
   };
+
+  const navigate = useNavigate();
+  const handleNavigate = (buttonLabel: string) => {
+    console.log(`Button clicked: ${buttonLabel}`); // For debugging
+  
+    if (buttonLabel === '+') {
+      console.log('Navigating to /test-make-plan'); // For debugging
+      navigate('/test-make-plan');
+    } else {
+      console.log('Scrolling to mission'); // For debugging
+      scrollTo("about");
+    }
+  };
+  
+
   return (
     <MiddleBlockSection>
       <Fade direction="left">
@@ -28,7 +44,10 @@ const MiddleBlock = ({ title, content, button, id, t }: MiddleBlockProps) => {
               <h6>{t(title)}</h6>
               <Content>{t(content)}</Content>
               {button && (
-                <Button name="submit" onClick={() => scrollTo("mission")}>
+                <Button
+                  name="submit"
+                  onClick={() => handleNavigate(t(button))}
+                >
                   {t(button)}
                 </Button>
               )}

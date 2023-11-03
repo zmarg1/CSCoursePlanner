@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Row, Col, Drawer } from "antd";
+import { useNavigate } from 'react-router-dom';
 import { withTranslation } from "react-i18next";
 import Container from "../../common/Container";
 import { SvgIcon } from "../../common/SvgIcon";
-//import { Button } from "../../common/Button";
 import {
   HeaderSection,
   LogoContainer,
@@ -18,6 +18,7 @@ import {
 
 const Header = ({ t }: any) => {
   const [visible, setVisibility] = useState(false);
+  const navigate = useNavigate();
 
   const showDrawer = () => {
     setVisibility(!visible);
@@ -27,40 +28,68 @@ const Header = ({ t }: any) => {
     setVisibility(!visible);
   };
 
+  const handleNavigationClick = (path: string, id?: string) => {
+    // Close the drawer if open
+    setVisibility(false);
+    // Navigate to the path
+    navigate(path, {
+      state: { scrollToId: id } // Pass along the id to scroll to
+    });
+  };
+
+  // const handleScrollToSection = (id: string) => {
+  //   // Allow the DOM to update before trying to scroll
+  //   setTimeout(() => {
+  //     const element = document.getElementById(id);
+  //     if (element) {
+  //       element.scrollIntoView({ behavior: 'smooth' });
+  //     }
+  //   }, 0);
+  // };
+
+ const handleSignInClick = () => {
+    navigate('/user-signin'); // Navigate to your sign-in route
+  };
+
+  const handlePlanClick = () => {
+    navigate('/test-make-plan'); // Navigate to your sign-in route
+  };
+
+  // const handleAboutClick = () => {
+  //   navigate('/'); // Navigate to your sign-in route
+  // };
+
+  // const handleContactClick = () => {
+  //   navigate('/'); // Navigate to your sign-in route
+  // };
+
+  // const scrollTo = (id: string) => {
+  //   const element = document.getElementById(id) as HTMLDivElement;
+  //   element.scrollIntoView({
+  //     behavior: "smooth",
+  //   });
+  //   setVisibility(false);
+  // };
+
   const MenuItem = () => {
-    const scrollTo = (id: string) => {
-      const element = document.getElementById(id) as HTMLDivElement;
-      element.scrollIntoView({
-        behavior: "smooth",
-      });
-      setVisibility(false);
-    };
     return (
       <>
-        <SvgIcon src="user.svg" width="100px" height="50px" /> 
-        <CustomNavLinkSmall onClick={() => scrollTo("home")}>
-            <Span>{t("Home")}</Span>
+        <CustomNavLinkSmall onClick={() => handleNavigationClick('/', 'home')}>
+          <Span>{t("Home")}</Span>
         </CustomNavLinkSmall>
-        <CustomNavLinkSmall onClick={() => scrollTo("plan")}>
-            <Span>{t("Plan")}</Span>
+        <CustomNavLinkSmall onClick={handlePlanClick}>
+          <Span>{t("Plan")}</Span>
         </CustomNavLinkSmall>
-        <CustomNavLinkSmall onClick={() => scrollTo("about")}>
+        <CustomNavLinkSmall onClick={() => handleNavigationClick('/', 'about')}>
           <Span>{t("About")}</Span>
         </CustomNavLinkSmall>
-        <CustomNavLinkSmall onClick={() => scrollTo("contact")}>
+        <CustomNavLinkSmall onClick={() => handleNavigationClick('/', 'contact')}>
           <Span>{t("Contact")}</Span>
         </CustomNavLinkSmall>
-      </>
-      /*
-        <CustomNavLinkSmall
-          style={{ width: "180px" }}
-          onClick={() => scrollTo("plan")}
-        >
-          <Span>
-            <Button>{t("Create Plan")}</Button>
-          </Span>
+        <CustomNavLinkSmall onClick={handleSignInClick}>
+          <Span>{t("Sign In")}</Span>
         </CustomNavLinkSmall>
-      */
+      </>
     );
   };
 
@@ -72,7 +101,7 @@ const Header = ({ t }: any) => {
             <MenuItem />
           </NotHidden>
           <LogoContainer to="/" aria-label="homepage">
-            <SvgIcon src="logo.svg" width="141px" height="64px" />  
+            <SvgIcon src="logo.svg" width="141px" height="64px" />
           </LogoContainer>
           <Burger onClick={showDrawer}>
             <Outline />
@@ -82,7 +111,7 @@ const Header = ({ t }: any) => {
           <Col style={{ marginBottom: "2.5rem" }}>
             <Label onClick={onClose}>
               <Col span={12}>
-                <Menu>Menu</Menu>
+                <Menu>{t("Menu")}</Menu>
               </Col>
               <Col span={12}>
                 <Outline />

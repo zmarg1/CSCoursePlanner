@@ -10,6 +10,8 @@ import {
   ContentWrapper,
   ButtonWrapper,
 } from "./styles";
+import { useNavigate } from "react-router-dom";
+
 
 const RightBlock = ({
   title,
@@ -25,6 +27,21 @@ const RightBlock = ({
       behavior: "smooth",
     });
   };
+
+  const navigate = useNavigate(); // useNavigate must be called within the component
+
+  const handleNavigate = (buttonLabel: string) => {
+    console.log(`Button clicked: ${buttonLabel}`); // For debugging
+
+    if (buttonLabel === 'Make Plan') {
+      console.log('Navigating to /test-make-plan'); // For debugging
+      navigate('/test-make-plan');
+    } else {
+      console.log('Scrolling to mission'); // For debugging
+      scrollTo("about"); // scrollTo should be defined or handled here
+    }
+  };
+
   return (
     <RightBlockContainer>
       <Fade direction="right">
@@ -41,7 +58,7 @@ const RightBlock = ({
                         key={id}
                         color={item.color}
                         fixedWidth={true}
-                        onClick={() => scrollTo("about")}
+                        onClick={() => handleNavigate(item.title)}
                       >
                         {t(item.title)}
                       </Button>

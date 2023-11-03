@@ -3,6 +3,8 @@ import IntroContent from "../../content/IntroContent.json";
 import MiddleBlockContent from "../../content/MiddleBlockContent.json";
 import AboutContent from "../../content/AboutContent.json";
 import ContactContent from "../../content/ContactContent.json";
+import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
 
 const Contact = lazy(() => import("../../components/ContactForm"));
 const MiddleBlock = lazy(() => import("../../components/MiddleBlock"));
@@ -11,6 +13,20 @@ const ScrollToTop = lazy(() => import("../../common/ScrollToTop"));
 const ContentBlock = lazy(() => import("../../components/ContentBlock"));
 
 const Home = () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    // Check if the location state has a scrollToId value
+    if (location.state?.scrollToId) {
+      const elementId = location.state.scrollToId;
+      const element = document.getElementById(elementId);
+      if (element) {
+        // Scroll to the element smoothly
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+  }, [location]);
+
   return (
     <Container> 
       <ScrollToTop />
@@ -19,7 +35,7 @@ const Home = () => {
         title={IntroContent.title}
         content={IntroContent.text}
         button={IntroContent.button}
-        icon="developer.svg"
+        icon="CrowdAI.jpeg"
         id="home"
       />
       <MiddleBlock
@@ -33,7 +49,7 @@ const Home = () => {
         title={AboutContent.title}
         content={AboutContent.text}
         section={AboutContent.section}
-        icon="graphs.svg"
+        icon="UMBCRetrieverAI.svg"
         id="about"
       />
       <Contact

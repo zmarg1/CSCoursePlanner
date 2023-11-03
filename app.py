@@ -407,8 +407,6 @@ def admin():
 def get_course(course_id):
     my_course = course.query.get(course_id)
     return course_schema.jsonify(my_course) 
-    """my_course = course.query.filter_by(course_id = course_id).one()
-    return {'course:': my_course.to_json()}"""
 
 
 # endpoint for getting all course
@@ -417,11 +415,6 @@ def get_all_courses():
     all_courses = course.query.order_by(course.course_id.asc()).all()
     courses_dump = courses_schema.dump(all_courses)
     return jsonify(courses_dump)
-    """courses = course.query.order_by(course.course_id.asc()).all() 
-    course_list = []
-    for course_item in courses:
-        course_list.append(course_item.to_json())
-    return {'courses:': course_list}"""
 
 
 # endpoint for creating a course

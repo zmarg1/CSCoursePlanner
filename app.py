@@ -10,13 +10,13 @@ from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from marshmallow import fields
 from flask_marshmallow import Marshmallow
-import supabase #import supabase.py not supabase
+from supabase import create_client #import supabase.py not supabase
 from datetime import timedelta, datetime
 import time
 
 url = "https://qwydklzwvbrgvdomhxjb.supabase.co"
 key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF3eWRrbHp3dmJyZ3Zkb21oeGpiIiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTU0MDcxNjcsImV4cCI6MjAxMDk4MzE2N30.UNZJCMI1NxpSyFr8bBooIIGPqTbDe3N-_YV9ZHbE_1g"
-client = supabase.create_client(url, key)
+client = create_client(url, key)
 
 app = Flask(__name__)
 app.secret_key = "planUMBCkey" #Secret key needed for sessions to get the encrypted data
@@ -29,10 +29,10 @@ ma = Marshmallow(app)
 
 
 """
-The User will have an id, name, 'user'
-ForeignKeys:
- The plan the user has made or has
- The users current degree
+The user object class to interact with the authorization table in supabase
+user_obj - Stores the created supabase 'user' object
+admin - The users permission level
+campus_id - The campus id of the given user
 """
 #TODO: Make def for adding plan_id and deg_id to the class variables from user obj in database
 class users():
@@ -41,34 +41,44 @@ class users():
     admin = user.user.user_metadata.get('admin')
     user.user.user_metadata['campus_id'] = 'KD89'
     """
+    user_obj = None
     admin = False
     campus_id = None
+
+    #Makes a user from the session if user given
+    def __init__(self, user=None):
+        if user:
+            self.user_obj = user
+            self.admin = user.user.user_metadata.get('admin')
+            self.campus_id = user.user.user_metadata.get('campus_id')
 
     #Signs up a new user
     def signup(self, email, password, admin=False):
         max_retries = 3
         retry_count = 0
 
+        #Tries 3 times to signup a user and prints the error for each failure in 10sec intervals
         while retry_count < max_retries:
             try:
                 in_auth = client.auth.get_user("email" == email)
-            
+
+                #If user not in session signs them up and fills class variables
                 if not in_auth:
-                    user = client.auth.sign_up({
+                    new_user = client.auth.sign_up({
                         "email": email,
                         "password": password,
                         "options":{
                             "data":{
-
                                 "campus_id": None,
                                 "admin": admin
                             }
                         }
                         })
-                    self.user_id = user.user.id
-                    self.admin = user.user.user_metadata.get('admin')
-                    self.campus_id = user.user.user_metadata.get('campus_id')
-                    return user
+                    self.user_obj = new_user
+                    self.user_id = new_user.user.id
+                    self.admin = new_user.user.user_metadata.get('admin')
+                    self.campus_id = new_user.user.user_metadata.get('campus_id')
+                    return new_user
             except Exception as e:
                 print(f"Authentication error: {e} for {email}")
                 retry_count += 1
@@ -80,14 +90,15 @@ class users():
     def signin(self, email, password):
         try:
             curr_usr = client.auth.sign_in_with_password({"email": email, "password": password})
-            print("CURR_USER ", curr_usr)
-            self.admin = curr_usr.user.user_metadata.get('admin')
-            self.campus_id = curr_usr.user.user_metadata.get('campus_id')
-            session["user"] = curr_usr
+            self.user_obj = curr_usr
+            #TODO: Uncomment when supabase emails are working
+            """self.admin = curr_usr.user.user_metadata.get('admin')
+            self.campus_id = curr_usr.user.user_metadata.get('campus_id')"""
         except Exception as e:
             print(f"Authentication error: {e} for {email}")
             return None
-        return curr_usr
+        return True
+
 
     def add_commit(self):
         db.session.add(self)
@@ -99,7 +110,12 @@ class users():
 
 
 """
-plan has an id, 'number', name, and will store the courses for that plan
+Users plan where they will store there courses
+plan_id (PrimaryKey) - unique id of plan in database
+user_id (ForeignKey) - unique id of User whos plan it is
+plan_num - User specific incrementing plan number starting at: 0
+plan_name - renamable name of the users plan w/ incrementing default name: default plan 0
+created_at - time of plan creation
 """
 class plan(db.Model):
     plan_id = db.Column( db.Integer, primary_key=True)
@@ -111,29 +127,29 @@ class plan(db.Model):
     created_at = db.Column(db.Time)
 
     #Makes a plan for the user
-    def __init__(self, num=0, name="default plan 0"):
+    def __init__(self, user_id ,num=0, name="default plan 0"):
+        if user_id:
+            self.user_id = user_id
 
-        curr_user = client.auth.get_user()
-        self.user_id = curr_user.user.id
+            #Get last id in list if any
+            last_id = plan.query.order_by(plan.plan_id.desc()).first() 
+            last_num = plan.query.filter(plan.user_id == self.user_id).order_by(plan.plan_num.desc()).first()
 
-        last_id = plan.query.order_by(plan.plan_id.desc()).first() #Get last id in list if any
-        last_num = plan.query.filter(plan.user_id == self.user_id).order_by(plan.plan_num.desc()).first()
+            #Increments databse plan id if not empty or makes the first plan w/ id 1
+            if last_id:
+                self.plan_id = last_id.plan_id + 1
+            else:
+                self.plan_id = 1
 
-       #Testing view output
-        if last_id:
-            self.plan_id = last_id.plan_id + 1
-        else:
-            self.plan_id = 1
+            if last_num:
+                self.plan_num = last_num.plan_num + 1
+                self.plan_name = f"default plan {last_num.plan_num+1}"
 
-        if last_num:
-            self.plan_num = last_num.plan_num + 1
-            self.plan_name = f"default plan {self.plan_num - 1}"
+            else:
+                self.plan_num = num
+                self.plan_name = name
 
-        else:
-            self.plan_num = num
-            self.plan_name = name
-
-        self.created_at = datetime.now()
+            self.created_at = datetime.now()
 
     def add_commit(self):
         db.session.add(self)
@@ -146,6 +162,10 @@ class plan(db.Model):
 
 """
 The users degree with name of degree and type of degree
+Column:
+degree_id (PrimaryKey) - unique id of degree in database
+deg_name - name of degree
+deg_type - shorter acronym of degree name
 """
 class degree(db.Model):
     degree_id = db.Column(db.Integer, primary_key=True)
@@ -174,6 +194,11 @@ class degree(db.Model):
 
 """
 The requirements for the Degree containing its type and subtype
+Columns:
+requirement_id (PrimaryKey)- Unique id of requirement in database
+degree_id (ForeignKey) - Unique id of users degree in database
+requirement_type - #TODO
+requirement_subtype - #TODO
 """
 class requirement(db.Model):
     requirement_id = db.Column(db.Integer, primary_key=True)
@@ -204,6 +229,13 @@ class requirement(db.Model):
         db.session.commit()
 
 
+"""
+Courses needed before taking course
+Columns:
+crs_id (ForeignKey) - Unique id of the course user wants to take
+prereq_courses - Courses user needs to take before the wanted course
+grade_required - Grade needed for prereq course
+"""
 class prereq(db.Model):
     prereq_id = db.Column(db.Integer, primary_key=True)
 
@@ -215,10 +247,16 @@ class prereq(db.Model):
     
 
 """
-A course with its id, title, number, credits, and its prereq
-ForeignKeys: 
-subject it belongs to using the subjects code
-when it is offered using the term
+The course table with its sub tables of offered courses and course requirements
+Columns:
+course_id (PrimaryKey)- Unique id of the course in database 
+subject_id (ForeignKey)- Unique id of subject in database
+course_title - Title of the course
+course_num - Course numerical level ex. 201
+credits - A courses credits given
+Sub tables:
+crs_offered - Tracks when a course is offered
+crs_required - Tracks what a course needs to be taken
 """
 #TODO: add definitions to modify, get, and check the course table and its child tables
 class course(db.Model):
@@ -242,6 +280,22 @@ class course(db.Model):
     db.Column('course_id', db.Integer, db.ForeignKey('course.course_id')),
     db.Column('course_options', db.ARRAY(db.Integer)))
 
+    def __init__(self, title, subject_id, crs_num, credits):
+        
+        if title and crs_num and credits and subject_id:
+            self.course_title = title
+            self.course_num = crs_num
+            self.credits = credits
+            self.subject_id = subject_id
+                
+
+            last_id = course.query.order_by(course.course_id.desc()).first()
+            if last_id:
+                self.course_id = last_id.course_id + 1
+            else:
+                self.course_id = 1
+
+
 
     def add_course(self, id, subject_id, title, num, credits):
         self.course_id = id
@@ -262,7 +316,9 @@ class course(db.Model):
         self.prereq = req
         db.session.commit()
 
-# Defines course output for Admins
+"""
+Defines course output for Admins
+"""
 class AdminCourseSchema(ma.Schema):
     class Meta:
         # Fields to expose
@@ -271,7 +327,9 @@ class AdminCourseSchema(ma.Schema):
 admin_course_schema = AdminCourseSchema()
 admin_courses_schema = AdminCourseSchema(many=True)
 
-#Defines course output for Users
+"""
+Defines course output for Users
+"""
 class UserCourseSchema(ma.Schema):
     subject_code = fields.Function(lambda obj: obj.subject.sub_code if obj.subject else None)
     class Meta:
@@ -280,7 +338,11 @@ class UserCourseSchema(ma.Schema):
 view_schema = UserCourseSchema(many = True)
 
 """
-Subject of the course containing the subject id, code, and name
+UMBC subject fields offered to be used for a course
+Columns:
+subject_id (PrimaryKey)- Unique id of the subject in database 
+sub_code - The contraction of the subject name ex. CMSC
+sub_name - The name of the subject ex. Computer Science
 """
 class subject(db.Model):
     subject_id = db.Column(db.Integer, primary_key=True)
@@ -300,9 +362,12 @@ class subject(db.Model):
         db.session.commit()
 
 """
-Semester class holds the term and year a course is offered if offered
+Semester is the term and year used for when a course is offered and making a plan
+Columns:
+semester_id (PrimaryKey) - Unique id of the semester in database
+term - The term
+year - The year
 """
-#TODO: add definitions to get term and year
 class semester(db.Model):
     semester_id = db.Column(primary_key=True)
     term = db.Column(db.String(100))
@@ -329,8 +394,15 @@ class semester(db.Model):
 
 """
 Takes the planned course and assigns it to the plan with the semester of the plan and the chosen requirement type from the course
+Columns:
+taken_id (PrimaryKey) - Unique id of taken in database
+plan_id (ForeignKey) - Unique id of the plan in database
+course_id (ForeignKey) - Unique id of the course in database
+requirement_id (ForeignKey) - Unique id of the requirement in database
+semester_id (ForeignKey) - Unique id of the semester in database
+grade - A courses grade is used to check if a course is taken or not
 """
-#TODO: add def requirment_choice
+#TODO: add def requirment_choice to check if course can be taken
 class taken(db.Model):
     taken_id = db.Column(db.Integer, primary_key=True)
 
@@ -348,7 +420,8 @@ class taken(db.Model):
 
     grade = db.Column(db.Integer)
 
-    def __init__(self, pln_id, crs_id, req_id, sem_id, new_grade=None):
+    #Adds a course to a plan
+    def add_course(self, pln_id, crs_id, req_id, sem_id, new_grade=None):
         self.plan_id = pln_id
         self.course_id = crs_id
         self.requirement_id = req_id
@@ -364,7 +437,9 @@ class taken(db.Model):
         db.session.commit()
 
 
-#Flask Routes
+"""
+Flask Routes
+"""
 @app.route('/')
 def hello():
     return "Hello"
@@ -380,14 +455,18 @@ def admin():
     return "Welcome to the Admin page"
 
 
-# endpoint for getting one courses
+"""
+Endpoint for getting one courses
+"""
 @app.route('/admin/courses/<course_id>', methods = ['GET'])
 def admin_get_course(course_id):
     my_course = course.query.get(course_id)
     return admin_course_schema.jsonify(my_course) 
 
 
-# endpoint for getting all course
+"""
+Endpoint for getting all course
+"""
 @app.route('/admin/courses', methods = ['GET'])
 def admin_get_all_courses():
     all_courses = course.query.order_by(course.course_id.asc()).all()
@@ -395,31 +474,66 @@ def admin_get_all_courses():
     return jsonify(courses_dump)
 
 
-# endpoint for creating a course
+"""
+Endpoint for creating a course
+Inputs:
+course_title - Title of course to be added
+subject - Id/Code/Name of subject to be added
+crs_num - Course numerical level
+credits - Credits course is worth
+"""
 @app.route('/admin/courses/create_course', methods = ['POST'])
 def admin_create_course():
-    new_course = course(request.json['course_title'])
-    new_course.add_commit()
-    return jsonify ({"success": "Success Post"})
+    crs_title = request.json['course_title']
+    _subject = request.json['subject']
+    crs_num = request.json['crs_num']
+    credits = request.json['credits']
+
+    is_code = None
+    is_id = None
+    is_name = None
+    #Checks if subject input is an int or a string
+    if isinstance(_subject, int):
+        is_id = subject.query.filter(subject.subject_id == _subject).first()
+    if isinstance(_subject, str):
+        is_code = subject.query.filter(subject.sub_code == _subject).order_by().first()
+        is_name = subject.query.filter(subject.sub_name == _subject).order_by().first()
+
+    if is_id:
+        new_course = course(crs_title, _subject, crs_num, credits)
+        new_course.add_commit()
+    elif is_code:
+        new_course = course(crs_title, is_code.subject_id, crs_num, credits)
+        new_course.add_commit()
+    elif is_name:
+        new_course = course(crs_title, is_name.subject_id, crs_num, credits)
+        new_course.add_commit()
+
+    else:
+        return jsonify ({"fail": "Failed Post"})
+    
+    return jsonify ({"success": "Success Post"}) 
 
 
 """
 Signs up the user
 Inputs:
-user email
-user password
+email - New users email
+password - New users password
 """
-#TODO: add safety checks
 @app.route("/user/signup", methods=["POST"])
 def user_signup():
     email = request.form["email"]
     password = request.form["password"]
-    cur_user = users()
-    result = cur_user.signup(email, password)
-    if result:
-        return "Successfully signed up user"
+
+    if email and password:
+        cur_user = users()
+        result = cur_user.signup(email, password)
+        if result:
+            return "Successfully signed up user"
         
-    return "Failed to sign up user"
+        return "Failed to sign up user"
+    return "Failed necessary fields are empty"
 
 
 """
@@ -430,81 +544,136 @@ user password
 """
 @app.route("/user/signin", methods=["POST"])
 def user_signin():
-    email, password = None
+    email = None 
+    password = None
 
     email = request.form["email"]
     password = request.form["password"]
     
-    if email and password:
+    check_user = client.auth.get_user()
+
+    if email and password and "user" not in session and not check_user:
         curr_user = users()
         in_auth = curr_user.signin(email, password)
         if in_auth:
+            session["user"] = curr_user.user_obj.user.id
+            #TODO:Delete ^ and Uncomment when supabase signup working again
+            #session["user"] = curr_user.user_obj
             return "Successfully signed in user"
+    elif "user" in session:
+        return "User already in session signed in"
+    elif check_user:
+        return("User already signed in")
     else:
         return "Failed neccessary fields left empty"
    
     return "Failed to sign in user"
 
-
-@app.route("/user/signout", methods=["POST"])
+"""
+Signs out user from supabase and removes them from the session
+"""
+@app.route("/user/signout", methods=["GET"])
 def user_signout():
     is_user = client.auth.get_user()
     if is_user:
         user_email = is_user.user.email
         client.auth.sign_out()
-        session["user"] = None
+        session.pop("user")
         return f"Succesfully signed out {user_email}"
+    if "user" in session:
+        session.pop("user")
     
     return "Failed no user signed in"
+
+
+@app.route("/user/update-campus-id", methods=["POST", "GET"])
+def update_campus_id():
+    user = client.auth.get_user()
+    if user:
+        new_id = request.form["campus_id"]
+        curr_user = users(user)
+        curr_user.user_obj.user.user_metadata['campus_id'] = new_id
 
 """
 Makes an empty plan for the user
 """
-#TODO: Change to get sessions user data, add safety checks
-@app.route("/user/make-plan", methods=["POST", "GET"])
+@app.route("/user/plan/make-plan", methods=["POST", "GET"])
 def user_make_plan():
-    new_plan = plan()
-    new_plan.add_commit()
-    return "Successfully made plan"
+    user = client.auth.get_user()
+    if user:
+        usr_id = user.user.id
+        new_plan = plan(usr_id)
+        if new_plan:
+            new_plan.add_commit()
+            return "Successfully made plan"
+    return "Failed need to sing in first"
 
 
 """
 Deletes the users chosen plan
 """
-#TODO: Complete it
-@app.route("/user/delete-plan", methods=["POST", "GET"])
+#TODO: Complete it when supabase emails working
+@app.route("/user/plan/delete-plan", methods=["POST", "PUT"])
 def user_delete_plan():
-    chosen_id = request.form["chosen_id"]
-
+    chosen_id = request.json["chosen_id"]
+    user = client.auth.get_user()
+    print("USER ", user)
     if "user" in session:
-        curr_user = session["user"]
+        print("SESSION ", session["user"])
+    if user:
         if chosen_id:
-            to_delete = plan.query.filter(plan.plan_id == chosen_id).order_by(plan.plan_id).first()
-            if to_delete.user_id == curr_user.user.id or curr_user.admin:
+            to_delete = plan.query.filter(plan.plan_id == chosen_id).order_by().first()
+            print("TO DELETE ", to_delete)
+            print("TO DELETE ID", to_delete.user_id)
+            print("USER ID     ", user.user.id)
+            #TODO:When supabase email working again Add-> or user.user.admin:
+            del_id = to_delete.user_id
+            usr_id = user.user.id
+            if del_id == usr_id:
                 chosen_pl_num = to_delete.plan_num
-                #to_delete.delete()
+                to_delete.delete()
                 return f"Successfully deleted {chosen_pl_num}"
         return "Failed to delete plan"
     return "User not signed in"
 
 
-#adds a course to users plan using taken
-#TODO: add safety checks
-@app.route("/user/add-course-to-plan", methods=["POST", "GET"])
+"""
+Adds a course to users plan using taken
+"""
+@app.route("/user/plan/add-course-to-plan", methods=["POST", "PUT"])
 def user_add_to_plan():
-    plan_id = request.form["plan_id"]
-    session["plan_id"] = plan_id
-    crs_id = request.form["crs_id"]
-    session["crs_id"] = crs_id
-    req_id = request.form["req_id"]
-    session["req_id"] = req_id
-    sem_id = request.form["sem_id"]
-    session["sem_id"] = sem_id
+    plan_id = request.json["plan_id"]
+    crs_id = request.json["crs_id"]
+    req_id = request.json["req_id"]
+    sem_id = request.json["sem_id"]
     grade = None
 
-    add_to_plan = taken(plan_id, crs_id, req_id, sem_id, grade)
-    add_to_plan.add_commit()
-    return "Successfully added planned course"
+    #Checks if correct 
+    if plan_id and crs_id and req_id and sem_id:
+        in_plan = plan.query.filter(plan.plan_id == plan_id).order_by(plan.plan_id.desc()).first()
+        in_course = course.query.filter(course.course_id == crs_id).order_by(course.course_id.desc()).first()
+        in_req = requirement.query.filter(requirement.requirement_id == req_id).order_by(requirement.requirement_id.desc()).first()
+        in_sem = semester.query.filter(semester.semester_id == sem_id).order_by(semester.semester_id.desc()).first()
+
+        crs_in_taken = taken.query.filter(taken.plan_id == plan_id).order_by(taken.course_id.desc()).first()
+
+        if in_plan and in_course and in_req and in_sem and not crs_in_taken:
+            add_to_plan = taken()
+            add_to_plan.add_course(plan_id, crs_id, req_id, sem_id, grade)
+            add_to_plan.add_commit()
+            return "Successfully added planned course"
+        elif crs_in_taken:
+            return "Course already in chosen plan"
+        elif not in_plan:
+            return "Failed Plan id not in database"
+        elif not in_course:
+            return "Failed Course id not in database"
+        elif not in_req:
+            return "Failed Requirement id not in database"
+        else:
+            return "Failed Semester id not in database"
+    
+    return "Failed a necessary field(s) left empty"
 
 
 """

@@ -1,14 +1,14 @@
 """
-Author: Amir Hawkins-Stewart
+Authors: Amir Hawkins-Stewart & Zach Margulies
 
 Description: Makes objects of the databse tables, sends and recieves data from the supabase databse.
 
 TODO: Finish the classes, app.routes to send and receive from site 
 """
-
 from flask import Flask, request, session, jsonify
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
+from flask_marshmallow import Marshmallow
 import supabase #import supabase.py not supabase
 from datetime import timedelta, datetime
 import time
@@ -23,7 +23,9 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:2&?jL!Un?SV$Q5j@d
 app.permanent_session_lifetime = timedelta(minutes = 5) #How long the session data will be saved for
 
 db = SQLAlchemy(app)
-CORS(app)
+cor = CORS(app)
+ma = Marshmallow(app)
+
 
 """
 The User will have an id, name, 'user'
@@ -45,6 +47,7 @@ class users():
     def signup(self, email, password, admin=False):
         max_retries = 3
         retry_count = 0
+
         while retry_count < max_retries:
             try:
                 in_auth = client.auth.get_user("email" == email)
@@ -55,6 +58,7 @@ class users():
                         "password": password,
                         "options":{
                             "data":{
+
                                 "campus_id": None,
                                 "admin": admin
                             }
@@ -95,6 +99,7 @@ class users():
         db.session.delete(self)
         db.session.commit()
 
+
 """
 plan has an id, 'number', name, and will store the courses for that plan
 """
@@ -109,6 +114,7 @@ class plan(db.Model):
 
     #Makes a plan for the user
     def __init__(self, num=0, name="default plan 0"):
+
         curr_user = client.auth.get_user()
         self.user_id = curr_user.user.id
 
@@ -124,6 +130,7 @@ class plan(db.Model):
         if last_num:
             self.plan_num = last_num.plan_num + 1
             self.plan_name = f"default plan {self.plan_num - 1}"
+
         else:
             self.plan_num = num
             self.plan_name = name
@@ -137,6 +144,7 @@ class plan(db.Model):
     def delete(self):
         db.session.delete(self)
         db.session.commit()
+
 
 """
 The users degree with name of degree and type of degree
@@ -164,6 +172,7 @@ class degree(db.Model):
     def delete(self):
         db.session.delete(self)
         db.session.commit()
+
 
 """
 The requirements for the Degree containing its type and subtype
@@ -196,6 +205,7 @@ class requirement(db.Model):
         db.session.delete(self)
         db.session.commit()
 
+
 class prereq(db.Model):
     prereq_id = db.Column(db.Integer, primary_key=True)
 
@@ -205,6 +215,7 @@ class prereq(db.Model):
     prereq_courses = db.Column(db.ARRAY(db.Integer))
     grade_required = db.Column(db.Integer)
     
+
 """
 A course with its id, title, number, credits, and its prereq
 ForeignKeys: 
@@ -221,6 +232,7 @@ class course(db.Model):
     course_num = db.Column(db.Integer)
     credits = db.Column(db.Integer)
 
+
     crs_offered = db.Table('course_offered',
     db.Column('offered_id', db.Integer, primary_key=True),
     db.Column('course_id', db.Integer, db.ForeignKey('course.course_id')),
@@ -233,8 +245,9 @@ class course(db.Model):
     db.Column('course_options', db.ARRAY(db.Integer)))
 
 
-    def add_course(self, id, title, num, credits):
+    def add_course(self, id, subject_id, title, num, credits):
         self.course_id = id
+        self.subject_id = subject_id
         self.crs_title = title
         self.crs_num = num
         self.credits = credits
@@ -250,6 +263,16 @@ class course(db.Model):
     def add_prereq(self, req):
         self.prereq = req
         db.session.commit()
+
+# Defines your course output
+class CourseSchema(ma.Schema):
+    class Meta:
+        # Fields to expose
+        fields = ("course_id", "subject_id", "crs_title","crs_num","credits")
+
+course_schema = CourseSchema()
+courses_schema = CourseSchema(many=True)
+
 
 """
 Subject of the course containing the subject id, code, and name
@@ -287,7 +310,7 @@ class semester(db.Model):
             self.semester_id = last_id.semester_id + 1
         else:
             self.semester_id = 1
-        
+
         self.term = term
         self.year = year
 
@@ -336,6 +359,45 @@ class taken(db.Model):
         db.session.commit()
 
 
+#Flask Routes
+@app.route('/')
+def hello():
+    return "Hello"
+
+
+@app.route('/admin')
+def admin():
+    """Enters main admin page for admin functionality
+
+    Returns:
+        string: A welcome message
+    """
+    return "Welcome to the Admin page"
+
+
+# endpoint for getting one courses
+@app.route('/admin/courses/<course_id>', methods = ['GET'])
+def get_course(course_id):
+    my_course = course.query.get(course_id)
+    return course_schema.jsonify(my_course) 
+
+
+# endpoint for getting all course
+@app.route('/admin/courses', methods = ['GET'])
+def get_all_courses():
+    all_courses = course.query.order_by(course.course_id.asc()).all()
+    courses_dump = courses_schema.dump(all_courses)
+    return jsonify(courses_dump)
+
+
+# endpoint for creating a course
+@app.route('/admin/courses/create_course', methods = ['POST'])
+def create_course():
+    new_course = course(request.json['course_title'])
+    new_course.add_commit()
+    return jsonify ({"success": "Success Post"})
+
+
 """
 Signs up the user
 Inputs:
@@ -353,7 +415,7 @@ def user_signup():
         return "Successfully signed up user"
         
     return "Failed to sign up user"
-    
+
 
 """
 Sign in the user

@@ -10,6 +10,10 @@ import Input from "../../common/Input";
 import TextArea from "../../common/TextArea";
 import { ContactContainer, FormGroup, Span, ButtonContainer } from "./styles";
 
+
+// Other imports remain the same
+
+
 const Contact = ({ title, content, id, t }: ContactProps) => {
   const { values, errors, handleChange, handleSubmit } = useForm(
     validate
@@ -34,7 +38,7 @@ const Contact = ({ title, content, id, t }: ContactProps) => {
         </Col>
         <Col lg={12} md={12} sm={24} xs={24}>
           <Slide direction="right">
-            <FormGroup autoComplete="off" onSubmit={handleSubmit}>
+          <FormGroup autoComplete="off" onSubmit={handleSubmit} id="contactForm">
               <Col span={24}>
                 <Input
                   type="text"

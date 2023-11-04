@@ -1,11 +1,15 @@
 import { useState, useEffect } from "react";
 import { notification } from "antd";
-import axios from "axios";
+import emailjs from 'emailjs-com';
 
 export const useForm = (validate: any) => {
   const [values, setValues] = useState({});
   const [errors, setErrors] = useState({});
   const [shouldSubmit, setShouldSubmit] = useState(false);
+
+  const reset = () => {
+    setValues({}); // Reset to empty or initial state
+  };
 
   const openNotificationWithIcon = () => {
     notification["success"]({
@@ -14,28 +18,46 @@ export const useForm = (validate: any) => {
     });
   };
 
-  const handleSubmit = (event: React.ChangeEvent<HTMLFormElement>) => {
+  const SERVICE_ID = "service_n4v9cug"
+  const TEMPLATE_ID = "template_hoea56f"
+  const USER_ID = "deTJz0mXvUp85n4qR"
+
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setErrors(validate(values));
-    // Your url for API
-    const url = "";
-    if (Object.keys(values).length === 3) {
-      axios
-        .post(url, {
-          ...values,
-        })
-        .then(() => {
+  
+    if (Object.keys(values).length === 3 && Object.values(values).every(value => value)) {
+      emailjs.sendForm(SERVICE_ID, TEMPLATE_ID, event.currentTarget, USER_ID)
+        .then((result) => {
+          console.log(result.text);
           setShouldSubmit(true);
+          reset(); // Call the reset function after successful submission
+          openNotificationWithIcon(); // Notify the user
+        }, (error) => {
+          console.log(error.text);
         });
     }
   };
 
+  const resetForm = () => {
+    setValues({
+      name: '',
+      email: '',
+      message: ''
+    });
+    setShouldSubmit(false);
+    setErrors({});
+  };
+  
+
   useEffect(() => {
-    if (Object.keys(errors).length === 0 && shouldSubmit) {
-      setValues("");
+    if (shouldSubmit) {
+      resetForm();
       openNotificationWithIcon();
+      setShouldSubmit(false);
     }
-  }, [errors, shouldSubmit]);
+  }, [shouldSubmit]);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     event.persist();
@@ -51,5 +73,6 @@ export const useForm = (validate: any) => {
     handleSubmit,
     values,
     errors,
+    reset,
   };
 };

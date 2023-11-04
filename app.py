@@ -8,6 +8,7 @@ TODO: Finish the classes, app.routes to send and receive from site
 from flask import Flask, request, session, jsonify
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
+from marshmallow import fields
 from flask_marshmallow import Marshmallow
 import supabase #import supabase.py not supabase
 from datetime import timedelta, datetime
@@ -87,9 +88,6 @@ class users():
             print(f"Authentication error: {e} for {email}")
             return None
         return curr_usr
-    
-    def signout(self):
-        pass
 
     def add_commit(self):
         db.session.add(self)
@@ -264,15 +262,22 @@ class course(db.Model):
         self.prereq = req
         db.session.commit()
 
-# Defines your course output
-class CourseSchema(ma.Schema):
+# Defines course output for Admins
+class AdminCourseSchema(ma.Schema):
     class Meta:
         # Fields to expose
-        fields = ("course_id", "subject_id", "crs_title","crs_num","credits")
+        fields = ("course_id", "subject_id", "course_title","course_num","credits")
 
-course_schema = CourseSchema()
-courses_schema = CourseSchema(many=True)
+admin_course_schema = AdminCourseSchema()
+admin_courses_schema = AdminCourseSchema(many=True)
 
+#Defines course output for Users
+class UserCourseSchema(ma.Schema):
+    subject_code = fields.Function(lambda obj: obj.subject.sub_code if obj.subject else None)
+    class Meta:
+        fields = ("subject_code", "course_title", "course_num", "credits")
+
+view_schema = UserCourseSchema(many = True)
 
 """
 Subject of the course containing the subject id, code, and name
@@ -377,22 +382,22 @@ def admin():
 
 # endpoint for getting one courses
 @app.route('/admin/courses/<course_id>', methods = ['GET'])
-def get_course(course_id):
+def admin_get_course(course_id):
     my_course = course.query.get(course_id)
-    return course_schema.jsonify(my_course) 
+    return admin_course_schema.jsonify(my_course) 
 
 
 # endpoint for getting all course
 @app.route('/admin/courses', methods = ['GET'])
-def get_all_courses():
+def admin_get_all_courses():
     all_courses = course.query.order_by(course.course_id.asc()).all()
-    courses_dump = courses_schema.dump(all_courses)
+    courses_dump = admin_courses_schema.dump(all_courses)
     return jsonify(courses_dump)
 
 
 # endpoint for creating a course
 @app.route('/admin/courses/create_course', methods = ['POST'])
-def create_course():
+def admin_create_course():
     new_course = course(request.json['course_title'])
     new_course.add_commit()
     return jsonify ({"success": "Success Post"})
@@ -410,7 +415,7 @@ def user_signup():
     email = request.form["email"]
     password = request.form["password"]
     cur_user = users()
-    result = cur_user.signup(email, password, True)
+    result = cur_user.signup(email, password)
     if result:
         return "Successfully signed up user"
         
@@ -423,32 +428,41 @@ Inputs:
 user email
 user password
 """
-#TODO: add safety checks
 @app.route("/user/signin", methods=["POST"])
 def user_signin():
+    email, password = None
+
     email = request.form["email"]
     password = request.form["password"]
-    curr_user = users()
-    in_auth = curr_user.signin(email, password)
-    if in_auth:
-        return "Successfully signed in user"
-        
+    
+    if email and password:
+        curr_user = users()
+        in_auth = curr_user.signin(email, password)
+        if in_auth:
+            return "Successfully signed in user"
+    else:
+        return "Failed neccessary fields left empty"
+   
     return "Failed to sign in user"
-           
+
+
+@app.route("/user/signout", methods=["POST"])
+def user_signout():
+    is_user = client.auth.get_user()
+    if is_user:
+        user_email = is_user.user.email
+        client.auth.sign_out()
+        session["user"] = None
+        return f"Succesfully signed out {user_email}"
+    
+    return "Failed no user signed in"
 
 """
 Makes an empty plan for the user
 """
 #TODO: Change to get sessions user data, add safety checks
 @app.route("/user/make-plan", methods=["POST", "GET"])
-def test_make_plan():
-    #Testing using test user
-    email = request.form["email"]
-    password = request.form["password"]
-    
-    curr_usr = users()
-    curr_usr.signin(email, password)
-
+def user_make_plan():
     new_plan = plan()
     new_plan.add_commit()
     return "Successfully made plan"
@@ -457,8 +471,9 @@ def test_make_plan():
 """
 Deletes the users chosen plan
 """
+#TODO: Complete it
 @app.route("/user/delete-plan", methods=["POST", "GET"])
-def delete_plan():
+def user_delete_plan():
     chosen_id = request.form["chosen_id"]
 
     if "user" in session:
@@ -476,7 +491,7 @@ def delete_plan():
 #adds a course to users plan using taken
 #TODO: add safety checks
 @app.route("/user/add-course-to-plan", methods=["POST", "GET"])
-def test_taken_add():
+def user_add_to_plan():
     plan_id = request.form["plan_id"]
     session["plan_id"] = plan_id
     crs_id = request.form["crs_id"]
@@ -493,23 +508,13 @@ def test_taken_add():
 
 
 """
-Returns all the courses in the database
+Returns all the courses in the database for a user to see
 """
-@app.route("/view-all-courses", methods=["GET"])
-def test_view_all_courses():
-    courses = course.query.all()
-    result = []
-
-    for crs in courses:
-        subj_code = crs.subject.sub_code
-        result.append({
-            'subject_code': subj_code,
-            'course_number': crs.course_num,
-            'course_title': crs.course_title ,
-            'credits': crs.credits
-        })
-
-    return jsonify(result)
+@app.route("/user/view-all-courses", methods=["GET"])
+def user_view_all_courses():
+    all_courses = course.query.all()
+    courses_dump = view_schema.dump(all_courses)
+    return jsonify(courses_dump)
 
 
 if __name__ == "__main__":

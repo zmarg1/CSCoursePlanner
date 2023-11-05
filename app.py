@@ -41,16 +41,13 @@ class users():
     admin = user.user.user_metadata.get('admin')
     user.user.user_metadata['campus_id'] = 'KD89'
     """
-    user_obj = None
     admin = False
-    campus_id = None
 
     #Makes a user from the session if user given
     def __init__(self, user=None):
         if user:
             self.user_obj = user
             self.admin = user.user.user_metadata.get('admin')
-            self.campus_id = user.user.user_metadata.get('campus_id')
 
     #Signs up a new user
     def signup(self, email, password, admin=False):
@@ -69,7 +66,6 @@ class users():
                         "password": password,
                         "options":{
                             "data":{
-                                "campus_id": None,
                                 "admin": admin
                             }
                         }
@@ -77,7 +73,6 @@ class users():
                     self.user_obj = new_user
                     self.user_id = new_user.user.id
                     self.admin = new_user.user.user_metadata.get('admin')
-                    self.campus_id = new_user.user.user_metadata.get('campus_id')
                     return new_user
             except Exception as e:
                 print(f"Authentication error: {e} for {email}")
@@ -92,8 +87,7 @@ class users():
             curr_usr = client.auth.sign_in_with_password({"email": email, "password": password})
             self.user_obj = curr_usr
             #TODO: Uncomment when supabase emails are working
-            """self.admin = curr_usr.user.user_metadata.get('admin')
-            self.campus_id = curr_usr.user.user_metadata.get('campus_id')"""
+            """self.admin = curr_usr.user.user_metadata.get('admin')"""
         except Exception as e:
             print(f"Authentication error: {e} for {email}")
             return None
@@ -108,6 +102,39 @@ class users():
         db.session.delete(self)
         db.session.commit()
 
+class public_user_info(db.Model):
+    email = db.Column(db.String, primary_key=True)
+    campus_id = db.Column(db.String)
+    first_name = db.Column(db.String)
+    last_name = db.Column(db.String)
+
+    def __init__(self, new_email=None, new_campus_id=None, new_f_name=None, new_l_name=None):
+        if new_email:
+            self.email = new_email
+            self.campus_id = new_campus_id
+            self.first_name = new_f_name
+            self.last_name = new_l_name
+
+    def add_commit(self):
+        db.session.add(self)
+        db.session.commit()
+
+    def delete(self):
+        db.session.delete(self)
+        db.session.commit()
+
+    def update_campus_id(self, email, new_c_id):
+        pass
+
+    def update_name(self, email, new_f_name=None, new_l_name=None):
+        pass
+
+    def update_email(self, email=None):
+        pass
+
+    def get_all_users():
+        all_users = public_user_info.query.all()
+        return all_users
 
 """
 Users plan where they will store there courses
@@ -530,6 +557,8 @@ def user_signup():
         cur_user = users()
         result = cur_user.signup(email, password)
         if result:
+            new_user = public_user_info(email)
+            new_user.add_commit()
             return "Successfully signed up user"
         
         return "Failed to sign up user"
@@ -590,9 +619,13 @@ def user_signout():
 def update_campus_id():
     user = client.auth.get_user()
     if user:
-        new_id = request.form["campus_id"]
-        curr_user = users(user)
-        curr_user.user_obj.user.user_metadata['campus_id'] = new_id
+        new_c_id = request.form["campus_id"]
+        usr_email = user.user["email"]
+        curr_user = public_user_info()
+        curr_user.update_campus_id(usr_email, new_c_id)
+        curr_user.add_commit()
+        return "Successful campus id change"
+    return "Failed to update campus id"
 
 """
 Makes an empty plan for the user
@@ -684,6 +717,27 @@ def user_view_all_courses():
     all_courses = course.query.all()
     courses_dump = view_schema.dump(all_courses)
     return jsonify(courses_dump)
+
+"""
+Used to update any current users data to changed implementation
+"""
+#TODO: Implement
+@app.route("/dev/update-users", methods=["GET"])
+def update_users():
+    pass
+
+"""
+Adds the auth table supabase user to the public table
+"""
+@app.route("/dev/add-to-public", methods=["POST"])
+def add_to_public(new_email=None, campus_id=None, f_name=None, l_name=None):
+    email = request.json["email"]
+    in_table = public_user_info.query.filter(email == public_user_info.email).first()
+    if not in_table:
+        new_user = public_user_info(email)
+        new_user.add_commit()
+        return jsonify ({"success": "Added to public user table"})
+    return jsonify ({"failed": "Email already in table"})
 
 
 if __name__ == "__main__":

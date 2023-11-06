@@ -420,9 +420,46 @@ def get_all_courses():
 # endpoint for creating a course
 @app.route('/admin/courses/create_course', methods = ['POST'])
 def create_course():
-    new_course = course(request.json['course_title'])
-    new_course.add_commit()
-    return jsonify ({"success": "Success Post"})
+    course_id = request.json['course_id']
+    subject_id = request.json['subject_id']
+    course_title = request.json['crs_title']
+    course_num = request.json['crs_num']
+    credits = request.json['credits']
+
+    new_course = course(course_id, subject_id, course_title, course_num, credits)
+
+    db.session.add(new_course)
+    db.session.commit()
+    return course_schema.jsonify(new_course)
+
+# endpoint for updating a course
+@app.route('/admin/courses/update/<course_id>', methods = ['PUT'])
+def update_course(course_id):
+    updated_course = course.query.get(course_id)
+
+    updated_course.subject_id = request.json['subject_id']
+    updated_course.crs_title = request.json['crs_title']
+    updated_course.crs_num = request.json['crs_num']
+    updated_course.credits = request.json['credits']
+
+    db.session.commit()
+    return course_schema.jsonify(updated_course)
+
+# endpoint for updating a course
+@app.route('/admin/courses/delete/<course_id>', methods = ['DELETE'])
+def delete_course(course_id):
+    deleted_course = course.query.get(course_id)
+
+    db.session.delete(deleted_course)
+    db.session.commit()
+    return course_schema.jsonify(deleted_course)
+
+
+
+
+    
+
+    
 
 
 """

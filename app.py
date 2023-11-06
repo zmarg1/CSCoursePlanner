@@ -125,6 +125,19 @@ class public_user_info(db.Model):
         db.session.delete(self)
         db.session.commit()
 
+    def get_user_id(self):
+        usr_obj = client_admin.auth.get_user(self.email == "email")
+        usr_id = usr_obj.user.id
+        return usr_id
+    
+    def get_user(email):
+        user = public_user_info.query.filter("email" == email).first()
+        return user
+    
+    def get_all_users():
+        all_users = public_user_info.query.all()
+        return all_users
+
     def update_campus_id(self, email, new_c_id):
         pass
 
@@ -133,15 +146,38 @@ class public_user_info(db.Model):
 
     def update_email(self, email=None):
         pass
-
-    def get_all_users():
-        all_users = public_user_info.query.all()
-        return all_users
     
-    def get_user(email):
-        user = public_user_info.query.filter("email" == email).first()
-        return user
+    
+    """"
+    User views current plan
+    Gets users plan 
+    uses plan id to go through taken
+    makes a list of all the courses that match plan id
+    returns the list if their is a plan
+    returns None if no plans
+    """
+    def view_plan(self, plan_id):
+        crs_ids_in_plan = []
+        courses_in_plan = taken.query.filter(plan_id == taken.plan_id).order_by(taken.course_id)
+        if courses_in_plan:
+            for crs in courses_in_plan:
+                crs_ids_in_plan.append(crs.course_id)
+            crs_in_plan = []
+            for crs in crs_ids_in_plan:
+                crs_title = course.query.filter(crs == course.course_id).order_by(course.course_title).first()
+                crs_in_plan.append(crs_title)
+            print("CRS IN PLAN", crs_in_plan)
 
+            crs_titles = []
+            for crs in crs_in_plan:
+                title = crs.course_title
+                crs_titles.append(title)
+            return crs_titles
+        return None
+
+    #User views all of their plans
+    def view_all_plans(self):
+        pass
 
 """
 Users plan where they will store there courses
@@ -371,7 +407,6 @@ class UserCourseSchema(ma.Schema):
 
 view_schema = UserCourseSchema(many = True)
 
-
 """
 UMBC subject fields offered to be used for a course
 Columns:
@@ -426,13 +461,6 @@ class semester(db.Model):
     def delete(self):
         db.session.delete(self)
         db.session.commit()
-
-
-class SemesterCourseSchema(ma.Schema):
-    class Meta:
-        fields = ("semester_id", "term", "year")
-
-Semester_schema = SemesterCourseSchema(many = True)
 
 """
 Takes the planned course and assigns it to the plan with the semester of the plan and the chosen requirement type from the course
@@ -604,7 +632,6 @@ def user_signin():
         in_auth = curr_user.signin(email, password)
         if in_auth:
             session["user"] = curr_user.user_obj.user.email
-            print("USER ADMIN",curr_user.user_obj.user.app_metadata['admin'])
             #TODO:Delete ^ and Uncomment when supabase signup working again
             #session["user"] = curr_user.user_obj
             return "Successfully signed in user"
@@ -729,14 +756,6 @@ def user_add_to_plan():
 
 
 """
-Views the users plan
-"""
-@app.route("/user/plan/view-plan", methods=["POST", "GET"])
-def view_plan():
-    pass
-
-
-"""
 Returns all the courses in the database for a user to see
 """
 @app.route("/user/view-all-courses", methods=["GET"])
@@ -745,12 +764,42 @@ def user_view_all_courses():
     courses_dump = view_schema.dump(all_courses)
     return jsonify(courses_dump)
 
+@app.route("/view-all-courses", methods=["GET"])
+def test_view_all_courses():
+    courses = course.query.all()
+    result = []
 
-@app.route("/user/view-all-semesters", methods=["GET"])
-def user_view_all_semesters():
-    all_semesters = semester.query.all()
-    semester_dump = Semester_schema.dump(all_semesters)
-    return jsonify(semester_dump)
+    for crs in courses:
+        subj_code = crs.subject.sub_code
+        result.append({
+            'subject_code': subj_code,
+            'course_number': crs.course_num,
+            'course_title': crs.course_title ,
+            'credits': crs.credits
+        })
+
+    return jsonify(result)
+
+"""
+Chooses a plan to view
+Gets user from session
+Views the current users chosen plan
+"""
+@app.route("/user/view-plan", methods=["POST", "GET"])
+def view_plan():
+    plan_id = request.form["plan_id"]
+    if "user" in session:
+        curr_user = session["user"]
+        plan = public_user_info()
+        plans_courses = plan.view_plan(plan_id) #returns a list of crs_ids
+        print("PLANS COURSES", plans_courses)
+        return jsonify(plans_courses)
+    return jsonify({"failed": "User not signed in"})
+
+
+@app.route("/user/view-all-plans", methods=["GET"])
+def view_all_plans():
+    pass
 
 
 """

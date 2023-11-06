@@ -142,6 +142,7 @@ class public_user_info(db.Model):
         user = public_user_info.query.filter("email" == email).first()
         return user
 
+
 """
 Users plan where they will store there courses
 plan_id (PrimaryKey) - unique id of plan in database
@@ -370,6 +371,7 @@ class UserCourseSchema(ma.Schema):
 
 view_schema = UserCourseSchema(many = True)
 
+
 """
 UMBC subject fields offered to be used for a course
 Columns:
@@ -424,6 +426,13 @@ class semester(db.Model):
     def delete(self):
         db.session.delete(self)
         db.session.commit()
+
+
+class SemesterCourseSchema(ma.Schema):
+    class Meta:
+        fields = ("semester_id", "term", "year")
+
+Semester_schema = SemesterCourseSchema(many = True)
 
 """
 Takes the planned course and assigns it to the plan with the semester of the plan and the chosen requirement type from the course
@@ -736,21 +745,12 @@ def user_view_all_courses():
     courses_dump = view_schema.dump(all_courses)
     return jsonify(courses_dump)
 
-@app.route("/view-all-courses", methods=["GET"])
-def test_view_all_courses():
-    courses = course.query.all()
-    result = []
 
-    for crs in courses:
-        subj_code = crs.subject.sub_code
-        result.append({
-            'subject_code': subj_code,
-            'course_number': crs.course_num,
-            'course_title': crs.course_title ,
-            'credits': crs.credits
-        })
-
-    return jsonify(result)
+@app.route("/user/view-all-semesters", methods=["GET"])
+def user_view_all_semesters():
+    all_semesters = semester.query.all()
+    semester_dump = Semester_schema.dump(all_semesters)
+    return jsonify(semester_dump)
 
 
 """

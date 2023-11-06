@@ -1,0 +1,16 @@
+{
+  "title": "About Us",
+  "text": "PlanUMBC was created as a group project by undergraduates at UMBC.",
+  "section": [
+    {
+      "title": "Why was it made?",
+      "content": "This website was developed as main project for CMSC 447 during the Spring 2023 semester. It was designed with the intent to help students quickly and intuitively design a class plan for UMBC before registering for classes.",
+      "icon": "notes.svg"
+    },
+    {
+      "title": "Who created it?",
+      "content": "The creators were Zachary Margulies, Alan Valdez, Amir Hawkins-Stewart, Rodolfo Argueta-Rios, and Brandon Price all under the guidance of professor Samit Shivadekar and TA Jayalakshmi Mangalagiri.",
+      "icon": "notes.svg"
+    }
+  ]
+}

@@ -10,13 +10,15 @@ from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from marshmallow import fields
 from flask_marshmallow import Marshmallow
-from supabase import create_client #import supabase.py not supabase
+from supabase import Client #import supabase.py not supabase
 from datetime import timedelta, datetime
 import time
 
 url = "https://qwydklzwvbrgvdomhxjb.supabase.co"
-key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF3eWRrbHp3dmJyZ3Zkb21oeGpiIiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTU0MDcxNjcsImV4cCI6MjAxMDk4MzE2N30.UNZJCMI1NxpSyFr8bBooIIGPqTbDe3N-_YV9ZHbE_1g"
-client = create_client(url, key)
+key ="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF3eWRrbHp3dmJyZ3Zkb21oeGpiIiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTU0MDcxNjcsImV4cCI6MjAxMDk4MzE2N30.UNZJCMI1NxpSyFr8bBooIIGPqTbDe3N-_YV9ZHbE_1g"
+client = Client(url, key)
+secret_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF3eWRrbHp3dmJyZ3Zkb21oeGpiIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTY5NTQwNzE2NywiZXhwIjoyMDEwOTgzMTY3fQ.5IP6Kh6jI3mL_3poMSKcjE_cANIjhqvGHJVjK5RNVMw"
+client_admin = Client(url, secret_key)
 
 app = Flask(__name__)
 app.secret_key = "planUMBCkey" #Secret key needed for sessions to get the encrypted data
@@ -39,7 +41,7 @@ class users():
     """
     How to interact with user metadata
     admin = user.user.user_metadata.get('admin')
-    user.user.user_metadata['campus_id'] = 'KD89'
+    user.user.app_metadata['campus_id'] = 'KD89'
     """
     admin = False
 
@@ -47,7 +49,7 @@ class users():
     def __init__(self, user=None):
         if user:
             self.user_obj = user
-            self.admin = user.user.user_metadata.get('admin')
+            self.admin = user.user.app_metadata.get('admin')
 
     #Signs up a new user
     def signup(self, email, password, admin=False):
@@ -57,10 +59,10 @@ class users():
         #Tries 3 times to signup a user and prints the error for each failure in 10sec intervals
         while retry_count < max_retries:
             try:
-                in_auth = client.auth.get_user("email" == email)
+                in_public = public_user_info.query.filter(email == public_user_info.email).first()
 
                 #If user not in session signs them up and fills class variables
-                if not in_auth:
+                if not in_public:
                     new_user = client.auth.sign_up({
                         "email": email,
                         "password": password,
@@ -135,6 +137,10 @@ class public_user_info(db.Model):
     def get_all_users():
         all_users = public_user_info.query.all()
         return all_users
+    
+    def get_user(email):
+        user = public_user_info.query.filter("email" == email).first()
+        return user
 
 """
 Users plan where they will store there courses
@@ -487,8 +493,11 @@ Endpoint for getting one courses
 """
 @app.route('/admin/courses/<course_id>', methods = ['GET'])
 def admin_get_course(course_id):
-    my_course = course.query.get(course_id)
-    return admin_course_schema.jsonify(my_course) 
+    user = session["user"]
+    if user.user.app_metadata['admin']:
+        my_course = course.query.get(course_id)
+        return admin_course_schema.jsonify(my_course)
+    return jsonify({"failed": "User is not admin"}) 
 
 
 """
@@ -585,7 +594,8 @@ def user_signin():
         curr_user = users()
         in_auth = curr_user.signin(email, password)
         if in_auth:
-            session["user"] = curr_user.user_obj.user.id
+            session["user"] = curr_user.user_obj.user.email
+            print("USER ADMIN",curr_user.user_obj.user.app_metadata['admin'])
             #TODO:Delete ^ and Uncomment when supabase signup working again
             #session["user"] = curr_user.user_obj
             return "Successfully signed in user"
@@ -710,6 +720,14 @@ def user_add_to_plan():
 
 
 """
+Views the users plan
+"""
+@app.route("/user/plan/view-plan", methods=["POST", "GET"])
+def view_plan():
+    pass
+
+
+"""
 Returns all the courses in the database for a user to see
 """
 @app.route("/user/view-all-courses", methods=["GET"])
@@ -718,13 +736,37 @@ def user_view_all_courses():
     courses_dump = view_schema.dump(all_courses)
     return jsonify(courses_dump)
 
+@app.route("/view-all-courses", methods=["GET"])
+def test_view_all_courses():
+    courses = course.query.all()
+    result = []
+
+    for crs in courses:
+        subj_code = crs.subject.sub_code
+        result.append({
+            'subject_code': subj_code,
+            'course_number': crs.course_num,
+            'course_title': crs.course_title ,
+            'credits': crs.credits
+        })
+
+    return jsonify(result)
+
+
 """
-Used to update any current users data to changed implementation
+Used to update any current users data
 """
-#TODO: Implement
-@app.route("/dev/update-users", methods=["GET"])
-def update_users():
-    pass
+def update_all_users():
+    all_users = public_user_info.get_all_users()
+    su = client_admin.auth.admin.list_users()
+    for user in su:
+        update_data = {
+            'app_metadata':{
+                'admin': False
+            }
+        }
+        client_admin.auth.admin.update_user_by_id(user.id, update_data)
+
 
 """
 Adds the auth table supabase user to the public table

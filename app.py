@@ -162,11 +162,11 @@ class public_user_info(db.Model):
         if courses_in_plan:
             for crs in courses_in_plan:
                 crs_ids_in_plan.append(crs.course_id)
+
             crs_in_plan = []
             for crs in crs_ids_in_plan:
                 crs_title = course.query.filter(crs == course.course_id).order_by(course.course_title).first()
                 crs_in_plan.append(crs_title)
-            print("CRS IN PLAN", crs_in_plan)
 
             crs_titles = []
             for crs in crs_in_plan:
@@ -176,8 +176,9 @@ class public_user_info(db.Model):
         return None
 
     #User views all of their plans
-    def view_all_plans(self):
-        pass
+    def get_plans(self, usr_id):
+        plan_ids = plan.query.filter(plan.user_id == usr_id).order_by(plan.plan_id.desc())
+        return plan_ids
 
 """
 Users plan where they will store there courses
@@ -791,15 +792,26 @@ def view_plan():
     if "user" in session:
         curr_user = session["user"]
         plan = public_user_info()
-        plans_courses = plan.view_plan(plan_id) #returns a list of crs_ids
-        print("PLANS COURSES", plans_courses)
+        plans_courses = plan.view_plan(plan_id)
         return jsonify(plans_courses)
     return jsonify({"failed": "User not signed in"})
 
 
 @app.route("/user/view-all-plans", methods=["GET"])
 def view_all_plans():
-    pass
+    if "user" in session:
+        usr = session["user"]
+        print("SESSION USR", usr)
+        pub_usr = public_user_info(usr)
+        print("PUB USR", pub_usr.email)
+        usr_id = pub_usr.get_user_id()
+        print("USR_ID ", usr_id)
+        usr_plan_ids = pub_usr.get_plans(usr_id)
+        for plan in usr_plan_ids:
+            print("PLAN", plan)
+            plans_courses = pub_usr.view_plan(plan.plan_id)
+        return jsonify(plans_courses)
+    return jsonify({"failed": "User not signed in"})
 
 
 """

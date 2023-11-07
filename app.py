@@ -5,7 +5,7 @@ Description: Makes objects of the databse tables, sends and recieves data from t
 
 TODO: Finish the classes, app.routes to send and receive from site 
 """
-import secret_keys
+import keys
 from flask import Flask, request, session, jsonify
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
@@ -16,11 +16,11 @@ from datetime import timedelta, datetime
 import time
 
 url = "https://qwydklzwvbrgvdomhxjb.supabase.co"
-client = Client(url, secret_keys.client_key)
-client_admin = Client(url, secret_keys.secret_key)
+client = Client(url, keys.client_key)
+client_admin = Client(url, keys.secret_key)
 
 app = Flask(__name__)
-app.secret_key = secrets.secret_key #Secret key needed for sessions to get the encrypted data
+app.secret_key = keys.secret_key #Secret key needed for sessions to get the encrypted data
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:2&?jL!Un?SV$Q5j@db.qwydklzwvbrgvdomhxjb.supabase.co:5432/postgres'
 app.permanent_session_lifetime = timedelta(minutes = 10) #How long the session data will be saved for
 

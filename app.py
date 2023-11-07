@@ -5,6 +5,7 @@ Description: Makes objects of the databse tables, sends and recieves data from t
 
 TODO: Finish the classes, app.routes to send and receive from site 
 """
+import keys
 from flask import Flask, request, session, jsonify
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
@@ -15,15 +16,13 @@ from datetime import timedelta, datetime
 import time
 
 url = "https://qwydklzwvbrgvdomhxjb.supabase.co"
-key ="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF3eWRrbHp3dmJyZ3Zkb21oeGpiIiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTU0MDcxNjcsImV4cCI6MjAxMDk4MzE2N30.UNZJCMI1NxpSyFr8bBooIIGPqTbDe3N-_YV9ZHbE_1g"
-client = Client(url, key)
-secret_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF3eWRrbHp3dmJyZ3Zkb21oeGpiIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTY5NTQwNzE2NywiZXhwIjoyMDEwOTgzMTY3fQ.5IP6Kh6jI3mL_3poMSKcjE_cANIjhqvGHJVjK5RNVMw"
-client_admin = Client(url, secret_key)
+client = Client(url, keys.client_key)
+client_admin = Client(url, keys.secret_key)
 
 app = Flask(__name__)
-app.secret_key = "planUMBCkey" #Secret key needed for sessions to get the encrypted data
+app.secret_key = keys.secret_key #Secret key needed for sessions to get the encrypted data
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:2&?jL!Un?SV$Q5j@db.qwydklzwvbrgvdomhxjb.supabase.co:5432/postgres'
-app.permanent_session_lifetime = timedelta(minutes = 5) #How long the session data will be saved for
+app.permanent_session_lifetime = timedelta(minutes = 10) #How long the session data will be saved for
 
 db = SQLAlchemy(app)
 cor = CORS(app)
@@ -502,7 +501,7 @@ Endpoint for getting one courses
 """
 @app.route('/admin/courses/<course_id>', methods = ['GET'])
 def admin_get_course(course_id):
-    user = session["user"]
+    user = session["user_email"]
     if user.user.app_metadata['admin']:
         my_course = course.query.get(course_id)
         return admin_course_schema.jsonify(my_course)
@@ -599,16 +598,13 @@ def user_signin():
     
     check_user = client.auth.get_user()
 
-    if email and password and "user" not in session and not check_user:
+    if email and password and "user_email" not in session and not check_user:
         curr_user = users()
         in_auth = curr_user.signin(email, password)
         if in_auth:
-            session["user"] = curr_user.user_obj.user.email
-            print("USER ADMIN",curr_user.user_obj.user.app_metadata['admin'])
-            #TODO:Delete ^ and Uncomment when supabase signup working again
-            #session["user"] = curr_user.user_obj
+            session["user_email"] = curr_user.user_obj.user.email
             return "Successfully signed in user"
-    elif "user" in session:
+    elif "user_email" in session:
         return "User already in session signed in"
     elif check_user:
         return("User already signed in")
@@ -626,10 +622,10 @@ def user_signout():
     if is_user:
         user_email = is_user.user.email
         client.auth.sign_out()
-        session.pop("user")
+        session.pop("user_email")
         return f"Succesfully signed out {user_email}"
-    if "user" in session:
-        session.pop("user")
+    if "user_email" in session:
+        session.pop("user_email")
     
     return "Failed no user signed in"
 
@@ -670,8 +666,8 @@ def user_delete_plan():
     chosen_id = request.json["chosen_id"]
     user = client.auth.get_user()
     print("USER ", user)
-    if "user" in session:
-        print("SESSION ", session["user"])
+    if "user_email" in session:
+        print("SESSION ", session["user_email"])
     if user:
         if chosen_id:
             to_delete = plan.query.filter(plan.plan_id == chosen_id).order_by().first()

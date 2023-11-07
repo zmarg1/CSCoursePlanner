@@ -433,7 +433,7 @@ def create_course():
     return course_schema.jsonify(new_course)
 
 # endpoint for updating a course
-@app.route('/admin/courses/update/<course_id>', methods = ['PUT'])
+@app.route('/admin/courses/update_course/<course_id>', methods = ['PUT'])
 def update_course(course_id):
     updated_course = course.query.get(course_id)
 

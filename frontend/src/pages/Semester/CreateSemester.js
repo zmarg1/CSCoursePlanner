@@ -2,7 +2,7 @@ import React, { useState  } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
  
-export default function CreateSubject(){
+export default function CreateSemester(){
   
     const navigate = useNavigate();
   
@@ -16,9 +16,9 @@ export default function CreateSubject(){
     const handleSubmit = (event) => {
         event.preventDefault();
   
-        axios.post('http://127.0.0.1:5000/admin/subjects/create_subject', inputs).then(function(response){
+        axios.post('http://127.0.0.1:5000/admin/semesters/create_semester', inputs).then(function(response){
             console.log(response.data);
-            navigate('/subjects');
+            navigate('/semesters');
         });
           
     }
@@ -29,19 +29,19 @@ export default function CreateSubject(){
             <div className="row">
                 <div className="col-2"></div>
                 <div className="col-8">
-                <h1>Create Subject</h1>
+                <h1>Create Semester</h1>
                 <form onSubmit={handleSubmit}>
                     <div className="mb-3">
-                      <label>Subject_ID</label>
-                      <input type="number" className="form-control" name="subject_id" onChange={handleChange} />
+                      <label>Semester_ID</label>
+                      <input type="number" className="form-control" name="semester_id" onChange={handleChange} />
                     </div>
                     <div className="mb-3">
-                      <label>Subject Code</label>
-                      <input type="text" className="form-control" name="subject_code" onChange={handleChange} />
+                      <label>Term</label>
+                      <input type="text" className="form-control" name="term" onChange={handleChange} />
                     </div>
                     <div className="mb-3">
-                      <label>Subject Name</label>
-                      <input type="text" className="form-control" name="subject_name" onChange={handleChange} />
+                      <label>Year</label>
+                      <input type="number" className="form-control" name="year" onChange={handleChange} />
                     </div>
                     <button type="submit" name="add" className="btn btn-primary">Save</button>
                 </form>

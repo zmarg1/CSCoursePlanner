@@ -29,7 +29,7 @@ export default function CreateCourse(){
             <div className="row">
                 <div className="col-2"></div>
                 <div className="col-8">
-                <h1>Create user</h1>
+                <h1>Create Course</h1>
                 <form onSubmit={handleSubmit}>
                     <div className="mb-3">
                       <label>Course_ID</label>

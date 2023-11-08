@@ -18,7 +18,7 @@ export default function CreateCourse(){
   
         axios.post('http://127.0.0.1:5000/admin/courses/create_course', inputs).then(function(response){
             console.log(response.data);
-            navigate('/');
+            navigate('/courses/');
         });
           
     }

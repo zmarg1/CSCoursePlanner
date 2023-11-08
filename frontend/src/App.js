@@ -20,12 +20,12 @@ function App() {
               <Container>
                 <Navbar.Brand>Admin</Navbar.Brand>
                 <Nav className="me-auto">
-                  <Nav.Link href="/">Courses</Nav.Link>
-                  <Nav.Link href="/">Subjects</Nav.Link>
-                  <Nav.Link href="/">Prereqs</Nav.Link>
-                  <Nav.Link href="/">Semesters</Nav.Link>
-                  <Nav.Link href="/">Users</Nav.Link>
-                  <Nav.Link href="/">Plans</Nav.Link>
+                  <Nav.Link href="/courses">Courses</Nav.Link>
+                  <Nav.Link href="/subjects">Subjects</Nav.Link>
+                  <Nav.Link href="/prereqs">Prereqs</Nav.Link>
+                  <Nav.Link href="/semesters">Semesters</Nav.Link>
+                  <Nav.Link href="/users">Users</Nav.Link>
+                  <Nav.Link href="/plans">Plans</Nav.Link>
 
                 </Nav>
               </Container>
@@ -34,9 +34,9 @@ function App() {
 
             <BrowserRouter>
               <Routes>
-                <Route path = "/" element = {<ListCoursePage />} />
-                <Route path = "/create_course" element = {<CreateCourse />} />
-                <Route path ="course/:id/edit" element={<EditCourse />} />
+                <Route path = "/courses" element = {<ListCoursePage />} />
+                <Route path = "/courses/addnewcourse" element = {<CreateCourse />} />
+                <Route path ="/courses/course/:id/edit" element={<EditCourse />} />
 
               </Routes>
             </BrowserRouter>

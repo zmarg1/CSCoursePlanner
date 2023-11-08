@@ -31,7 +31,7 @@ export default function EditCourse(){
   
         axios.put(`http://127.0.0.1:5000/admin/courses/update_course/${id}`, inputs).then(function(response){
             console.log(response.data);
-            navigate('/');
+            navigate('/courses');
         });
           
     }

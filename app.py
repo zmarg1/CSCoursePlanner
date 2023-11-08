@@ -305,12 +305,13 @@ Subject of the course containing the subject id, code, and name
 """
 class subject(db.Model):
     subject_id = db.Column(db.Integer, primary_key=True)
-    sub_code = db.Column("subject_code", db.Integer)
-    sub_name = db.Column("subject_name", db.String(100))
+    subject_code = db.Column("subject_code", db.String(100))
+    subject_name = db.Column("subject_name", db.String(100))
 
-    def __init__(self, code, name):
-        self.sub_code = code
-        self.sub_name = name
+    def __init__(self, id, code, name):
+        self.subject_id = id
+        self.subject_code = code
+        self.subject_name = name
 
     def add_commit(self):
         db.session.add(self)
@@ -319,6 +320,17 @@ class subject(db.Model):
     def delete(self):
         db.session.delete(self)
         db.session.commit()
+
+
+# Defines your subject output
+class SubjectSchema(ma.Schema):
+    class Meta:
+        # Fields to expose
+        fields = ("subject_id", "subject_code", "subject_name")
+
+subject_schema = SubjectSchema()
+subjects_schema = SubjectSchema(many=True)
+
 
 """
 Semester class holds the term and year a course is offered if offered
@@ -329,7 +341,7 @@ class semester(db.Model):
     term = db.Column(db.String(100))
     year = db.Column(db.Integer)
 
-    def __init__(self, term, year):
+    def __init__(self,id, term, year):
         #TODO: uncomment if plan last_id works
         """
         last_id = requirement.query.order_by(semester.semester_id.desc()).first() #Should get last id in list if any
@@ -339,6 +351,7 @@ class semester(db.Model):
         else:
             self.semester_id = 1
         """
+        self.semester_id = id
         self.term = term
         self.year = year
 
@@ -349,6 +362,17 @@ class semester(db.Model):
     def delete(self):
         db.session.delete(self)
         db.session.commit()
+
+
+# Defines your semester output
+class SemesterSchema(ma.Schema):
+    class Meta:
+        # Fields to expose
+        fields = ("semester_id", "term", "year")
+
+semester_schema = SemesterSchema()
+semesters_schema = SemesterSchema(many=True)
+
 
 """
 Takes the planned course and assigns it to the plan with the semester of the plan and the chosen requirement type from the course
@@ -445,7 +469,7 @@ def update_course(course_id):
     db.session.commit()
     return course_schema.jsonify(updated_course)
 
-# endpoint for updating a course
+# endpoint for deleting a course
 @app.route('/admin/courses/delete/<course_id>', methods = ['DELETE'])
 def delete_course(course_id):
     deleted_course = course.query.get(course_id)
@@ -455,12 +479,103 @@ def delete_course(course_id):
     return course_schema.jsonify(deleted_course)
 
 
+# endpoint for getting all subjects
+@app.route('/admin/subjects', methods = ['GET'])
+def get_all_subjects():
+    all_subjects = subject.query.order_by(subject.subject_id.asc()).all()
+    subjects_dump = subjects_schema.dump(all_subjects)
+    return jsonify(subjects_dump)
 
 
+# endpoint for getting one subject
+@app.route('/admin/subjects/<subject_id>', methods = ['GET'])
+def get_subject(subject_id):
+    my_subject = subject.query.get(subject_id)
+    return subject_schema.jsonify(my_subject) 
+
+
+# endpoint for creating a subject
+@app.route('/admin/subjects/create_subject', methods = ['POST'])
+def create_subject():
+    subject_id = request.json['subject_id']
+    subject_code = request.json['subject_code']
+    subject_name = request.json['subject_name']
+    new_subject = subject(subject_id, subject_code, subject_name)
+
+    db.session.add(new_subject)
+    db.session.commit()
+    return subject_schema.jsonify(new_subject)
+
+
+# endpoint for updating a subject
+@app.route('/admin/subjects/update_subject/<subject_id>', methods = ['PUT'])
+def update_subject(subject_id):
+    updated_subject = subject.query.get(subject_id)
+
+    updated_subject.subject_code = request.json['subject_code']
+    updated_subject.subject_name = request.json['subject_name']
     
+    db.session.commit()
+    return subject_schema.jsonify(updated_subject)
 
+
+# endpoint for deleting a subject
+@app.route('/admin/subjects/delete/<subject_id>', methods = ['DELETE'])
+def delete_subject(subject_id):
+    deleted_subject = subject.query.get(subject_id)
+
+    db.session.delete(deleted_subject)
+    db.session.commit()
+    return subject_schema.jsonify(deleted_subject)
+
+
+# endpoint for getting all semesters
+@app.route('/admin/semesters', methods = ['GET'])
+def get_all_semesters():
+    all_semesters = semester.query.order_by(semester.semester_id.asc()).all()
+    semesters_dump = semesters_schema.dump(all_semesters)
+    return jsonify(semesters_dump)
+
+
+# endpoint for getting one semester
+@app.route('/admin/semesters/<semester_id>', methods = ['GET'])
+def get_semester(semester_id):
+    my_semester = semester.query.get(semester_id)
+    return semester_schema.jsonify(my_semester) 
+
+
+# endpoint for creating a semester
+@app.route('/admin/semesters/create_semester', methods = ['POST'])
+def create_semester():
+    semester_id = request.json['semester_id']
+    term = request.json['term']
+    year = request.json['year']
+    new_semester = semester(semester_id, term, year)
+
+    db.session.add(new_semester)
+    db.session.commit()
+    return semester_schema.jsonify(new_semester)
+
+
+# endpoint for updating a semester
+@app.route('/admin/semesters/update_semester/<semester_id>', methods = ['PUT'])
+def update_semester(semester_id):
+    updated_semester = semester.query.get(semester_id)
+
+    updated_semester.term = request.json['term']
+    updated_semester.year = request.json['year']
     
+    db.session.commit()
+    return semester_schema.jsonify(updated_semester)
 
+
+# endpoint for deleting a semester
+@app.route('/admin/semesters/delete/<semester_id>', methods = ['DELETE'])
+def delete_semester(semester_id):
+    deleted_semester = semester.query.get(semester_id)
+    db.session.delete(deleted_semester)
+    db.session.commit()
+    return semester_schema.jsonify(deleted_semester)
 
 """
 Sign in the user

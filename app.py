@@ -52,9 +52,10 @@ class users():
     summer_ids = []
 
     #Makes a user from the session if user given
-    def __init__(self, new_email=None):
+    def __init__(self, new_email=None, admin=False):
         if new_email:
             self.email = new_email
+            self.admin = admin
 
     #Signs up a new user
     def signup(self, password, admin=False):
@@ -71,11 +72,9 @@ class users():
                     new_user = client.auth.sign_up({
                         "email": self.email,
                         "password": password,
-                        "options":{
-                            "data":{
+                        "user_metadata":{
                                 "admin": admin
                             }
-                        }
                         })
                     self.user_obj = new_user
                     self.user_id = new_user.user.id
@@ -92,7 +91,6 @@ class users():
     def signin(self, password):
         try:
             curr_usr = client.auth.sign_in_with_password({"email": self.email, "password": password})
-            self.user_obj = curr_usr
             self.admin = curr_usr.user.user_metadata.get('admin')
         except Exception as e:
             print(f"Authentication error: {e} for {self.email}")
@@ -460,6 +458,7 @@ class subject(db.Model):
         db.session.delete(self)
         db.session.commit()
 
+
 """
 Semester is the term and year used for when a course is offered and making a plan
 Columns:
@@ -561,6 +560,7 @@ class SemesterCourseSchema(ma.Schema):
 
 semesters_schema = SemesterCourseSchema(many = True)
 
+
 """
 Takes the planned course and assigns it to the plan with the semester of the plan and the chosen requirement type from the course
 Columns:
@@ -626,6 +626,7 @@ class taken(db.Model):
     def requirement_choice():
         pass
 
+
 """
 Flask Routes
 """
@@ -634,13 +635,13 @@ def hello():
     return "Hello"
 
 
+"""
+Enters main admin page for admin functionality
+Returns:
+string: A welcome message
+"""
 @app.route('/admin')
 def admin():
-    """Enters main admin page for admin functionality
-
-    Returns:
-        string: A welcome message
-    """
     return "Welcome to the Admin page"
 
 
@@ -649,11 +650,13 @@ Endpoint for getting one courses
 """
 @app.route('/admin/courses/<course_id>', methods = ['GET'])
 def admin_get_course(course_id):
-    user = session["user_email"]
-    if user.user.app_metadata['admin']:
-        my_course = course.query.get(course_id)
-        return course_schema.jsonify(my_course)
-    return jsonify({"Failed": "User is not admin"}) 
+    if "user_email" in session:
+        if session["admin"]:
+            my_course = course.query.get(course_id)
+            return course_schema.jsonify(my_course)
+        return jsonify({"Failed": "User is not admin"})
+    
+    return jsonify({"Failed": "User not signed in"}) 
 
 
 """
@@ -661,9 +664,13 @@ Endpoint for getting all course
 """
 @app.route('/admin/courses', methods = ['GET'])
 def admin_get_all_courses():
-    all_courses = course.query.order_by(course.course_id.asc()).all()
-    courses_dump = courses_schema.dump(all_courses)
-    return jsonify(courses_dump)
+    if "user_email" in session:
+        if session["admin"]:
+            all_courses = course.query.order_by(course.course_id.asc()).all()
+            courses_dump = courses_schema.dump(all_courses)
+            return jsonify(courses_dump)
+        return jsonify({"Failed": "User is not admin"})
+    return jsonify({"Failed": "User not signed in"}) 
 
 
 """
@@ -676,35 +683,76 @@ credits - Credits course is worth
 """
 @app.route('/admin/courses/create_course', methods = ['POST'])
 def admin_create_course():
-    crs_title = request.json['course_title']
-    _subject = request.json['subject']
-    crs_num = request.json['crs_num']
-    credits = request.json['credits']
+    if "user_email" in session:
+        if session["admin"]:
+            crs_title = request.json['course_title']
+            _subject = request.json['subject']
+            crs_num = request.json['crs_num']
+            credits = request.json['credits']
 
-    is_code = None
-    is_id = None
-    is_name = None
-    #Checks if subject input is an int or a string
-    if isinstance(_subject, int):
-        is_id = subject.query.filter(subject.subject_id == _subject).first()
-    if isinstance(_subject, str):
-        is_code = subject.query.filter(subject.sub_code == _subject).order_by().first()
-        is_name = subject.query.filter(subject.sub_name == _subject).order_by().first()
+            is_code = None
+            is_id = None
+            is_name = None
+            #Checks if subject input is an int or a string
+            if isinstance(_subject, int):
+                is_id = subject.query.filter(subject.subject_id == _subject).first()
+            if isinstance(_subject, str):
+                is_code = subject.query.filter(subject.sub_code == _subject).order_by().first()
+                is_name = subject.query.filter(subject.sub_name == _subject).order_by().first()
 
-    if is_id:
-        new_course = course(crs_title, _subject, crs_num, credits)
-        new_course.add_commit()
-    elif is_code:
-        new_course = course(crs_title, is_code.subject_id, crs_num, credits)
-        new_course.add_commit()
-    elif is_name:
-        new_course = course(crs_title, is_name.subject_id, crs_num, credits)
-        new_course.add_commit()
-
-    else:
-        return jsonify ({"fail": "Failed Post"})
+            if is_id:
+                new_course = course(crs_title, _subject, crs_num, credits)
+                new_course.add_commit()
+            elif is_code:
+                new_course = course(crs_title, is_code.subject_id, crs_num, credits)
+                new_course.add_commit()
+            elif is_name:
+                new_course = course(crs_title, is_name.subject_id, crs_num, credits)
+                new_course.add_commit()
+            else:
+                return jsonify ({"fail": "Failed Post"})
     
-    return jsonify ({"Success": "Success Post"}) 
+            return course_schema.jsonify(new_course)
+        
+        return jsonify({"Failed": "User is not admin"})
+        
+    return jsonify({"Failed": "User not signed in"}) 
+
+
+# endpoint for updating a course
+@app.route('/admin/courses/update_course/<course_id>', methods = ['PUT'])
+def update_course(course_id):
+    if "user_email" in session:
+        if session["admin"]:
+            updated_course = course.query.get(course_id)
+
+            updated_course.subject_id = request.json['subject_id']
+            updated_course.crs_title = request.json['crs_title']
+            updated_course.crs_num = request.json['crs_num']
+            updated_course.credits = request.json['credits']
+
+            db.session.commit()
+            return course_schema.jsonify(updated_course)
+        
+        return jsonify({"Failed": "User is not admin"})
+    
+    return jsonify({"Failed": "User not signed in"})
+
+
+# endpoint for updating a course
+@app.route('/admin/courses/delete/<course_id>', methods = ['DELETE'])
+def delete_course(course_id):
+    if "user_email" in session:
+        if session["admin"]:
+            deleted_course = course.query.get(course_id)
+
+            db.session.delete(deleted_course)
+            db.session.commit()
+            return course_schema.jsonify(deleted_course)
+            
+        return jsonify({"Failed": "User is not admin"})
+        
+    return jsonify({"Failed": "User not signed in"})
 
 
 """
@@ -752,6 +800,7 @@ def user_signin():
             curr_user.update_user_plan_ids()
             curr_user.update_term_ids()
             session["user_email"] = curr_user.email
+            session["admin"] = curr_user.admin
             session["plan_ids"] = curr_user.plan_ids
             session["fall_ids"] = curr_user.fall_ids
             session["winter_ids"] = curr_user.winter_ids
@@ -765,11 +814,12 @@ def user_signin():
    
     return "Failed to sign in user"
 
+
 """
 Signs out user from supabase and removes them from the session
 """
 #TODO: Setup for Clerk
-@app.route("/user/signout", methods=["GET"])
+@app.route("/user/signout", methods=["SIGNOUT"])
 def user_signout():
     is_user = client.auth.get_user()
     if is_user:
@@ -784,6 +834,7 @@ def user_signout():
     
     return "Failed no user signed in"
 
+
 #TODO: Change to use definitions
 @app.route("/user/update-campus-id", methods=["POST", "GET"])
 def update_campus_id():
@@ -797,6 +848,7 @@ def update_campus_id():
     
     client.auth.sign_out()
     return jsonify({"Failed": "Failed to update campus id"})
+
 
 """
 Makes an empty plan for the user
@@ -815,6 +867,7 @@ def user_make_plan():
     client.auth.sign_out()
     return jsonify({"Failed": "Failed need to sing in first"})
 
+
 #TODO: when user selects plan make it the sessions plan
 @app.route("/user/plan/select-plan", methods={"POST"})
 def user_select_plan():
@@ -832,10 +885,11 @@ def user_select_plan():
     else:
         return jsonify({"Failed": "Wrong method used"})
 
+
 """
 Deletes the users chosen plan
 """
-#TODO: Complete it when supabase emails working
+#TODO: Need to complete it
 @app.route("/user/plan/delete-plan", methods=["DELETE"])
 def user_delete_plan():
     if "user_email" in session and "plan_id" in request.json and request.method == "DELETE":
@@ -978,6 +1032,7 @@ def user_view_all_courses():
     courses_dump = courses_schema.dump(all_courses)
     return jsonify(courses_dump)
 
+
 """
 Views all relevant semesters starting at current year and approximate term
 """
@@ -1004,13 +1059,17 @@ def view_plan():
         plans_courses = curr_user.view_plan(plan_id)
         courses_dump = courses_schema.dump(plans_courses)
         return jsonify(courses_dump)
+    
     elif "user_email" not in session:
         client.auth.sign_out()
         return jsonify({"Failed": "User not signed in"})
+    
     elif "curr_plan_id" not in session:
         return jsonify({"Failed": "No plan in session"})
+    
     else:
         return jsonify({"Failed": "Wrong method needs \"GET\" method"})
+
 
 """
 Get all the plan ids for the current user
@@ -1025,19 +1084,28 @@ def get_plan_ids():
     client.auth.sign_out()
     return jsonify({"Failed": "User not signed in"})
 
+
 """
 Used to update any current users data when user object definitions are changed
 """
-def update_all_users():
-    all_users = public_user_info.get_all_users()
-    su = client_admin.auth.admin.list_users()
-    for user in su:
-        update_data = {
-            'user_metadata':{
-                'admin': False
+def update_all_users(all=True, usr_id=None):
+    if all:
+        su = client_admin.auth.admin.list_users()
+        for user in su:
+            update_data = {
+                "user_metadata":{
+                    "admin": False
+                }
             }
+            client_admin.auth.admin.update_user_by_id(user.id, update_data)
+    else:
+        su = client_admin.auth.admin.get_user_by_id(usr_id)
+        update_data = {
+            "user_metadata":{
+                "admin": True
+                }
         }
-        client_admin.auth.admin.update_user_by_id(user.id, update_data)
+        client_admin.auth.admin.update_user_by_id(usr_id, update_data)
 
 
 """

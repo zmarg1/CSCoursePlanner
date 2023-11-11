@@ -29,86 +29,72 @@ app.permanent_session_lifetime = timedelta(minutes = 5) #How long the session da
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
 
+# DB models
 """
-The User will have an id, name, 'user'
-ForeignKeys:
- The plan the user has made or has
- The users current degree
+The user object class to interact with the authorization table in supabase
+user_obj - Stores the created supabase 'user' object
+admin - The users permission level
+campus_id - The campus id of the given user
 """
-
-"""class Course(db.Model):
-    __tablename__ = 'course'  # Specify the table name
-
-    # Define the columns of the 'course' table
-    course_id = db.Column('course_id', db.Integer, primary_key = True)
-    subject_id = db.Column('subject_id', db.Integer,nullable = False)
-    course_title = db.Column('course_title', db.String(100), nullable = True)
-    course_num = db.Column('course_num', db.Integer,nullable = True)
-    credits = db.Column('credits', db.Integer,nullable = True)
-
-    # Add more columns here as needed
-
-    def __init__(self,course_title):
-        self.course_title = course_title
-        self.subject_id = subject_id
-        self.course_num = course_num
-        self.credits = credits
-
-
-    def __repr__(self):
-        return f"Course_ID: {self.course_id} ({self.subject_id}), Course: {self.course_num} - {self.course_title} ({self.credits})"""
-
 #TODO: Make def for adding plan_id and deg_id to the class variables from user obj in database
 class users():
-    #Example of how to interact with items from user_obj
-    #self.user_id = user_obj['id'] This can get the id, email
-    #custom_data = user_obj.get('app_metadata', {}) This gets the plan_id, degree_id, campus_id
-    user_obj = None
-    user_id = None
-    user_campus_id = None
-    plan_id = None
-    deg_id = None
+    """
+    How to interact with user metadata
+    admin = user.user.user_metadata.get('admin')
+    user.user.user_metadata['campus_id'] = 'KD89'
+    """
     admin = False
 
+    #Makes a user from the session if user given
+    def __init__(self, user=None):
+        if user:
+            self.user_obj = user
+            self.admin = user.user.user_metadata.get('admin')
+
     #Signs up a new user
-    def signup(self, email, password):
+    def signup(self, email, password, admin=False):
         max_retries = 3
         retry_count = 0
-        user = None
+
+        #Tries 3 times to signup a user and prints the error for each failure in 10sec intervals
         while retry_count < max_retries:
             try:
                 in_auth = client.auth.get_user("email" == email)
-            
+
+                #If user not in session signs them up and fills class variables
                 if not in_auth:
-                    user = client.auth.sign_up({
+                    new_user = client.auth.sign_up({
                         "email": email,
                         "password": password,
                         "options":{
                             "data":{
-                                "plan_id": None,
-                                "degree_id": None,
-                                "campus_id": None
+                                "admin": admin
                             }
                         }
                         })
-                    self.user_obj = user
-                    self.user_id = user.user.id
-                    return True
+                    self.user_obj = new_user
+                    self.user_id = new_user.user.id
+                    self.admin = new_user.user.user_metadata.get('admin')
+                    return new_user
             except Exception as e:
                 print(f"Authentication error: {e} for {email}")
                 retry_count += 1
                 if retry_count < max_retries:
                     time.sleep(10)
-        return False
+        return None
     
+    #Returns the id on success and none on failure
     def signin(self, email, password):
         try:
             curr_usr = client.auth.sign_in_with_password({"email": email, "password": password})
+            self.user_obj = curr_usr
+            #TODO: Uncomment when supabase emails are working
+            """self.admin = curr_usr.user.user_metadata.get('admin')"""
         except Exception as e:
             print(f"Authentication error: {e} for {email}")
             return None
-        
-        return curr_usr
+        return True
+
 
     def add_commit(self):
         db.session.add(self)
@@ -117,6 +103,51 @@ class users():
     def delete(self):
         db.session.delete(self)
         db.session.commit()
+
+class public_user_info(db.Model):
+    user_id = db.Column('user_id',primary_key=True)
+    email = db.Column('email',db.String(100))
+    campus_id = db.Column('campus_id',db.String(100))
+    first_name = db.Column('first_name',db.String(100))
+    last_name = db.Column('last_name',db.String(100))
+
+    def __init__(self, id, new_email=None, new_campus_id=None, new_f_name=None, new_l_name=None):
+        self.user_id = id
+        self.email = new_email
+        self.campus_id = new_campus_id
+        self.first_name = new_f_name
+        self.last_name = new_l_name
+
+    def add_commit(self):
+        db.session.add(self)
+        db.session.commit()
+
+    def delete(self):
+        db.session.delete(self)
+        db.session.commit()
+
+    def update_campus_id(self, email, new_c_id):
+        pass
+
+    def update_name(self, email, new_f_name=None, new_l_name=None):
+        pass
+
+    def update_email(self, email=None):
+        pass
+
+    def get_all_users():
+        all_users = public_user_info.query.all()
+        return all_users
+
+
+# Defines your user output
+class PublicUserSchema(ma.Schema):
+    class Meta:
+        # Fields to expose
+        fields = ("user_id", "email", "campus_id", "first_name","last_name")
+
+public_user_schema = PublicUserSchema()
+public_users_schema = PublicUserSchema(many=True)
 
 """
 plan has an id, 'number', name, and will store the courses for that plan
@@ -233,7 +264,25 @@ class prereq(db.Model):
 
     prereq_courses = db.Column(db.ARRAY(db.Integer))
     grade_required = db.Column(db.Integer)
-    
+
+
+    def __init__(self, id, crs_id, prereq_courses, grade_required):
+        self.prereq_id = id
+        self.crs_id = crs_id
+        self.prereq_courses = prereq_courses
+        self.grade_required = grade_required
+
+
+# Defines your prereq output
+class PrereqSchema(ma.Schema):
+    class Meta:
+        # Fields to expose
+        fields = ("prereq_id","crs_id", "prereq_courses", "grade_required")
+
+prereq_schema = PrereqSchema()
+prereqs_schema = PrereqSchema(many=True)
+
+
 """
 A course with its id, title, number, credits, and its prereq
 ForeignKeys: 
@@ -576,6 +625,112 @@ def delete_semester(semester_id):
     db.session.delete(deleted_semester)
     db.session.commit()
     return semester_schema.jsonify(deleted_semester)
+
+# Users
+# endpoint for getting all public users
+@app.route('/admin/users', methods = ['GET'])
+def get_all_users():
+    all_users = public_user_info.query.order_by(public_user_info.user_id.asc()).all()
+    users_dump = public_users_schema.dump(all_users)
+    return jsonify(users_dump)
+
+
+# endpoint for getting one public user
+@app.route('/admin/users/<user_id>', methods = ['GET'])
+def get_user(user_id):
+    my_user = public_user_info.query.get(user_id)
+    return public_user_schema.jsonify(my_user) 
+
+
+# endpoint for creating a user
+@app.route('/admin/users/create_user', methods = ['POST'])
+def create_user():
+    user_id = request.json['user_id']
+    email = request.json['email']
+    campus_id = request.json['campus_id']
+    first_name = request.json['first_name']
+    last_name = request.json['last_name']
+    new_user = public_user_info(user_id, email, campus_id, first_name, last_name)
+
+    db.session.add(new_user)
+    db.session.commit()
+    return public_user_schema.jsonify(new_user)
+
+
+# endpoint for updating a user
+@app.route('/admin/users/update_user/<user_id>', methods = ['PUT'])
+def update_user(user_id):
+    updated_user = public_user_info.query.get(user_id)
+
+    updated_user.email = request.json['email']
+    updated_user.campus_id = request.json['campus_id']
+    updated_user.first_name = request.json['first_name']
+    updated_user.last_name = request.json['last_name']
+    
+    db.session.commit()
+    return public_user_schema.jsonify(updated_user)
+
+
+# endpoint for deleting a user
+@app.route('/admin/users/delete/<user_id>', methods = ['DELETE'])
+def delete_user(user_id):
+    deleted_user = public_user_info.query.get(user_id)
+    db.session.delete(deleted_user)
+    db.session.commit()
+    return public_user_schema.jsonify(deleted_user)
+
+
+# Prereq
+# endpoint for getting all prereqs
+@app.route('/admin/prereqs', methods = ['GET'])
+def get_all_prereqs():
+    all_prereqs = prereq.query.order_by(prereq.prereq_id.asc()).all()
+    prereqs_dump = prereqs_schema.dump(all_prereqs)
+    return jsonify(prereqs_dump)
+
+
+# endpoint for getting one prereq
+@app.route('/admin/prereqs/<prereq_id>', methods = ['GET'])
+def get_prereq(prereq_id):
+    my_prereq = prereq.query.get(prereq_id)
+    return prereq_schema.jsonify(my_prereq) 
+
+
+# endpoint for creating a prereq
+@app.route('/admin/prereqs/create_prereq', methods = ['POST'])
+def create_prereq():
+    prereq_id = request.json['prereq_id']
+    crs_id = request.json['crs_id']
+    prereq_courses = request.json['prereq_courses']
+    grade_required = request.json['grade_required']
+    new_prereq = prereq(prereq_id, crs_id, prereq_courses, grade_required)
+
+    db.session.add(new_prereq)
+    db.session.commit()
+    return prereq_schema.jsonify(new_prereq)
+
+
+# endpoint for updating a prereq
+@app.route('/admin/prereqs/update_prereq/<prereq_id>', methods = ['PUT'])
+def update_prereq(prereq_id):
+    updated_prereq = prereq.query.get(prereq_id)
+
+    updated_prereq.crs_id = request.json['crs_id']
+    updated_prereq.prereq_courses = request.json['prereq_courses']
+    updated_prereq.grade_required = request.json['grade_required']
+    
+    db.session.commit()
+    return prereq_schema.jsonify(updated_prereq)
+
+
+# endpoint for deleting a prereq
+@app.route('/admin/prereqs/delete/<prereq_id>', methods = ['DELETE'])
+def delete_prereq(prereq_id):
+    deleted_prereq = prereq.query.get(prereq_id)
+    db.session.delete(deleted_prereq)
+    db.session.commit()
+    return prereq_schema.jsonify(deleted_prereq)
+
 
 """
 Sign in the user

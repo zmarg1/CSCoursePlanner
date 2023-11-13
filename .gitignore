@@ -1,3 +1,5 @@
 # Ignore Pycharm Intellij setup folder
 .idea/
 keys.py
+__pycache__
+front

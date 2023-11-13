@@ -186,7 +186,7 @@ created_at - time of plan creation
 class plan(db.Model):
     plan_id = db.Column( db.Integer, primary_key=True)
 
-    user_id = db.Column(db.Integer)
+    user_id = db.Column(db.String)
 
     plan_num = db.Column(db.Integer)
     plan_name = db.Column(db.String(100))

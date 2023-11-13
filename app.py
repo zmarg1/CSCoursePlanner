@@ -198,10 +198,10 @@ The users degree with name of degree and type of degree
 """
 class degree(db.Model):
     degree_id = db.Column(db.Integer, primary_key=True)
-    deg_name = db.Column(db.String(100))
-    deg_type = db.Column(db.String(100))
+    deg_name = db.Column('degree_name', db.String(100))
+    deg_type = db.Column('degree_type', db.String(100))
 
-    def __init__(self, name, type):
+    def __init__(self, id, name, type):
         #TODO: uncomment if plan last_id works 
         """
         last_id = degree.query.order_by(degree.degree_id.desc()).first() #Should get last id in list if any
@@ -211,6 +211,7 @@ class degree(db.Model):
         else:
             self.degree_id = 1
         """
+        self.degree_id = id
         self.deg_name = name
         self.deg_type = type
 
@@ -221,6 +222,15 @@ class degree(db.Model):
     def delete(self):
         db.session.delete(self)
         db.session.commit()
+
+# Defines your degree output
+class DegreeSchema(ma.Schema):
+    class Meta:
+        # Fields to expose
+        fields = ("degree_id", "deg_name", "deg_type")
+
+degree_schema = DegreeSchema()
+degrees_schema = DegreeSchema(many=True)
 
 """
 The requirements for the Degree containing its type and subtype
@@ -731,6 +741,80 @@ def delete_prereq(prereq_id):
     db.session.commit()
     return prereq_schema.jsonify(deleted_prereq)
 
+
+# Degree
+# endpoint for getting all degrees
+@app.route('/admin/degrees', methods = ['GET'])
+def get_all_degrees():
+    all_degrees = degree.query.order_by(degree.degree_id.asc()).all()
+    degrees_dump = degrees_schema.dump(all_degrees)
+    return jsonify(degrees_dump)
+
+
+# endpoint for getting one degree
+@app.route('/admin/degrees/<degree_id>', methods = ['GET'])
+def get_degree(degree_id):
+    my_degree = degree.query.get(degree_id)
+    return degree_schema.jsonify(my_degree) 
+
+
+# endpoint for creating a degree
+@app.route('/admin/degrees/create_degree', methods = ['POST'])
+def create_degree():
+    degree_id = request.json['degree_id']
+    deg_name = request.json['deg_name']
+    deg_type = request.json['deg_type']
+    new_degree = degree(degree_id, deg_name, deg_type)
+
+    db.session.add(new_degree)
+    db.session.commit()
+    return degree_schema.jsonify(new_degree)
+
+
+# endpoint for updating a degree
+@app.route('/admin/degrees/update_degree/<degree_id>', methods = ['PUT'])
+def update_degree(degree_id):
+    updated_degree = degree.query.get(degree_id)
+
+    updated_degree.degree_id = request.json['degree_id']
+    updated_degree.deg_name = request.json['deg_name']
+    updated_degree.deg_type = request.json['deg_type']
+    
+    db.session.commit()
+    return degree_schema.jsonify(updated_degree)
+
+
+# endpoint for deleting a degree
+@app.route('/admin/degrees/delete/<degree_id>', methods = ['DELETE'])
+def delete_degree(degree_id):
+    deleted_degree = degree.query.get(degree_id)
+    db.session.delete(deleted_degree)
+    db.session.commit()
+    return degree_schema.jsonify(deleted_degree)
+
+
+"""
+# Endpoint to delete all records and insert new data
+@app.route('/admin/courses_offered/update', methods=['POST'])
+def update_course_offered():
+    try:
+        # Delete all records from the "course_offered" table
+        CourseOffered.query.delete()
+
+        # Insert new data into the "course_offered" table
+        new_data = request.get_json()
+        for row in new_data:
+            course = CourseOffered(**row)
+            db.session.add(course)
+
+        # Commit the changes
+        db.session.commit()
+
+        return jsonify({'message': 'Data updated successfully'}), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+"""
 
 """
 Sign in the user

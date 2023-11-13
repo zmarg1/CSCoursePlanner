@@ -27,6 +27,10 @@ import ListPrereqPage from "./pages/Prereq/ListPrereqPage";
 import CreatePrereq from "./pages/Prereq/CreatePrereq";
 import EditPrereq from './pages/Prereq/EditPrereq';
 
+import ListDegreePage from "./pages/Degree/ListDegreePage";
+import CreateDegree from "./pages/Degree/CreateDegree";
+import EditDegree from './pages/Degree/EditDegree';
+
 function App() {
   return (
           <div className = "container">
@@ -72,6 +76,12 @@ function App() {
                 <Route path = "/prereqs" element = {<ListPrereqPage />} />
                 <Route path = "/prereqs/addnewprereq" element = {<CreatePrereq />} />
                 <Route path ="/prereqs/prereq/:id/edit" element={<EditPrereq />} />
+
+                <Route path = "/degrees" element = {<ListDegreePage />} />
+                <Route path = "/degrees/addnewdegree" element = {<CreateDegree />} />
+                <Route path ="/degrees/degree/:id/edit" element={<EditDegree />} />
+
+                
               </Routes>
             </BrowserRouter>
           </div>

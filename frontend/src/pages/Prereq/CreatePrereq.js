@@ -41,7 +41,7 @@ export default function CreatePrereq(){
             <div className="row">
                 <div className="col-2"></div>
                 <div className="col-8">
-                <h1>Create Prereq</h1>
+                <h1>Create Prerequisite</h1>
                 <form onSubmit={handleSubmit}>
                     <div className="mb-3">
                       <label>Prereq_ID</label>

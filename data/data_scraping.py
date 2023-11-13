@@ -2,7 +2,7 @@ import pandas as pd
 import math
 
 # Load the original CSV file (modify the file path as needed)
-original_df = pd.read_csv("CSEE_Past_Course_Frequency.csv")
+original_df = pd.read_csv("CSEE_Past_Course_Frequency_2.csv")
 
 # Create a list of columns representing semester and year
 semesters_and_years = original_df.columns[3:]
@@ -51,6 +51,9 @@ transformed_df = pd.DataFrame({
     "frequency_count": frequency_count_list
 })
 
+# Extract the CMSC courses only
+transformed_df = transformed_df[transformed_df['subject_code'] == 'CMSC']
+
 # Define the course, subject, and term dataframes as lookup tables
 course_df = pd.read_excel("database_tables.xlsx", sheet_name="course")
 subject_df = pd.read_excel("database_tables.xlsx", sheet_name="subject")
@@ -70,6 +73,22 @@ transformed_df['course_num'] = transformed_df['course_num'].str.strip()
 
 # Convert the 'year' column in the transformed data to int64
 transformed_df['year'] = transformed_df['year'].astype('int64')
+
+# Convert the 'year' column in the transformed data to int64
+transformed_df['year'] = transformed_df['year'].astype('int64')
+
+# Map terms to numerical values
+term_mapping = {'Winter': 1, 'Spring': 2, 'Summer': 3, 'Fall': 4}
+transformed_df['term'] = transformed_df['term'].map(term_mapping)
+
+# Remove rows before Fall 2020
+fall_2020_index = transformed_df[(transformed_df['year'] > 2020) | ((transformed_df['year'] == 2020) & (transformed_df['term'] >= term_mapping['Fall']))].index
+transformed_df = transformed_df.loc[fall_2020_index]
+
+# Reverse map numerical terms back to strings
+transformed_df['term'] = transformed_df['term'].map({v: k for k, v in term_mapping.items()})
+
+#transformed_df.to_excel("final_transformed_data.xlsx", index=False)
 
 # Replace "term" and "year" with "semester_id" from the term table
 transformed_df = transformed_df.merge(semester_df, left_on=["term", "year"], right_on=["term", "year"], how="left")

@@ -65,7 +65,7 @@ export default function EditPrereq() {
         <div className="row">
           <div className="col-2"></div>
           <div className="col-8">
-            <h1>Edit Prereq</h1>
+            <h1>Edit Prerequisite</h1>
             <form onSubmit={handleSubmit}>
               <div className="mb-3">
                 <label>Course_ID</label>

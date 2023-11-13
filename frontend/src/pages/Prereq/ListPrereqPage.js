@@ -28,8 +28,8 @@ export default function ListPrereqPage(){
         <div className="container h-100">
             <div className="row h-100">
                 <div className="col-12">
-                    <p><Link to ="/prereqs/addnewprereq" className = "btn btn-success">Add New Prereq</Link> </p>
-                    <h1>List Prereqs</h1>
+                    <p><Link to ="/prereqs/addnewprereq" className = "btn btn-success">Add New Prerequisite</Link> </p>
+                    <h1>List Prerequisites</h1>
                     <table class = "table table-bordered table-striped">
                         <thead>
                             <tr>

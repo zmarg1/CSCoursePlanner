@@ -124,12 +124,14 @@ class users():
     def get_plans(self):
         user_id = self.get_user_id
         plan_obj = plan.query.filter(plan.user_id == user_id)
-        plan_ids = []
+        usr_plans = []
         
         #gets the list of <plan id>
         for obj in plan_obj:
-            plan_ids.append(obj.plan_id)
-        return plan_ids
+            usr_plans.append(obj)
+        if usr_plans:
+            return usr_plans
+        return None
 
 
 #TODO: Finish definitions
@@ -264,6 +266,14 @@ class plan(db.Model):
                 courses.append(crs_obj)
             return courses
         return None
+
+class PlanSchema(ma.Schema):
+    class Meta:
+        # Fields to expose
+        fields = ("plan_id", "user_id", "plan_num", "plan_name")
+
+plan_schema = PlanSchema()
+plans_schema = PlanSchema(many=True)
 
 
 """
@@ -1170,17 +1180,18 @@ def user_view_plan(plan_id=None):
 
 
 """
-Views all the users plans
+Views all the users plans 
+Return: plan obj on success ex. Default plan 0, Default plan 1
 """
 @app.route("/user/plan/view-all-plans", methods=["GET"])
 def view_all_plans():
     if "user_email" in session:
-        users_plans = session["plan_ids"]
-        if users_plans:
-            for plan in users_plans:
-                user_view_plan(plan)
+        user_email = users(session["user_email"])
+        usr_plans = user_email.get_plans()
+        if usr_plans:
+            plans_dump = plans_schema.dump(usr_plans)
+            return jsonify(plans_dump)
         return jsonify({"Failed": "User has no plans"})
-    client.auth.sign_out()
     return jsonify(FAILED_USER_IN)
 
 

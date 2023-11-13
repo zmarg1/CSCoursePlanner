@@ -5,7 +5,7 @@ Description: Makes objects of the databse tables, sends and recieves data from t
 
 TODO: Finish the classes, app.routes to send and receive from site 
 """
-import keys
+
 from flask import Flask, request, session, jsonify
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
@@ -16,18 +16,21 @@ import datetime
 from datetime import timedelta, datetime
 import time
 
+client_key ="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF3eWRrbHp3dmJyZ3Zkb21oeGpiIiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTU0MDcxNjcsImV4cCI6MjAxMDk4MzE2N30.UNZJCMI1NxpSyFr8bBooIIGPqTbDe3N-_YV9ZHbE_1g"
+secret_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF3eWRrbHp3dmJyZ3Zkb21oeGpiIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTY5NTQwNzE2NywiZXhwIjoyMDEwOTgzMTY3fQ.5IP6Kh6jI3mL_3poMSKcjE_cANIjhqvGHJVjK5RNVMw"
 url = "https://qwydklzwvbrgvdomhxjb.supabase.co"
-client = Client(url, keys.client_key)
-client_admin = Client(url, keys.secret_key)
+client = Client(url, client_key)
+client_admin = Client(url, secret_key)
 
 app = Flask(__name__)
-app.secret_key = keys.secret_key #Secret key needed for sessions to get the encrypted data
+app.secret_key = secret_key #Secret key needed for sessions to get the encrypted data
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:2&?jL!Un?SV$Q5j@db.qwydklzwvbrgvdomhxjb.supabase.co:5432/postgres'
 app.permanent_session_lifetime = timedelta(hours = 1) #How long the session data will be saved for
 
 db = SQLAlchemy(app)
 cor = CORS(app)
 ma = Marshmallow(app)
+FAILED_USER_IN = {"Failed": "User not signed in"}
 
 
 """
@@ -46,10 +49,6 @@ class users():
     email = None
     admin = False
     plan_ids = []
-    fall_ids = []
-    winter_ids = []
-    spring_ids = []
-    summer_ids = []
 
     #Makes a user from the session if user given
     def __init__(self, new_email=None, admin=False):
@@ -103,7 +102,7 @@ class users():
         db.session.add(self)
         db.session.commit()
 
-    def delete(self):
+    def delete_commit(self):
         db.session.delete(self)
         db.session.commit()
 
@@ -121,48 +120,6 @@ class users():
         for obj in plan_objs:
             self.plan_ids.append(obj.plan_id)
 
-    #TODO: Make it get the course ids from the plan
-    def update_term_ids(self):
-        sem = semester()
-        fall_ids = sem.get_fall_ids()
-        winter_ids = sem.get_winter_ids()
-        spring_ids = sem.get_spring_ids()
-
-        for id in self.plan_ids:
-            if id in fall_ids:
-                self.fall_ids.append(id)
-            elif id in winter_ids:
-                self.winter_ids.append(id)
-            elif id in spring_ids:
-                self.spring_ids.append(id)
-            else:
-                self.summer_ids.append(id)
-
-    """"
-    User views current plan
-    Gets users plan 
-    uses plan id to go through taken
-    makes a list of all the courses that match plan id
-    returns the list of courses if their is a plan
-    returns None if no plans
-    """
-    def view_plan(self, plan_id):
-        taken_crs_ids = []
-        taken_plan_objs = taken.query.filter(plan_id == taken.plan_id)
-
-        if taken_plan_objs:
-            #Get the course ids for matched plan
-            for taken_obj in taken_plan_objs:
-                taken_crs_ids.append(taken_obj.course_id)
-
-            crs_objs = []
-            #Gets the course objects using the ids from taken
-            for crs_id in taken_crs_ids:
-                crs_obj = course.query.filter(crs_id == course.course_id).first()
-                crs_objs.append(crs_obj)
-            return crs_objs
-        return None
-
     #User views all of their plans
     def get_plans(self):
         user_id = self.get_user_id
@@ -177,7 +134,8 @@ class users():
 
 #TODO: Finish definitions
 class public_user_info(db.Model):
-    email = db.Column(db.String, primary_key=True)
+    user_id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String)
     campus_id = db.Column(db.String)
     first_name = db.Column(db.String)
     last_name = db.Column(db.String)
@@ -193,7 +151,7 @@ class public_user_info(db.Model):
         db.session.add(self)
         db.session.commit()
 
-    def delete(self):
+    def delete_commit(self):
         db.session.delete(self)
         db.session.commit()
     
@@ -232,8 +190,14 @@ class plan(db.Model):
     plan_name = db.Column(db.String(100))
     created_at = db.Column(db.Time)
 
-    #Makes a plan for the user
-    def __init__(self, user_id ,num=0, name="default plan 0"):
+    def __init__(self, new_plan_id=None):
+        if new_plan_id:
+            self.plan_id = new_plan_id
+
+    """
+    Makes a plan for the user
+    """
+    def make_plan(self, user_id ,num=0, name="default plan 0"):
         if user_id:
             self.user_id = user_id
 
@@ -261,9 +225,45 @@ class plan(db.Model):
         db.session.add(self)
         db.session.commit()
 
-    def delete(self):
+    def delete_commit(self):
         db.session.delete(self)
         db.session.commit()
+
+
+    """"
+    Views current plan
+    Gets users plan by going through taken
+    makes a list of all the courses that match plan id
+    returns the list of courses from taken table if their is a plan
+    returns None if no plan
+    """
+    def get_taken_courses(self):
+        taken_plan_objs = taken.query.filter(self.plan_id == taken.plan_id)
+
+        if taken_plan_objs:
+            return taken_plan_objs
+        return None
+    
+    """
+    View the course objects of the current plan
+    returns the list of courses from the course table if plan exists
+    returns None if no plan
+    """
+    def get_courses(self):
+        taken_crs_ids = []
+        taken_plan_objs = taken.query.filter(self.plan_id == taken.plan_id)
+
+        if taken_plan_objs:
+            #Get the course ids for matched plan
+            for taken_obj in taken_plan_objs:
+                taken_crs_ids.append(taken_obj.course_id)
+
+            courses = []
+            for crs_id in taken_crs_ids:
+                crs_obj = course.query.get(crs_id)
+                courses.append(crs_obj)
+            return courses
+        return None
 
 
 """
@@ -293,7 +293,7 @@ class degree(db.Model):
         db.session.add(self)
         db.session.commit()
 
-    def delete(self):
+    def delete_commit(self):
         db.session.delete(self)
         db.session.commit()
 
@@ -330,7 +330,7 @@ class requirement(db.Model):
         db.session.add(self)
         db.session.commit()
 
-    def delete(self):
+    def delete_commit(self):
         db.session.delete(self)
         db.session.commit()
 
@@ -350,6 +350,14 @@ class prereq(db.Model):
 
     prereq_courses = db.Column(db.ARRAY(db.Integer))
     grade_required = db.Column(db.Integer)
+
+    def add_commit(self):
+        db.session.add(self)
+        db.session.commit()
+
+    def delete_commit(self):
+        db.session.delete(self)
+        db.session.commit()
     
 
 """
@@ -386,7 +394,7 @@ class course(db.Model):
     db.Column('course_id', db.Integer, db.ForeignKey('course.course_id')),
     db.Column('course_options', db.ARRAY(db.Integer)))
 
-    def __init__(self, title, subject_id, crs_num, credits):
+    def __init__(self, title=None, subject_id=None, crs_num=None, credits=None):
         
         if title and crs_num and credits and subject_id:
             self.course_title = title
@@ -414,13 +422,22 @@ class course(db.Model):
         db.session.add(self)
         db.session.commit()
 
-    def delete(self):
+    def delete_commit(self):
         db.session.delete(self)
         db.session.commit()
 
     def add_prereq(self, req):
         self.prereq = req
         db.session.commit()
+
+    def get_courses_offered(self):
+        stmt = db.select(self.crs_offered).where(
+            db.and_(
+                self.crs_offered.c.course_id != None
+            )
+        )
+        result = db.session.execute(stmt).fetchall()
+        return result
 
 """
 Defines course output for Admins
@@ -454,7 +471,7 @@ class subject(db.Model):
         db.session.add(self)
         db.session.commit()
 
-    def delete(self):
+    def delete_commit(self):
         db.session.delete(self)
         db.session.commit()
 
@@ -472,6 +489,7 @@ class semester(db.Model):
     year = db.Column(db.Integer)
     current_year = None
     current_term = None
+    last_year = None
 
     def __init__(self, term=None, year=None):
         if term and year:
@@ -489,12 +507,12 @@ class semester(db.Model):
         db.session.add(self)
         db.session.commit()
 
-    def delete(self):
+    def delete_commit(self):
         db.session.delete(self)
         db.session.commit()
 
     """
-    Gets the approximate term of the year
+    Gets the approximate term of the current year
     """
     def update_year_term(self):
         curr_date = datetime.now()
@@ -511,34 +529,64 @@ class semester(db.Model):
         else:
             self.current_term = "Winter"
 
-    def get_fall_ids(self):
-        fall_ids = []
-        fall_objs = semester.query.filter(semester.term == "Fall")
-        for obj in fall_objs:
-            fall_ids.append(obj.semester_id)
-        return fall_ids
+    """
+    Gets all objects for a specific term
+    Fall, Winter, Spring, Summer
+    Input: a list of courses in a plan
+    Return: if input given 
+    """
+    def get_fall_objs(self, list_courses=None, curr=True):
+        if list_courses:
+            pass
+        elif not curr:
+            fall_objs = []
+            semesters = self.get_old_year_objs()
+            for sem in semesters:
+                if sem.term == "Fall":
+                    fall_objs.append(sem)
+            return fall_objs
+        else:
+            fall_objs = []
+            semesters = self.get_year_order_objs()
+            for sem in semesters:
+                if sem.term == "Fall":
+                    fall_objs.append(sem)
+            return fall_objs
 
-    def get_winter_ids(self):
-        winter_ids = []
-        winter_objs = semester.query.filter(semester.term == "Winter")
-        for obj in winter_objs:
-            winter_ids.append(obj.semester_id)
-        return winter_ids
+    def get_winter_objs(self, list_courses=None):
+        if list_courses:
+            pass
+        semesters = self.get_year_order_objs()
+        winter_objs = []
+        for sem in semesters:
+            if sem.term == "Winter":
+                winter_objs.append(sem)
+        return winter_objs
 
-    def get_spring_ids(self):
-        spring_ids = []
-        spring_objs = semester.query.filter(semester.term == "Spring")
-        for obj in spring_objs:
-            spring_ids.append(obj.semester_id)
-        return spring_ids
+    def get_spring_objs(self, list_courses=None):
+        if list_courses:
+            pass
+        spring_objs = []
+        semesters = self.get_year_order_objs()
+        for sem in semesters:
+            if sem.term == "Spring":
+                spring_objs.append(sem)
+        return spring_objs
 
-    def get_summer_ids(self):
-        summer_ids = []
-        summer_objs = semester.query.filter(semester.term == "Summer")
-        for obj in summer_objs:
-            summer_ids.append(obj.semester_id)
-        return summer_ids
+    def get_summer_objs(self, list_courses=None):
+        if list_courses:
+            pass
+        summer_objs = []
+        semesters = self.get_year_order_objs()
+        summer_objs = []
+        for sem in semesters:
+            if sem.term == "Summer":
+                summer_objs.append(sem)
+        return summer_objs
 
+    """
+    Gets relevant semesters based on current year and approximate term
+    """
     def get_year_order_objs(self):
         self.update_year_term()
         curr_year = self.current_year
@@ -549,10 +597,32 @@ class semester(db.Model):
         for obj in all_semesters:
             if reached_term:
                 order_objs.append(obj)
-            if obj.year == curr_year and obj.term == curr_term and not reached_term:
+                self.last_year = obj.year
+            elif obj.year == curr_year and obj.term == curr_term and not reached_term:
                 reached_term = True
                 order_objs.append(obj)
+                self.last_year = obj.year
         return order_objs
+    
+    """
+    Gets all semesters before current year
+    Used for checking if a course will be offered
+    """
+    def get_old_year_objs(self):
+        self.update_year_term()
+        curr_year = self.current_year
+        curr_term = self.current_term
+        all_semesters = semester.query.all()
+        order_objs = []
+        before_term = True
+        for obj in all_semesters:
+            if before_term:
+                order_objs.append(obj)
+            elif obj.year == curr_year and obj.term == curr_term and not before_term:
+                before_term = False
+                order_objs.append(obj)
+        return order_objs
+    
 
 class SemesterCourseSchema(ma.Schema):
     class Meta:
@@ -589,6 +659,15 @@ class taken(db.Model):
 
     grade = db.Column(db.Integer)
 
+    def __init__(self, taken_obj=None):
+        if taken_obj:
+            self.taken_id = taken_obj.taken_id
+            self.plan_id = taken_obj.plan_id
+            self.course_id = taken_obj.course_id
+            self.requirement_id = taken_obj.requirement_id
+            self.semester_id = taken_obj.semester_id
+            self.grade = taken_obj.grade
+
     #Adds a course to a plan
     def add_course(self, pln_id, crs_id, req_id, sem_id, new_grade=None):
         last_id = taken.query.order_by(taken.taken_id.desc()).first() 
@@ -608,7 +687,7 @@ class taken(db.Model):
         db.session.add(self)
         db.session.commit()
 
-    def delete(self):
+    def delete_commit(self):
         db.session.delete(self)
         db.session.commit()
 
@@ -616,7 +695,7 @@ class taken(db.Model):
     Takes a plan id and searches for all courses in that plan
     Returns: all courses in year order of that plan
     """
-    def get_plan_courses(self, find_plan_id):
+    def get_courses_ordered(self, find_plan_id):
         pass
 
     def get_semester_courses(self, find_sem_id):
@@ -662,7 +741,7 @@ def admin_get_course(course_id):
 """
 Endpoint for getting all course
 """
-@app.route('/admin/courses', methods = ['GET'])
+@app.route('/admin/view-courses', methods = ['GET'])
 def admin_get_all_courses():
     if "user_email" in session:
         if session["admin"]:
@@ -798,14 +877,9 @@ def user_signin():
         in_auth = curr_user.signin(password)
         if in_auth:
             curr_user.update_user_plan_ids()
-            curr_user.update_term_ids()
             session["user_email"] = curr_user.email
             session["admin"] = curr_user.admin
             session["plan_ids"] = curr_user.plan_ids
-            session["fall_ids"] = curr_user.fall_ids
-            session["winter_ids"] = curr_user.winter_ids
-            session["spring_ids"] = curr_user.spring_ids
-            session["summer_ids"] = curr_user.summer_ids
             return jsonify({"Success": "Successfully signed in user"})
     elif "user_email" in session or check_user:
         return jsonify({"Failed": "User already signed in"})
@@ -813,6 +887,13 @@ def user_signin():
         return jsonify({"Failed": "Failed neccessary fields left empty"})
    
     return "Failed to sign in user"
+
+
+@app.route("/user/set-session", methods=["POST"])
+def set_session():
+    session["user_email"] = request.json["user_email"]
+    email = session["user_email"]
+    return jsonify(email)
 
 
 """
@@ -835,7 +916,6 @@ def user_signout():
     return "Failed no user signed in"
 
 
-#TODO: Change to use definitions
 @app.route("/user/update-campus-id", methods=["POST", "GET"])
 def update_campus_id():
     if "user_email" in session:
@@ -847,7 +927,7 @@ def update_campus_id():
         return jsonify({"Success": "Successful campus id change"})
     
     client.auth.sign_out()
-    return jsonify({"Failed": "Failed to update campus id"})
+    return jsonify(FAILED_USER_IN)
 
 
 """
@@ -858,26 +938,26 @@ def user_make_plan():
     if "user_email" in session:
         curr_user = users(session["user_email"])
         usr_id = curr_user.get_user_id()
-        new_plan = plan(usr_id)
+        new_plan = plan()
+        new_plan.make_plan(usr_id)
         if new_plan:
             new_plan.add_commit()
             session["curr_plan_id"] = new_plan.plan_id
             session["plan_ids"].append(new_plan.plan_id)
             return jsonify({"Success": "Successfully made plan"})
     client.auth.sign_out()
-    return jsonify({"Failed": "Failed need to sing in first"})
+    return jsonify(FAILED_USER_IN)
 
 
-#TODO: when user selects plan make it the sessions plan
-@app.route("/user/plan/select-plan", methods={"POST"})
+@app.route("/user/plan/select-plan", methods={"PUT"})
 def user_select_plan():
-    if request.method == "POST" and "user_email" in session and "plan_id" in request.json:
+    if request.method == "PUT" and "user_email" in session and "plan_id" in request.json:
         chosen_plan_id = request.json["plan_id"]
         session["curr_plan_id"] = chosen_plan_id
         return jsonify({"Success": "Session current plan updated"})
 
     elif "user_email" not in session:
-        return jsonify({"Failed": "User not signed in"})
+        return jsonify(FAILED_USER_IN)
     
     elif "plan_id" not in request.json:
         return jsonify({"Failed": "Missing \"plan_id\" field in json"})
@@ -889,7 +969,6 @@ def user_select_plan():
 """
 Deletes the users chosen plan
 """
-#TODO: Need to complete it
 @app.route("/user/plan/delete-plan", methods=["DELETE"])
 def user_delete_plan():
     if "user_email" in session and "plan_id" in request.json and request.method == "DELETE":
@@ -899,16 +978,23 @@ def user_delete_plan():
         if chosen_plan_id:
             usr_id = curr_user.get_user_id()
             to_delete = plan.query.filter(plan.plan_id == chosen_plan_id, plan.user_id == usr_id).first()
+
+            if to_delete:
+                plan_name = to_delete.plan_name
+                chosen_plan = plan(to_delete.plan_id)
+                plan_courses = chosen_plan.get_taken_courses()
+                for taken_crs in plan_courses:
+                    user_delete_course(taken_crs.course_id, chosen_plan_id)
+                to_delete.delete_commit()
+                return jsonify({"Success": f"Successfully deleted {plan_name}"})
             
-            return jsonify({"Success": f"Successfully deleted {to_delete.plan_name}"})
-            
-        return jsonify({"Failed": "Failed to delete plan"})
+            return jsonify({"Failed": "Current user can't delete this plan or plan not found"})
         
         return jsonify({"Failed": "No plan id given"})
     
     elif "user_email" not in session:
         client.auth.sign_out()
-        return jsonify({"Failed": "User not signed in"})
+        return jsonify(FAILED_USER_IN)
     
     elif "plan_id" not in request.json:
         return jsonify({"Failed": "Missing \"plan_id\" field in json"})
@@ -920,14 +1006,13 @@ def user_delete_plan():
 """
 Adds a course to users plan using taken
 """
-#TODO: Go over again to make sure session data works
 @app.route("/user/plan/add-course-to-plan", methods=["POST"])
 def user_add_to_plan():
     if "user_email" in session:
-        if request.method == "POST" and "plan_id" in request.json and "crs_id" in request.json and "req_id" in request.json and "sem_id" in request.json:
+        if request.method == "POST" and "plan_id" in request.json and "crs_id" in request.json and "sem_id" in request.json:
             plan_id = request.json["plan_id"]
             crs_id = request.json["crs_id"]
-            req_id = request.json["req_id"]
+            req_id = 1
             sem_id = request.json["sem_id"]
             grade = None
 
@@ -944,16 +1029,8 @@ def user_add_to_plan():
                     add_to_plan = taken()
                     add_to_plan.add_course(plan_id, crs_id, req_id, sem_id, grade)
                     add_to_plan.add_commit()
-                    if in_sem.term == "Fall":
-                        session["fall_ids"].append(sem_id)
-                    elif in_sem.term == "Winter":
-                        session["winter_ids"].append(sem_id)
-                    elif in_sem.term == "Spring":
-                        session["spring_ids"].append(sem_id)
-                    else:
-                        session["summer_ids"].append(sem_id)
 
-                    return jsonify({"Success": f"Successfully added {in_course.course_title} to {in_plan.plan_name}"})
+                    return jsonify({"Success": f"Added {in_course.course_title} to {in_plan.plan_name} for {in_sem.term}"})
                 elif crs_in_taken:
                     return jsonify({"Failed": "Course already in chosen plan"})
                 elif not in_plan:
@@ -969,28 +1046,46 @@ def user_add_to_plan():
     
         return jsonify({"Failed": "Forms Missing"})
     client.auth.sign_out()
-    return jsonify({"Failed": "User not signed in"})
+    return jsonify(FAILED_USER_IN)
 
 #TODO: returns all the fall courses in a distionary {2024: [fall_courses],2025: [fall_courses], ...: [...]}
-@app.route("/user/plan/get-fall-courses", methods=["GET"])
+@app.route("/user/plan/get-all-fall-courses", methods=["GET"])
 def get_all_fall():
-    pass
+    if "user_email" in session:
+        select_term = request.json["sem_id"]
 
-@app.route("/user/plan/get-winter-courses", methods=["GET"])
+        if select_term:
+            pass
+
+        sem = semester()
+        all_fall_objs = sem.get_fall_objs(None, False)
+        crs = course()
+        courses = crs.get_courses_offered()
+        fall_courses = {}
+        for sem in all_fall_objs:
+            fall_courses[sem.year] = []
+            for offr_id, crs_id, sem_id, freq in courses:
+                if sem_id == sem.semester_id:
+                    fall_courses[sem.year].append(crs_id)
+        print("FALL COURSES ", fall_courses)
+        return jsonify(fall_courses)
+    return jsonify(FAILED_USER_IN)
+
+@app.route("/user/plan/get-all-winter-courses", methods=["GET"])
 def get_all_winter():
     pass
 
-@app.route("/user/plan/get-spring-courses", methods=["GET"])
+@app.route("/user/plan/get-all-spring-courses", methods=["GET"])
 def get_all_spring():
     pass
 
-@app.route("/user/plan/get-summer-courses", methods=["GET"])
+@app.route("/user/plan/get-all-summer-courses", methods=["GET"])
 def get_all_summer():
     pass
 
 
 @app.route("/user/plan/delete-course-from-plan", methods=["DELETE"])
-def user_delete_course(crs_id=None):
+def user_delete_course(crs_id=None, plan_id=None):
     if request.method == "DELETE" and "course_id" in request.json and "curr_plan_id" in session:
         course_id = request.json["course_id"]
         curr_plan_id = session["curr_plan_id"]
@@ -998,18 +1093,16 @@ def user_delete_course(crs_id=None):
         #Checks if correct 
         if course_id:
             in_taken = taken.query.filter(taken.course_id == course_id, taken.plan_id == curr_plan_id).first()
-            crs_obj = course.query.filter(course.course_id == in_taken.course_id).first()
+            crs_obj = course.query.get(in_taken.course_id)
             crs_title = crs_obj.course_id
-            in_taken.delete()
+            in_taken.delete_commit()
             return jsonify({"Success": f"Successfully deleted {crs_title}"})
         
-    elif crs_id and "curr_plan_id" in session:
-        curr_plan_id = session["curr_plan_id"]
-
-        in_taken = taken.query.filter(taken.course_id == crs_id, taken.plan_id == curr_plan_id).first()
-        crs_obj = course.query.filter(course.course_id == in_taken.course_id).first()
+    elif crs_id and plan_id:
+        in_taken = taken.query.filter(taken.course_id == crs_id, taken.plan_id == plan_id).first()
+        crs_obj = course.query.get(in_taken.course_id)
         crs_title = crs_obj.course_id
-        in_taken.delete()
+        in_taken.delete_commit()
         return jsonify({"Success": f"Successfully deleted {crs_title}"})
                 
     elif "curr_plan_id" not in session:
@@ -1052,17 +1145,22 @@ Returns: a json of courses in plan {course title, course number, credits, subjec
 """
 #TODO: make a guest user check
 @app.route("/user/plan/view-plan", methods=["GET"])
-def view_plan():
-    if request.method == "GET" and "curr_plan_id" in session and "user_email" in session:
-        curr_user = users(session["user_email"])
-        plan_id = session["curr_plan_id"]
-        plans_courses = curr_user.view_plan(plan_id)
+def user_view_plan(plan_id=None):
+    if request.method == "GET" and "curr_plan_id" in session and "user_email" in session and not plan_id:
+        curr_plan = plan(session["curr_plan_id"])
+        plans_courses = curr_plan.get_courses()
+        courses_dump = courses_schema.dump(plans_courses)
+        return jsonify(courses_dump)
+    
+    elif plan_id:
+        curr_plan = plan(plan_id)
+        plans_courses = curr_plan.get_courses()
         courses_dump = courses_schema.dump(plans_courses)
         return jsonify(courses_dump)
     
     elif "user_email" not in session:
         client.auth.sign_out()
-        return jsonify({"Failed": "User not signed in"})
+        return jsonify(FAILED_USER_IN)
     
     elif "curr_plan_id" not in session:
         return jsonify({"Failed": "No plan in session"})
@@ -1072,17 +1170,18 @@ def view_plan():
 
 
 """
-Get all the plan ids for the current user
-To be used in combination with view plan route to view all plans
-Return: a list of plan ids
+Views all the users plans
 """
-@app.route("/user/plan/get-plan-ids", methods=["GET"])
-def get_plan_ids():
+@app.route("/user/plan/view-all-plans", methods=["GET"])
+def view_all_plans():
     if "user_email" in session:
-        num_plans = session["plan_ids"]
-        return num_plans
+        users_plans = session["plan_ids"]
+        if users_plans:
+            for plan in users_plans:
+                user_view_plan(plan)
+        return jsonify({"Failed": "User has no plans"})
     client.auth.sign_out()
-    return jsonify({"Failed": "User not signed in"})
+    return jsonify(FAILED_USER_IN)
 
 
 """

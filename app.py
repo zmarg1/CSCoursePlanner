@@ -50,41 +50,11 @@ class users():
     admin = False
     plan_ids = []
 
-    #Makes a user from the session if user given
+    #Makes a user if user given
     def __init__(self, new_email=None, admin=False):
         if new_email:
             self.email = new_email
             self.admin = admin
-
-    #Signs up a new user
-    def signup(self, password, admin=False):
-        max_retries = 3
-        retry_count = 0
-
-        #Tries 3 times to signup a user and prints the error for each failure in 10sec intervals
-        while retry_count < max_retries:
-            try:
-                in_public = public_user_info.query.filter(self.email == public_user_info.email).first()
-
-                #If user not in session signs them up and fills class variables
-                if not in_public:
-                    new_user = client.auth.sign_up({
-                        "email": self.email,
-                        "password": password,
-                        "user_metadata":{
-                                "admin": admin
-                            }
-                        })
-                    self.user_obj = new_user
-                    self.user_id = new_user.user.id
-                    self.admin = new_user.user.user_metadata.get('admin')
-                    return new_user
-            except Exception as e:
-                print(f"Authentication error: {e} for {self.email}")
-                retry_count += 1
-                if retry_count < max_retries:
-                    time.sleep(10)
-        return None
     
     #Returns the id on success and none on failure
     def signin(self, password):
@@ -122,12 +92,19 @@ class users():
         plan_obj = plan.query.filter(plan.user_id == user_id)
         usr_plans = []
         
-        #gets the list of <plan id>
+        #gets the list of plan objects <plan id>
         for obj in plan_obj:
             usr_plans.append(obj)
         if usr_plans:
             return usr_plans
         return None
+    
+    def user_has_plan(self, plan_id):
+        user_plans = self.get_plans()
+        if user_plans:
+            pass
+        pass
+
 
 
 #TODO: Finish definitions
@@ -851,36 +828,8 @@ def delete_course(course_id):
 
 
 """
-Signs up the user
-Inputs:
-email - New users email
-password - New users password
+For postman testing
 """
-#TODO: Setup for Clerk
-@app.route("/user/signup", methods=["POST"])
-def user_signup():
-    email = request.form["email"]
-    password = request.form["password"]
-
-    if email and password:
-        cur_user = users(email)
-        result = cur_user.signup(password)
-        if result:
-            new_user = public_user_info(email)
-            new_user.add_commit()
-            return "Successfully signed up user"
-        
-        return "Failed to sign up user"
-    return "Failed necessary fields are empty"
-
-
-"""
-Sign in the user
-Inputs:
-user email
-user password
-"""
-#TODO: Setup for Clerk
 @app.route("/user/signin", methods=["POST"])
 def user_signin():
     email = request.form["email"]
@@ -913,9 +862,8 @@ def set_session():
     return jsonify(email)
 
 """
-Signs out user from supabase and removes them from the session
+For postman testing
 """
-#TODO: Setup for Clerk
 @app.route("/user/signout", methods=["SIGNOUT"])
 def user_signout():
     is_user = client.auth.get_user()
@@ -949,22 +897,21 @@ def update_campus_id():
 """
 Makes an empty plan for the user
 """
-@app.route("/user/plan/make-plan", methods=["PUT"])
-def user_make_plan():
-    if "user_email" in session:
-        curr_user = users(session["user_email"])
+@app.route("/user/plan/make-plan/<user_email>", methods=["PUT"])
+def user_make_plan(user_email):
+    if user_email:
+        curr_user = users(user_email)
         usr_id = curr_user.get_user_id()
         new_plan = plan()
         new_plan.make_plan(usr_id)
         if new_plan:
             new_plan.add_commit()
-            session["curr_plan_id"] = new_plan.plan_id
-            session["plan_ids"].append(new_plan.plan_id)
             return jsonify({"Success": "Successfully made plan"})
     client.auth.sign_out()
     return jsonify(FAILED_USER_IN)
 
 
+#TODO: Depricate probably b/c React dose this
 @app.route("/user/plan/select-plan", methods={"PUT"})
 def user_select_plan():
     if request.method == "PUT" and "user_email" in session and "plan_id" in request.json:
@@ -1159,16 +1106,11 @@ Gets user from session
 Views the current users chosen plan
 Returns: a json of courses in plan {course title, course number, credits, subject code}
 """
-#TODO: make a guest user check
-@app.route("/user/plan/view-plan", methods=["GET"])
-def user_view_plan(plan_id=None):
-    if request.method == "GET" and "curr_plan_id" in session and "user_email" in session and not plan_id:
-        curr_plan = plan(session["curr_plan_id"])
-        plans_courses = curr_plan.get_courses()
-        courses_dump = user_courses_schema.dump(plans_courses)
-        return jsonify(courses_dump)
-    
-    elif plan_id:
+#TODO: make a guest user check and make it check if user has plan
+@app.route("/user/plan/view-plan/<user_email><plan_id>", methods=["GET"])
+def user_view_plan(user_email, plan_id):
+    if request.method == "GET" and user_email and plan_id:
+        user = users(user_email)
         curr_plan = plan(plan_id)
         plans_courses = curr_plan.get_courses()
         courses_dump = user_courses_schema.dump(plans_courses)

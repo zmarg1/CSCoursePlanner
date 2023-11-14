@@ -171,6 +171,14 @@ class plan(db.Model):
         if new_plan_id:
             self.plan_id = new_plan_id
 
+    def add_commit(self):
+        db.session.add(self)
+        db.session.commit()
+
+    def delete_commit(self):
+        db.session.delete(self)
+        db.session.commit()
+
     """
     Makes a plan for the user
     """
@@ -198,13 +206,9 @@ class plan(db.Model):
 
             self.created_at = datetime.now()
 
-    def add_commit(self):
-        db.session.add(self)
-        db.session.commit()
-
-    def delete_commit(self):
-        db.session.delete(self)
-        db.session.commit()
+    def get_plan_name(self):
+        plan_name = plan.query.filter(plan.plan_id == self.plan_id).order_by(plan.plan_name).first()
+        return plan_name.plan_name
 
 
     """"
@@ -879,7 +883,7 @@ def user_signout():
     
     return "Failed no user signed in"
 
-
+#TODO: Update route to not use session
 @app.route("/user/update-campus-id", methods=["POST", "GET"])
 def update_campus_id():
     if "user_email" in session:
@@ -911,7 +915,7 @@ def user_make_plan(user_email):
     return jsonify(FAILED_USER_IN)
 
 
-#TODO: Depricate probably b/c React dose this
+#TODO: Depricate probably b/c React does this
 @app.route("/user/plan/select-plan", methods={"PUT"})
 def user_select_plan():
     if request.method == "PUT" and "user_email" in session and "plan_id" in request.json:
@@ -932,28 +936,24 @@ def user_select_plan():
 """
 Deletes the users chosen plan
 """
-@app.route("/user/plan/delete-plan", methods=["DELETE"])
-def user_delete_plan():
-    if "user_email" in session and "plan_id" in request.json and request.method == "DELETE":
-        chosen_plan_id = request.json["plan_id"]
-        curr_user = users(session["user_email"])
+@app.route("/user/plan/delete-plan/<user_email>/<plan_id>", methods=["DELETE"])
+def user_delete_plan(user_email, plan_id):
+    if user_email and plan_id and request.method == "DELETE":
+        curr_user = users(user_email)
 
-        if chosen_plan_id:
-            usr_id = curr_user.get_user_id()
-            to_delete = plan.query.filter(plan.plan_id == chosen_plan_id, plan.user_id == usr_id).first()
+        usr_id = curr_user.get_user_id()
+        to_delete = plan.query.filter(plan.plan_id == plan_id, plan.user_id == usr_id).first()
 
-            if to_delete:
-                plan_name = to_delete.plan_name
-                chosen_plan = plan(to_delete.plan_id)
-                plan_courses = chosen_plan.get_taken_courses()
-                for taken_crs in plan_courses:
-                    user_delete_course(taken_crs.course_id, chosen_plan_id)
-                to_delete.delete_commit()
-                return jsonify({"Success": f"Successfully deleted {plan_name}"})
+        if to_delete:
+            plan_name = to_delete.plan_name
+            chosen_plan = plan(to_delete.plan_id)
+            plan_courses = chosen_plan.get_taken_courses()
+            for taken_crs in plan_courses:
+                user_delete_planned_course(user_email, taken_crs.course_id, taken_crs.plan_id)
+            to_delete.delete_commit()
+            return jsonify({"Success": f"Successfully deleted {plan_name}"})
             
-            return jsonify({"Failed": "Current user can't delete this plan or plan not found"})
-        
-        return jsonify({"Failed": "No plan id given"})
+        return jsonify({"Failed": "Current user can't delete this plan or plan not found"})
     
     elif "user_email" not in session:
         client.auth.sign_out()
@@ -969,8 +969,9 @@ def user_delete_plan():
 """
 Adds a course to users plan using taken
 """
+#TODO: Use def that checks if given user has plan
 @app.route("/user/plan/add-course-to-plan/<user_email>/<plan_id>/<crs_id>/<sem_id>", methods=["POST"])
-def user_add_to_plan(user_email, plan_id, crs_id, sem_id):
+def user_add_course_to_plan(user_email, plan_id, crs_id, sem_id):
     if user_email:
         if request.method == "POST":
             req_id = 1
@@ -1009,6 +1010,7 @@ def user_add_to_plan(user_email, plan_id, crs_id, sem_id):
     return jsonify(FAILED_USER_IN)
 
 #TODO: returns all the fall courses in a distionary {2024: [fall_courses],2025: [fall_courses], ...: [...]}
+#TODO: Update route to not use session
 @app.route("/user/plan/get-all-fall-courses", methods=["GET"])
 def get_all_fall():
     if "user_email" in session:
@@ -1031,39 +1033,37 @@ def get_all_fall():
         return jsonify(fall_courses)
     return jsonify(FAILED_USER_IN)
 
+#TODO: Update route to not use session
 @app.route("/user/plan/get-all-winter-courses", methods=["GET"])
 def get_all_winter():
     pass
 
+#TODO: Update route to not use session
 @app.route("/user/plan/get-all-spring-courses", methods=["GET"])
 def get_all_spring():
     pass
 
+#TODO: Update route to not use session
 @app.route("/user/plan/get-all-summer-courses", methods=["GET"])
 def get_all_summer():
     pass
 
-
-@app.route("/user/plan/delete-course-from-plan", methods=["DELETE"])
-def user_delete_course(crs_id=None, plan_id=None):
-    if request.method == "DELETE" and "course_id" in request.json and "curr_plan_id" in session:
-        course_id = request.json["course_id"]
-        curr_plan_id = session["curr_plan_id"]
-
-        #Checks if correct 
-        if course_id:
-            in_taken = taken.query.filter(taken.course_id == course_id, taken.plan_id == curr_plan_id).first()
-            crs_obj = course.query.get(in_taken.course_id)
-            crs_title = crs_obj.course_id
-            in_taken.delete_commit()
-            return jsonify({"Success": f"Successfully deleted {crs_title}"})
-        
-    elif crs_id and plan_id:
+"""
+Deletes the given users course from selected plan
+Inputs: users email, plan id, course id
+"""
+#TODO: Have it check if given user has plan
+@app.route("/user/plan/delete-course-from-plan/<user_email>/<plan_id>/<crs_id>", methods=["DELETE"])
+def user_delete_planned_course(user_email, crs_id, plan_id):
+    if request.method == "DELETE" and crs_id and plan_id:
         in_taken = taken.query.filter(taken.course_id == crs_id, taken.plan_id == plan_id).first()
-        crs_obj = course.query.get(in_taken.course_id)
-        crs_title = crs_obj.course_id
-        in_taken.delete_commit()
-        return jsonify({"Success": f"Successfully deleted {crs_title}"})
+        if in_taken:
+            usr_plan = plan(plan_id)
+            crs_obj = course.query.get(in_taken.course_id)
+            crs_title = crs_obj.course_title
+            in_taken.delete_commit()
+            return jsonify({"Success": f"Successfully deleted {crs_title} from {usr_plan.get_plan_name()}"})
+        return jsonify({"Failed": "Course not in plan"})
                 
     elif "curr_plan_id" not in session:
         return jsonify({"Failed": "No plan in session"})  
@@ -1104,7 +1104,7 @@ Views the current users chosen plan
 Returns: a json of courses in plan {course title, course number, credits, subject code}
 """
 #TODO: make a guest user check and make it check if user has plan
-@app.route("/user/plan/view-plan/<user_email><plan_id>", methods=["GET"])
+@app.route("/user/plan/view-plan/<user_email>/<plan_id>", methods=["GET"])
 def user_view_plan(user_email, plan_id):
     if request.method == "GET" and user_email and plan_id:
         user = users(user_email)
@@ -1126,7 +1126,7 @@ def user_view_plan(user_email, plan_id):
 
 """
 Views all the users plans 
-Return: plan obj on success ex. Default plan 0, Default plan 1
+Return: plan obj on success
 """
 @app.route("/user/plan/view-all-plans/<user_email>", methods=["GET"])
 def view_all_plans(user_email):
@@ -1139,47 +1139,6 @@ def view_all_plans(user_email):
         else:
             return jsonify({"Failed": "User has no plans"})
     return jsonify({"Failed": "User not signed in"})
-
-
-"""
-Used to update any current users data when user object definitions are changed
-"""
-def update_all_users(all=True, usr_id=None):
-    if all:
-        su = client_admin.auth.admin.list_users()
-        for user in su:
-            update_data = {
-                "user_metadata":{
-                    "admin": False
-                }
-            }
-            client_admin.auth.admin.update_user_by_id(user.id, update_data)
-    else:
-        su = client_admin.auth.admin.get_user_by_id(usr_id)
-        update_data = {
-            "user_metadata":{
-                "admin": True
-                }
-        }
-        client_admin.auth.admin.update_user_by_id(usr_id, update_data)
-
-
-"""
-Adds the auth table supabase user to the public table
-"""
-#TODO: Check if needed
-@app.route("/dev/add-to-public", methods=["POST"])
-def add_to_public():
-    if request.method == "POST" and "email" in request.json:
-        email = request.json["email"]
-        in_table = public_user_info.query.filter(email == public_user_info.email).first()
-        if not in_table:
-            new_user = public_user_info(email)
-            new_user.add_commit()
-            return jsonify ({"Success": "Added to public user table"})
-        return jsonify ({"Failed": "Email already in table"})
-    
-    return jsonify ({"Failed": "No Form"})
 
 
 if __name__ == "__main__":

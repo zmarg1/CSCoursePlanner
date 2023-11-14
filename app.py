@@ -6,7 +6,7 @@ Description: Makes objects of the databse tables, sends and recieves data from t
 TODO: Finish the classes, app.routes to send and receive from site 
 """
 
-from flask import Flask, request, session, jsonify
+from flask import Flask, request, session, jsonify, make_response, render_template
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from marshmallow import fields
@@ -23,12 +23,12 @@ client = Client(url, client_key)
 client_admin = Client(url, secret_key)
 
 app = Flask(__name__)
+CORS(app)
 app.secret_key = secret_key #Secret key needed for sessions to get the encrypted data
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:2&?jL!Un?SV$Q5j@db.qwydklzwvbrgvdomhxjb.supabase.co:5432/postgres'
 app.permanent_session_lifetime = timedelta(hours = 1) #How long the session data will be saved for
 
 db = SQLAlchemy(app)
-cor = CORS(app)
 ma = Marshmallow(app)
 FAILED_USER_IN = {"Failed": "User not signed in"}
 
@@ -107,11 +107,7 @@ class users():
         db.session.commit()
 
     def get_user_id(self):
-        usr_list = client_admin.auth.admin.list_users()
-        usr_id = None
-        for usr in usr_list:
-            if self.email == usr.email:
-                usr_id = usr.id
+        usr_id = public_user_info.get_user_id(self.email)
         return usr_id
 
     def update_user_plan_ids(self):
@@ -122,7 +118,7 @@ class users():
 
     #User views all of their plans
     def get_plans(self):
-        user_id = self.get_user_id
+        user_id = self.get_user_id()
         plan_obj = plan.query.filter(plan.user_id == user_id)
         usr_plans = []
         
@@ -136,7 +132,8 @@ class users():
 
 #TODO: Finish definitions
 class public_user_info(db.Model):
-    user_id = db.Column(db.Integer, primary_key=True)
+    public_user_id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.String)
     email = db.Column(db.String)
     campus_id = db.Column(db.String)
     first_name = db.Column(db.String)
@@ -157,9 +154,10 @@ class public_user_info(db.Model):
         db.session.delete(self)
         db.session.commit()
     
-    def get_user(email):
-        user = public_user_info.query.filter("email" == email).first()
-        return user
+    def get_user_id(email):
+        user = public_user_info.query.filter(public_user_info.email == email).first()
+        user_id = user.user_id
+        return user_id
     
     def get_all_users():
         all_users = public_user_info.query.all()
@@ -452,13 +450,21 @@ class course(db.Model):
 """
 Defines course output for Admins
 """
-class CourseSchema(ma.Schema):
+class AdminCourseSchema(ma.Schema):
     class Meta:
         # Fields to expose
         fields = ("course_id", "subject_id", "course_title","course_num","credits")
 
-course_schema = CourseSchema()
-courses_schema = CourseSchema(many=True)
+admin_course_schema = AdminCourseSchema()
+admin_courses_schema = AdminCourseSchema(many=True)
+
+#Defines course output for Users
+class UserCourseSchema(ma.Schema):
+    subject_code = fields.Function(lambda obj: obj.subject.sub_code if obj.subject else None)
+    class Meta:
+        fields = ("course_id", "subject_code", "course_title", "course_num", "credits")
+
+user_courses_schema = UserCourseSchema(many = True)
 
 
 """
@@ -742,7 +748,7 @@ def admin_get_course(course_id):
     if "user_email" in session:
         if session["admin"]:
             my_course = course.query.get(course_id)
-            return course_schema.jsonify(my_course)
+            return admin_course_schema.jsonify(my_course)
         return jsonify({"Failed": "User is not admin"})
     
     return jsonify({"Failed": "User not signed in"}) 
@@ -756,7 +762,7 @@ def admin_get_all_courses():
     if "user_email" in session:
         if session["admin"]:
             all_courses = course.query.order_by(course.course_id.asc()).all()
-            courses_dump = courses_schema.dump(all_courses)
+            courses_dump = admin_courses_schema.dump(all_courses)
             return jsonify(courses_dump)
         return jsonify({"Failed": "User is not admin"})
     return jsonify({"Failed": "User not signed in"}) 
@@ -801,7 +807,7 @@ def admin_create_course():
             else:
                 return jsonify ({"fail": "Failed Post"})
     
-            return course_schema.jsonify(new_course)
+            return admin_course_schema.jsonify(new_course)
         
         return jsonify({"Failed": "User is not admin"})
         
@@ -821,7 +827,7 @@ def update_course(course_id):
             updated_course.credits = request.json['credits']
 
             db.session.commit()
-            return course_schema.jsonify(updated_course)
+            return admin_course_schema.jsonify(updated_course)
         
         return jsonify({"Failed": "User is not admin"})
     
@@ -837,7 +843,7 @@ def delete_course(course_id):
 
             db.session.delete(deleted_course)
             db.session.commit()
-            return course_schema.jsonify(deleted_course)
+            return admin_course_schema.jsonify(deleted_course)
             
         return jsonify({"Failed": "User is not admin"})
         
@@ -903,8 +909,8 @@ def user_signin():
 def set_session():
     session["user_email"] = request.json["user_email"]
     email = session["user_email"]
+    print("Session contents ", session)
     return jsonify(email)
-
 
 """
 Signs out user from supabase and removes them from the session
@@ -1132,7 +1138,7 @@ Returns all the courses in the database for a user to see
 @app.route("/user/view-all-courses", methods=["GET"])
 def user_view_all_courses():
     all_courses = course.query.all()
-    courses_dump = courses_schema.dump(all_courses)
+    courses_dump = user_courses_schema.dump(all_courses)
     return jsonify(courses_dump)
 
 
@@ -1159,13 +1165,13 @@ def user_view_plan(plan_id=None):
     if request.method == "GET" and "curr_plan_id" in session and "user_email" in session and not plan_id:
         curr_plan = plan(session["curr_plan_id"])
         plans_courses = curr_plan.get_courses()
-        courses_dump = courses_schema.dump(plans_courses)
+        courses_dump = user_courses_schema.dump(plans_courses)
         return jsonify(courses_dump)
     
     elif plan_id:
         curr_plan = plan(plan_id)
         plans_courses = curr_plan.get_courses()
-        courses_dump = courses_schema.dump(plans_courses)
+        courses_dump = user_courses_schema.dump(plans_courses)
         return jsonify(courses_dump)
     
     elif "user_email" not in session:
@@ -1183,16 +1189,17 @@ def user_view_plan(plan_id=None):
 Views all the users plans 
 Return: plan obj on success ex. Default plan 0, Default plan 1
 """
-@app.route("/user/plan/view-all-plans", methods=["GET"])
-def view_all_plans():
-    if "user_email" in session:
-        user_email = users(session["user_email"])
-        usr_plans = user_email.get_plans()
-        if usr_plans:
+@app.route("/user/plan/view-all-plans/<user_email>", methods=["GET"])
+def view_all_plans(user_email):
+    if user_email:
+        user = users(user_email)
+        usr_plans = user.get_plans()
+        if usr_plans is not None:
             plans_dump = plans_schema.dump(usr_plans)
             return jsonify(plans_dump)
-        return jsonify({"Failed": "User has no plans"})
-    return jsonify(FAILED_USER_IN)
+        else:
+            return jsonify({"Failed": "User has no plans"})
+    return jsonify({"Failed": "User not signed in"})
 
 
 """

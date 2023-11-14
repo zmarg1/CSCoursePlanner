@@ -969,14 +969,11 @@ def user_delete_plan():
 """
 Adds a course to users plan using taken
 """
-@app.route("/user/plan/add-course-to-plan", methods=["POST"])
-def user_add_to_plan():
-    if "user_email" in session:
-        if request.method == "POST" and "plan_id" in request.json and "crs_id" in request.json and "sem_id" in request.json:
-            plan_id = request.json["plan_id"]
-            crs_id = request.json["crs_id"]
+@app.route("/user/plan/add-course-to-plan/<user_email>/<plan_id>/<crs_id>/<sem_id>", methods=["POST"])
+def user_add_to_plan(user_email, plan_id, crs_id, sem_id):
+    if user_email:
+        if request.method == "POST":
             req_id = 1
-            sem_id = request.json["sem_id"]
             grade = None
 
             #Checks if correct 
@@ -1005,7 +1002,7 @@ def user_add_to_plan():
                 else:
                     return jsonify({"Failed": "Failed Semester id not in database"})
     
-            return jsonify({"Failed": "Failed a necessary field(s) left empty"})
+            return jsonify({"Failed": "Failed necessary field(s) left empty"})
     
         return jsonify({"Failed": "Forms Missing"})
     client.auth.sign_out()

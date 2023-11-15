@@ -623,7 +623,7 @@ class semester(db.Model):
 
 class SemesterCourseSchema(ma.Schema):
     class Meta:
-        fields = ("term", "year")
+        fields = ("semester_id", "term", "year")
 
 semesters_schema = SemesterCourseSchema(many = True)
 

@@ -1,11 +1,3 @@
-"""
-Authors: Amir Hawkins-Stewart & Zach Margulies
-
-Description: Makes objects of the databse tables, sends and recieves data from the supabase databse.
-
-TODO: Finish the classes, app.routes to send and receive from site 
-"""
-
 from flask import Flask, request, session, jsonify, make_response, render_template
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
@@ -29,8 +21,12 @@ app.permanent_session_lifetime = timedelta(hours = 1) #How long the session data
 
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
-FAILED_USER_IN = {"Failed": "User not signed in"}
 
+FAILED_EMAIL = {"Failed": "Incorrect Email given or missing"}
+FAILED_GET = {"Failed": "Wrong method given expected GET"}
+FAILED_POST = {"Failed": "Wrong method given expected POST"}
+FAILED_DELETE = {"Failed": "Wrong method given expected DELETE"}
+FAILED_PUT = {"Failed": "Wrong method given expected PUT"}
 
 """
 The user object class to interact with the authorization table in supabase
@@ -82,21 +78,23 @@ class users():
     #User views all of their plans
     def get_plans(self):
         user_id = self.get_user_id()
-        plan_obj = plan.query.filter(plan.user_id == user_id)
+        plan_objs = plan.query.filter(plan.user_id == user_id)
         usr_plans = []
         
         #gets the list of plan objects <plan id>
-        for obj in plan_obj:
+        for obj in plan_objs:
             usr_plans.append(obj)
+
         if usr_plans:
             return usr_plans
+        
         return None
     
     def user_has_plan(self, plan_id):
         user_plans = self.get_plans()
-        if user_plans:
-            pass
-        pass
+        if plan_id in user_plans:
+            return True
+        return False
 
 
 
@@ -131,16 +129,41 @@ class public_user_info(db.Model):
     
     def get_all_users():
         all_users = public_user_info.query.all()
-        return all_users
+        users_list = []
+        for obj in all_users:
+            users_list.append(obj)
+        
+        return users_list
 
-    def update_campus_id(self, new_c_id):
-        pass
+    def update_campus_id(self, new_c_id, email=None):
+        if email:
+            user = public_user_info.query.get(email)
+            if user:
+                user.campus_id = new_c_id
+                self.add_commit()
+        
+        else:
+            user = public_user_info.query.get(self.email)
+            if user:
+                user.campus_id = new_c_id
+                self.add_commit()
+
+        print("Failed to update campus ID")
 
     def update_name(self,new_f_name=None, new_l_name=None):
         pass
 
     def update_email(self):
         pass
+
+# Defines your user output
+class PublicUserSchema(ma.Schema):
+    class Meta:
+        # Fields to expose
+        fields = ("user_id", "email", "campus_id", "first_name","last_name")
+
+public_user_schema = PublicUserSchema()
+public_users_schema = PublicUserSchema(many=True)
 
 
 """
@@ -216,6 +239,7 @@ class plan(db.Model):
 
         if taken_plan_objs:
             return taken_plan_objs
+        
         return None
     
     """
@@ -225,7 +249,7 @@ class plan(db.Model):
     """
     def get_courses(self):
         taken_crs_ids = []
-        taken_plan_objs = taken.query.filter(self.plan_id == taken.plan_id)
+        taken_plan_objs = self.get_taken_courses()
 
         if taken_plan_objs:
             #Get the course ids for matched plan
@@ -278,6 +302,15 @@ class degree(db.Model):
     def delete_commit(self):
         db.session.delete(self)
         db.session.commit()
+
+# Defines your degree output
+class DegreeSchema(ma.Schema):
+    class Meta:
+        # Fields to expose
+        fields = ("degree_id", "deg_name", "deg_type")
+
+degree_schema = DegreeSchema()
+degrees_schema = DegreeSchema(many=True)
 
 
 """
@@ -340,6 +373,15 @@ class prereq(db.Model):
     def delete_commit(self):
         db.session.delete(self)
         db.session.commit()
+
+# Defines your prereq output
+class PrereqSchema(ma.Schema):
+    class Meta:
+        # Fields to expose
+        fields = ("prereq_id","crs_id", "prereq_courses", "grade_required")
+
+prereq_schema = PrereqSchema()
+prereqs_schema = PrereqSchema(many=True)
     
 
 """
@@ -412,10 +454,10 @@ class course(db.Model):
         self.prereq = req
         db.session.commit()
 
-    def get_courses_offered(self):
+    def get_courses_offered(self, sem_id):
         stmt = db.select(self.crs_offered).where(
             db.and_(
-                self.crs_offered.c.course_id != None
+                self.crs_offered.c.course_id != None, self.crs_offered.c.semester_id == sem_id
             )
         )
         result = db.session.execute(stmt).fetchall()
@@ -464,6 +506,15 @@ class subject(db.Model):
     def delete_commit(self):
         db.session.delete(self)
         db.session.commit()
+
+# Defines your subject output
+class SubjectSchema(ma.Schema):
+    class Meta:
+        # Fields to expose
+        fields = ("subject_id", "subject_code", "subject_name")
+
+subject_schema = SubjectSchema()
+subjects_schema = SubjectSchema(many=True)
 
 
 """
@@ -614,11 +665,12 @@ class semester(db.Model):
         return order_objs
     
 
-class SemesterCourseSchema(ma.Schema):
+class SemesterSchema(ma.Schema):
     class Meta:
         fields = ("semester_id", "term", "year")
 
-semesters_schema = SemesterCourseSchema(many = True)
+semester_schema = SemesterSchema()
+semesters_schema = SemesterSchema(many = True)
 
 
 """
@@ -694,400 +746,3 @@ class taken(db.Model):
     #to check if course can be take
     def requirement_choice():
         pass
-
-
-"""
-Flask Routes
-"""
-@app.route('/')
-def hello():
-    return "Hello"
-
-
-"""
-Enters main admin page for admin functionality
-Returns:
-string: A welcome message
-"""
-@app.route('/admin')
-def admin():
-    return "Welcome to the Admin page"
-
-
-"""
-Endpoint for getting one courses
-"""
-@app.route('/admin/courses/<course_id>', methods = ['GET'])
-def admin_get_course(course_id):
-    if "user_email" in session:
-        if session["admin"]:
-            my_course = course.query.get(course_id)
-            return admin_course_schema.jsonify(my_course)
-        return jsonify({"Failed": "User is not admin"})
-    
-    return jsonify({"Failed": "User not signed in"}) 
-
-
-"""
-Endpoint for getting all course
-"""
-@app.route('/admin/view-courses', methods = ['GET'])
-def admin_get_all_courses():
-    if "user_email" in session:
-        if session["admin"]:
-            all_courses = course.query.order_by(course.course_id.asc()).all()
-            courses_dump = admin_courses_schema.dump(all_courses)
-            return jsonify(courses_dump)
-        return jsonify({"Failed": "User is not admin"})
-    return jsonify({"Failed": "User not signed in"}) 
-
-
-"""
-Endpoint for creating a course
-Inputs:
-course_title - Title of course to be added
-subject - Id/Code/Name of subject to be added
-crs_num - Course numerical level
-credits - Credits course is worth
-"""
-@app.route('/admin/courses/create_course', methods = ['POST'])
-def admin_create_course():
-    if "user_email" in session:
-        if session["admin"]:
-            crs_title = request.json['course_title']
-            _subject = request.json['subject']
-            crs_num = request.json['crs_num']
-            credits = request.json['credits']
-
-            is_code = None
-            is_id = None
-            is_name = None
-            #Checks if subject input is an int or a string
-            if isinstance(_subject, int):
-                is_id = subject.query.filter(subject.subject_id == _subject).first()
-            if isinstance(_subject, str):
-                is_code = subject.query.filter(subject.sub_code == _subject).order_by().first()
-                is_name = subject.query.filter(subject.sub_name == _subject).order_by().first()
-
-            if is_id:
-                new_course = course(crs_title, _subject, crs_num, credits)
-                new_course.add_commit()
-            elif is_code:
-                new_course = course(crs_title, is_code.subject_id, crs_num, credits)
-                new_course.add_commit()
-            elif is_name:
-                new_course = course(crs_title, is_name.subject_id, crs_num, credits)
-                new_course.add_commit()
-            else:
-                return jsonify ({"fail": "Failed Post"})
-    
-            return admin_course_schema.jsonify(new_course)
-        
-        return jsonify({"Failed": "User is not admin"})
-        
-    return jsonify({"Failed": "User not signed in"}) 
-
-
-# endpoint for updating a course
-@app.route('/admin/courses/update_course/<course_id>', methods = ['PUT'])
-def update_course(course_id):
-    if "user_email" in session:
-        if session["admin"]:
-            updated_course = course.query.get(course_id)
-
-            updated_course.subject_id = request.json['subject_id']
-            updated_course.crs_title = request.json['crs_title']
-            updated_course.crs_num = request.json['crs_num']
-            updated_course.credits = request.json['credits']
-
-            db.session.commit()
-            return admin_course_schema.jsonify(updated_course)
-        
-        return jsonify({"Failed": "User is not admin"})
-    
-    return jsonify({"Failed": "User not signed in"})
-
-
-# endpoint for updating a course
-@app.route('/admin/courses/delete/<course_id>', methods = ['DELETE'])
-def delete_course(course_id):
-    if "user_email" in session:
-        if session["admin"]:
-            deleted_course = course.query.get(course_id)
-
-            db.session.delete(deleted_course)
-            db.session.commit()
-            return admin_course_schema.jsonify(deleted_course)
-            
-        return jsonify({"Failed": "User is not admin"})
-        
-    return jsonify({"Failed": "User not signed in"})
-
-
-@app.route("/user/set-session", methods=["POST"])
-def set_session():
-    session["user_email"] = request.json["user_email"]
-    email = session["user_email"]
-    print("Session contents ", session)
-    return jsonify(email)
-
-#TODO: Update route to not use session
-@app.route("/user/update-campus-id", methods=["POST", "GET"])
-def update_campus_id():
-    if "user_email" in session:
-        new_c_id = request.form["campus_id"]
-        usr_email = session["user_email"]
-        curr_user = public_user_info(usr_email)
-        curr_user.update_campus_id(new_c_id)
-        curr_user.add_commit()
-        return jsonify({"Success": "Successful campus id change"})
-    
-    client.auth.sign_out()
-    return jsonify(FAILED_USER_IN)
-
-
-"""
-Makes an empty plan for the user
-"""
-@app.route("/user/plan/make-plan/<user_email>", methods=["PUT"])
-def user_make_plan(user_email):
-    if user_email:
-        curr_user = users(user_email)
-        usr_id = curr_user.get_user_id()
-        new_plan = plan()
-        new_plan.make_plan(usr_id)
-        if new_plan:
-            new_plan.add_commit()
-            return jsonify({"Success": "Successfully made plan"})
-    client.auth.sign_out()
-    return jsonify(FAILED_USER_IN)
-
-
-#TODO: Depricate probably b/c React does this
-@app.route("/user/plan/select-plan", methods={"PUT"})
-def user_select_plan():
-    if request.method == "PUT" and "user_email" in session and "plan_id" in request.json:
-        chosen_plan_id = request.json["plan_id"]
-        session["curr_plan_id"] = chosen_plan_id
-        return jsonify({"Success": "Session current plan updated"})
-
-    elif "user_email" not in session:
-        return jsonify(FAILED_USER_IN)
-    
-    elif "plan_id" not in request.json:
-        return jsonify({"Failed": "Missing \"plan_id\" field in json"})
-    
-    else:
-        return jsonify({"Failed": "Wrong method used"})
-
-
-"""
-Deletes the users chosen plan
-"""
-@app.route("/user/plan/delete-plan/<user_email>/<plan_id>", methods=["DELETE"])
-def user_delete_plan(user_email, plan_id):
-    if user_email and plan_id and request.method == "DELETE":
-        curr_user = users(user_email)
-
-        usr_id = curr_user.get_user_id()
-        to_delete = plan.query.filter(plan.plan_id == plan_id, plan.user_id == usr_id).first()
-
-        if to_delete:
-            plan_name = to_delete.plan_name
-            chosen_plan = plan(to_delete.plan_id)
-            plan_courses = chosen_plan.get_taken_courses()
-            for taken_crs in plan_courses:
-                user_delete_planned_course(user_email, taken_crs.course_id, taken_crs.plan_id)
-            to_delete.delete_commit()
-            return jsonify({"Success": f"Successfully deleted {plan_name}"})
-            
-        return jsonify({"Failed": "Current user can't delete this plan or plan not found"})
-    
-    elif "user_email" not in session:
-        client.auth.sign_out()
-        return jsonify(FAILED_USER_IN)
-    
-    elif "plan_id" not in request.json:
-        return jsonify({"Failed": "Missing \"plan_id\" field in json"})
-    
-    else:
-        return jsonify({"Failed": "User not signed in"})
-
-
-"""
-Adds a course to users plan using taken
-"""
-#TODO: Use def that checks if given user has plan
-@app.route("/user/plan/add-course-to-plan/<user_email>/<plan_id>/<crs_id>/<sem_id>", methods=["POST"])
-def user_add_course_to_plan(user_email, plan_id, crs_id, sem_id):
-    if user_email:
-        if request.method == "POST":
-            req_id = 1
-            grade = None
-
-            #Checks if correct 
-            if plan_id and crs_id and req_id and sem_id:
-                in_plan = plan.query.filter(plan.plan_id == plan_id).order_by(plan.plan_id.desc()).first()
-                in_course = course.query.filter(course.course_id == crs_id).order_by(course.course_id.desc()).first()
-                in_req = requirement.query.filter(requirement.requirement_id == req_id).order_by(requirement.requirement_id.desc()).first()
-                in_sem = semester.query.filter(semester.semester_id == sem_id).order_by(semester.semester_id.desc()).first()
-
-                crs_in_taken = taken.query.filter(taken.plan_id == plan_id, taken.course_id == crs_id).order_by(taken.course_id.desc()).first()
-
-                if in_plan and in_course and in_req and in_sem and not crs_in_taken:
-                    add_to_plan = taken()
-                    add_to_plan.add_course(plan_id, crs_id, req_id, sem_id, grade)
-                    add_to_plan.add_commit()
-
-                    return jsonify({"Success": f"Added {in_course.course_title} to {in_plan.plan_name} for {in_sem.term}"})
-                elif crs_in_taken:
-                    return jsonify({"Failed": "Course already in chosen plan"})
-                elif not in_plan:
-                    return jsonify({"Failed": "Failed Plan id not in database"})
-                elif not in_course:
-                    return jsonify({"Failed": "Failed Course id not in database"})
-                elif not in_req:
-                    return jsonify({"Failed": "Failed Requirement id not in database"})
-                else:
-                    return jsonify({"Failed": "Failed Semester id not in database"})
-    
-            return jsonify({"Failed": "Failed necessary field(s) left empty"})
-    
-        return jsonify({"Failed": "Forms Missing"})
-    client.auth.sign_out()
-    return jsonify(FAILED_USER_IN)
-
-#TODO: returns all the fall courses in a distionary fall_dict = {2024: [fall_courses],2025: [fall_courses], ...: [...]}
-@app.route("/user/plan/get-all-fall-courses/<user_email>/<sem_id>", methods=["GET"])
-def get_all_fall(user_email, sem_id):
-    if user_email and sem_id:
-        sem = semester()
-        all_fall_objs = sem.get_fall_objs(None, False)
-        crs = course()
-        courses = crs.get_courses_offered()
-        fall_courses = {}
-        for sem in all_fall_objs:
-            fall_courses[sem.year] = []
-            for offr_id, crs_id, sem_id, freq in courses:
-                if sem_id == sem.semester_id:
-                    fall_courses[sem.year].append(crs_id)
-        print("FALL COURSES ", fall_courses)
-        return jsonify(fall_courses)
-    
-    elif not sem_id:
-        return jsonify({"Failed": "Semester not given"})
-    
-    return jsonify(FAILED_USER_IN)
-
-#TODO: Update route to not use session
-@app.route("/user/plan/get-all-winter-courses", methods=["GET"])
-def get_all_winter():
-    pass
-
-#TODO: Update route to not use session
-@app.route("/user/plan/get-all-spring-courses", methods=["GET"])
-def get_all_spring():
-    pass
-
-#TODO: Update route to not use session
-@app.route("/user/plan/get-all-summer-courses", methods=["GET"])
-def get_all_summer():
-    pass
-
-"""
-Deletes the given users course from selected plan
-Inputs: users email, plan id, course id
-"""
-#TODO: Have it check if given user has plan
-@app.route("/user/plan/delete-course-from-plan/<user_email>/<plan_id>/<crs_id>", methods=["DELETE"])
-def user_delete_planned_course(user_email, crs_id, plan_id):
-    if request.method == "DELETE" and crs_id and plan_id:
-        in_taken = taken.query.filter(taken.course_id == crs_id, taken.plan_id == plan_id).first()
-        if in_taken:
-            usr_plan = plan(plan_id)
-            crs_obj = course.query.get(in_taken.course_id)
-            crs_title = crs_obj.course_title
-            in_taken.delete_commit()
-            return jsonify({"Success": f"Successfully deleted {crs_title} from {usr_plan.get_plan_name()}"})
-        return jsonify({"Failed": "Course not in plan"})
-                
-    elif "curr_plan_id" not in session:
-        return jsonify({"Failed": "No plan in session"})  
-      
-    elif "course_id" not in request.json:
-        return jsonify({"Failed": "Missing \"course_id\" field in json"})
-    
-    else:
-        return jsonify({"Failed": "No Form"})
-
-
-"""
-Returns all the courses in the database for a user to see
-"""
-#TODO: make it show only necessary courses and able to update when required course added to plan
-@app.route("/user/view-all-courses", methods=["GET"])
-def user_view_all_courses():
-    all_courses = course.query.all()
-    courses_dump = user_courses_schema.dump(all_courses)
-    return jsonify(courses_dump)
-
-
-"""
-Views all relevant semesters starting at current year and approximate term
-"""
-@app.route("/user/view-all-semesters", methods=["GET"])
-def user_view_all_semesters():
-    sem = semester()
-    all_semesters = sem.get_year_order_objs()
-    semester_dump = semesters_schema.dump(all_semesters)
-    return jsonify(semester_dump)
-
-
-"""
-Chooses a plan to view
-Gets user from session
-Views the current users chosen plan
-Returns: a json of courses in plan {course title, course number, credits, subject code}
-"""
-#TODO: make a guest user check and make it check if user has plan
-@app.route("/user/plan/view-plan/<user_email>/<plan_id>", methods=["GET"])
-def user_view_plan(user_email, plan_id):
-    if request.method == "GET" and user_email and plan_id:
-        user = users(user_email)
-        curr_plan = plan(plan_id)
-        plans_courses = curr_plan.get_courses()
-        courses_dump = user_courses_schema.dump(plans_courses)
-        return jsonify(courses_dump)
-    
-    elif "user_email" not in session:
-        client.auth.sign_out()
-        return jsonify(FAILED_USER_IN)
-    
-    elif "curr_plan_id" not in session:
-        return jsonify({"Failed": "No plan in session"})
-    
-    else:
-        return jsonify({"Failed": "Wrong method needs \"GET\" method"})
-
-
-"""
-Views all the users plans 
-Return: plan obj on success
-"""
-@app.route("/user/plan/view-all-plans/<user_email>", methods=["GET"])
-def view_all_plans(user_email):
-    if user_email:
-        user = users(user_email)
-        usr_plans = user.get_plans()
-        if usr_plans is not None:
-            plans_dump = plans_schema.dump(usr_plans)
-            return jsonify(plans_dump)
-        else:
-            return jsonify({"Failed": "User has no plans"})
-    return jsonify({"Failed": "User not signed in"})
-
-
-if __name__ == "__main__":
-    with app.app_context():
-        db.create_all()
-    app.run(debug=True)

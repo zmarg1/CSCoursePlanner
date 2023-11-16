@@ -1,4 +1,3 @@
 # Ignore Pycharm Intellij setup folder
 .idea/
-__pycache__
 .DS_Store

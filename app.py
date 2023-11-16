@@ -20,7 +20,6 @@ client_key ="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZi
 secret_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF3eWRrbHp3dmJyZ3Zkb21oeGpiIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTY5NTQwNzE2NywiZXhwIjoyMDEwOTgzMTY3fQ.5IP6Kh6jI3mL_3poMSKcjE_cANIjhqvGHJVjK5RNVMw"
 url = "https://qwydklzwvbrgvdomhxjb.supabase.co"
 client = Client(url, client_key)
-client_admin = Client(url, secret_key)
 
 app = Flask(__name__)
 CORS(app)
@@ -55,18 +54,6 @@ class users():
         if new_email:
             self.email = new_email
             self.admin = admin
-    
-    #Returns the id on success and none on failure
-    def signin(self, password):
-        try:
-            curr_usr = client.auth.sign_in_with_password({"email": self.email, "password": password})
-            self.admin = curr_usr.user.user_metadata.get('admin')
-        except Exception as e:
-            print(f"Authentication error: {e} for {self.email}")
-            return None
-        self.update_user_plan_ids()
-        return True
-
 
     def add_commit(self):
         db.session.add(self)
@@ -85,6 +72,12 @@ class users():
         plan_objs = plan.query.filter(usr_id == plan.user_id)
         for obj in plan_objs:
             self.plan_ids.append(obj.plan_id)
+
+    #Gets the course objects of a users plan
+    def get_pln_courses(self, plan_id):
+        usr_plan = plan(plan_id)
+        usr_courses = usr_plan.get_taken_courses
+        return usr_courses
 
     #User views all of their plans
     def get_plans(self):
@@ -623,7 +616,7 @@ class semester(db.Model):
 
 class SemesterCourseSchema(ma.Schema):
     class Meta:
-        fields = ("term", "year")
+        fields = ("semester_id", "term", "year")
 
 semesters_schema = SemesterCourseSchema(many = True)
 
@@ -831,57 +824,12 @@ def delete_course(course_id):
     return jsonify({"Failed": "User not signed in"})
 
 
-"""
-For postman testing
-"""
-@app.route("/user/signin", methods=["POST"])
-def user_signin():
-    email = request.form["email"]
-    password = request.form["password"]
-    
-    check_user = client.auth.get_user()
-
-    if email and password and "user_email" not in session and not check_user:
-        curr_user = users(email)
-        in_auth = curr_user.signin(password)
-        if in_auth:
-            curr_user.update_user_plan_ids()
-            session["user_email"] = curr_user.email
-            session["admin"] = curr_user.admin
-            session["plan_ids"] = curr_user.plan_ids
-            return jsonify({"Success": "Successfully signed in user"})
-    elif "user_email" in session or check_user:
-        return jsonify({"Failed": "User already signed in"})
-    else:
-        return jsonify({"Failed": "Failed neccessary fields left empty"})
-   
-    return "Failed to sign in user"
-
-
 @app.route("/user/set-session", methods=["POST"])
 def set_session():
     session["user_email"] = request.json["user_email"]
     email = session["user_email"]
     print("Session contents ", session)
     return jsonify(email)
-
-"""
-For postman testing
-"""
-@app.route("/user/signout", methods=["SIGNOUT"])
-def user_signout():
-    is_user = client.auth.get_user()
-    if is_user:
-        user_email = is_user.user.email
-        client.auth.sign_out()
-        session.pop("user_email")
-        session.pop("plan_ids")
-        return f"Succesfully signed out {user_email}"
-    if "user_email" in session:
-        session.pop("user_email")
-        session.pop("plan_ids")
-    
-    return "Failed no user signed in"
 
 #TODO: Update route to not use session
 @app.route("/user/update-campus-id", methods=["POST", "GET"])
@@ -1009,16 +957,10 @@ def user_add_course_to_plan(user_email, plan_id, crs_id, sem_id):
     client.auth.sign_out()
     return jsonify(FAILED_USER_IN)
 
-#TODO: returns all the fall courses in a distionary {2024: [fall_courses],2025: [fall_courses], ...: [...]}
-#TODO: Update route to not use session
-@app.route("/user/plan/get-all-fall-courses", methods=["GET"])
-def get_all_fall():
-    if "user_email" in session:
-        select_term = request.json["sem_id"]
-
-        if select_term:
-            pass
-
+#TODO: returns all the fall courses in a distionary fall_dict = {2024: [fall_courses],2025: [fall_courses], ...: [...]}
+@app.route("/user/plan/get-all-fall-courses/<user_email>/<sem_id>", methods=["GET"])
+def get_all_fall(user_email, sem_id):
+    if user_email and sem_id:
         sem = semester()
         all_fall_objs = sem.get_fall_objs(None, False)
         crs = course()
@@ -1031,6 +973,10 @@ def get_all_fall():
                     fall_courses[sem.year].append(crs_id)
         print("FALL COURSES ", fall_courses)
         return jsonify(fall_courses)
+    
+    elif not sem_id:
+        return jsonify({"Failed": "Semester not given"})
+    
     return jsonify(FAILED_USER_IN)
 
 #TODO: Update route to not use session

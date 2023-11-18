@@ -31,25 +31,16 @@ def user_view_all_semesters():
 
 
 
-#TODO: returns all the fall courses in a distionary fall_dict = {2024: [fall_courses],2025: [fall_courses], ...: [...]}
-@view_all_api.route("/user/view-all-fall-courses", methods=["GET"])
-def view_all_fall(user_email):
-    if user_email:
+#TODO: Show all courses of given term
+@view_all_api.route("/user/view-all-past-fall-courses", methods=["GET"])
+def view_all_past_fall():
+    if request.method == "GET":
         sem = semester()
-        all_fall_objs = sem.get_fall_objs()
-        crs = course()
-        courses = crs.get_courses_offered()
-        fall_courses = {}
-
-        for sem in all_fall_objs:
-            fall_courses[sem.year] = []
-            for offr_id, crs_id, sem_id, freq in courses:
-                if sem_id == sem.semester_id:
-                    fall_courses[sem.year].append(crs_id)
-        print("FALL COURSES ", fall_courses)
+        fall_courses = sem.get_past_courses_ids()
         return jsonify(fall_courses)
     
-    return jsonify(FAILED_EMAIL)
+    return jsonify(FAILED_GET)
+
 
 #TODO: Update route to not use session
 @view_all_api.route("/user/view-all-winter-courses", methods=["GET"])

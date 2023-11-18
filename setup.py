@@ -1,4 +1,4 @@
-from flask import Flask, request, session, jsonify, make_response, render_template
+from flask import Flask, request, session, jsonify
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from marshmallow import fields
@@ -23,6 +23,7 @@ db = SQLAlchemy(app)
 ma = Marshmallow(app)
 
 FAILED_EMAIL = {"Failed": "Incorrect Email given or missing"}
+FAILED_PLAN = {"Failed": "User doesn't have plan"}
 FAILED_GET = {"Failed": "Wrong method given expected GET"}
 FAILED_POST = {"Failed": "Wrong method given expected POST"}
 FAILED_DELETE = {"Failed": "Wrong method given expected DELETE"}
@@ -43,7 +44,6 @@ class users():
     """
     email = None
     admin = False
-    plan_ids = []
 
     #Makes a user if user given
     def __init__(self, new_email=None, admin=False):
@@ -60,7 +60,8 @@ class users():
         db.session.commit()
 
     def get_user_id(self):
-        usr_id = public_user_info.get_user_id(self.email)
+        pub_usr = public_user_info(self.email)
+        usr_id = pub_usr.user_id
         return usr_id
 
     def update_user_plan_ids(self):
@@ -72,7 +73,7 @@ class users():
     #Gets the course objects of a users plan
     def get_pln_courses(self, plan_id):
         usr_plan = plan(plan_id)
-        usr_courses = usr_plan.get_taken_courses
+        usr_courses = usr_plan.get_courses()
         return usr_courses
 
     #User views all of their plans
@@ -81,20 +82,89 @@ class users():
         plan_objs = plan.query.filter(plan.user_id == user_id)
         usr_plans = []
         
-        #gets the list of plan objects <plan id>
-        for obj in plan_objs:
-            usr_plans.append(obj)
-
-        if usr_plans:
+        if plan_objs:
+            #gets the list of plan objects <plan id>
+            for obj in plan_objs:
+                usr_plans.append(obj)
             return usr_plans
         
         return None
     
     def user_has_plan(self, plan_id):
         user_plans = self.get_plans()
-        if plan_id in user_plans:
-            return True
-        return False
+        usr_has = False
+        for obj in user_plans:
+            if plan_id == obj.plan_id:
+                usr_has = True
+        return usr_has
+
+    def get_term_courses(self, plan_id, term):
+        usr_plan = plan(plan_id)
+        taken_courses = usr_plan.get_taken_courses()
+        sem = semester()
+
+        if term == "Fall":
+            usr_fall = []
+
+            fall_sems = sem.get_fall_objs()
+            for t_crs in taken_courses:
+                for sem_obj in fall_sems:
+                    if t_crs.semester_id == sem_obj.semester_id:
+                        usr_fall.append(t_crs)
+
+            return usr_fall
+
+        elif term == "Winter":
+            usr_winter = []
+
+            winter_sems = sem.get_winter_objs()
+            for t_crs in taken_courses:
+                for sem_obj in winter_sems:
+                    if t_crs.semester_id == sem_obj.semester_id:
+                        usr_winter.append(t_crs)
+
+            return usr_winter
+
+        elif term == "Spring":
+            usr_spring = []
+
+            spring_sems = sem.get_spring_objs()
+            for t_crs in taken_courses:
+                for sem_obj in spring_sems:
+                    if t_crs.semester_id == sem_obj.semester_id:
+                        usr_spring.append(t_crs)
+
+            return usr_spring
+
+        else:
+            usr_summer = []
+
+            summer_sems = sem.get_summer_objs()
+            for t_crs in taken_courses:
+                for sem_obj in summer_sems:
+                    if t_crs.semester_id == sem_obj.semester_id:
+                        usr_summer.append(t_crs)
+
+            return usr_summer
+
+    def to_dict(self, years, usr_plan, dump):
+        for year in years:
+            if year not in usr_plan:
+                usr_plan[year] = {}
+            for dump_obj in dump:
+                obj_year = dump_obj.get('year')
+                if obj_year == year:
+                    crs_id = dump_obj.get('course_id')
+                    crs = course()
+                    obj_crs = crs.get_course(crs_id)
+                    if dump_obj.get('term') in usr_plan[year]:
+                        usr_crs = user_course_schema.dump(obj_crs)
+                        usr_plan[year][dump_obj.get('term')].append(usr_crs)
+                    else:
+                        usr_plan[year][dump_obj.get('term')] = []
+                        usr_crs = user_course_schema.dump(obj_crs)
+                        usr_plan[year][dump_obj.get('term')].append(usr_crs)
+        return usr_plan
 
 
 
@@ -107,12 +177,15 @@ class public_user_info(db.Model):
     first_name = db.Column(db.String)
     last_name = db.Column(db.String)
 
-    def __init__(self, new_email, new_campus_id=None, new_f_name=None, new_l_name=None):
+    def __init__(self, new_email, new_usr_id=None, new_campus_id=None, new_f_name=None, new_l_name=None):
         if new_email:
             self.email = new_email
             self.campus_id = new_campus_id
             self.first_name = new_f_name
             self.last_name = new_l_name
+
+            user = public_user_info.query.filter(public_user_info.email == new_email).first()
+            self.user_id = user.user_id
 
     def add_commit(self):
         db.session.add(self)
@@ -262,6 +335,40 @@ class plan(db.Model):
                 courses.append(crs_obj)
             return courses
         return None
+
+    def get_years(self, term=None):
+        plan_years = set()
+        taken_plan_objs = taken.query.filter(self.plan_id == taken.plan_id)
+        taken_dump = taken_courses_schema.dump(taken_plan_objs)
+        if term == None:
+            for obj in taken_dump:
+                obj_year = obj.get('year')
+                if obj_year:
+                    plan_years.add(obj_year)
+            if plan_years:
+                plan_years = sorted(plan_years)
+
+        else:
+            for obj in taken_dump:
+                obj_year = obj.get('year')
+                obj_term = obj.get("term")
+                if obj_year and obj_term == term:
+                    plan_years.add(obj_year)
+            if plan_years:
+                plan_years = sorted(plan_years)
+
+        return plan_years
+    
+    #TODO: make a dictionary of terms {2023: {Fall: [crs 1]}}
+    def get_terms(self):
+        years = self.get_years()
+        taken_plan_objs = taken.query.filter(self.plan_id == taken.plan_id)
+        taken_dump = taken_courses_schema.dump(taken_plan_objs)
+        terms = {}
+
+        for year in years:
+            terms[year] = {}
+
 
 class PlanSchema(ma.Schema):
     class Meta:
@@ -450,6 +557,10 @@ class course(db.Model):
         db.session.delete(self)
         db.session.commit()
 
+    def get_course(self, crs_id):
+        crs = course.query.get(crs_id)
+        return crs
+
     def add_prereq(self, req):
         self.prereq = req
         db.session.commit()
@@ -480,6 +591,7 @@ class UserCourseSchema(ma.Schema):
     class Meta:
         fields = ("course_id", "subject_code", "course_title", "course_num", "credits")
 
+user_course_schema = UserCourseSchema()
 user_courses_schema = UserCourseSchema(many = True)
 
 
@@ -576,12 +688,11 @@ class semester(db.Model):
     Input: a list of courses in a plan
     Return: if input given 
     """
-    def get_fall_objs(self, list_courses=None, curr=True):
-        if list_courses:
-            pass
-        elif not curr:
+    def get_fall_objs(self, curr=True):
+        if not curr:
             fall_objs = []
-            semesters = self.get_old_year_objs()
+            current = True
+            semesters = self.get_year_order_objs(current)
             for sem in semesters:
                 if sem.term == "Fall":
                     fall_objs.append(sem)
@@ -594,76 +705,105 @@ class semester(db.Model):
                     fall_objs.append(sem)
             return fall_objs
 
-    def get_winter_objs(self, list_courses=None):
-        if list_courses:
-            pass
-        semesters = self.get_year_order_objs()
-        winter_objs = []
-        for sem in semesters:
-            if sem.term == "Winter":
-                winter_objs.append(sem)
-        return winter_objs
+    def get_winter_objs(self, curr=True):
+        if not curr:
+            winter_objs = []
+            current = True
+            semesters = self.get_year_order_objs(current)
+            for sem in semesters:
+                if sem.term == "Winter":
+                    winter_objs.append(sem)
+            return winter_objs
+        else:
+            winter_objs = []
+            semesters = self.get_year_order_objs()
+            for sem in semesters:
+                if sem.term == "Winter":
+                    winter_objs.append(sem)
+            return winter_objs
 
-    def get_spring_objs(self, list_courses=None):
-        if list_courses:
-            pass
-        spring_objs = []
-        semesters = self.get_year_order_objs()
-        for sem in semesters:
-            if sem.term == "Spring":
-                spring_objs.append(sem)
-        return spring_objs
+    def get_spring_objs(self, curr=True):
+        if not curr:
+            spring_objs = []
+            current = True
+            semesters = self.get_year_order_objs(current)
+            for sem in semesters:
+                if sem.term == "Spring":
+                    spring_objs.append(sem)
+            return spring_objs
+        else:
+            spring_objs = []
+            semesters = self.get_year_order_objs()
+            for sem in semesters:
+                if sem.term == "Spring":
+                    spring_objs.append(sem)
+            return spring_objs
 
-    def get_summer_objs(self, list_courses=None):
-        if list_courses:
-            pass
-        summer_objs = []
-        semesters = self.get_year_order_objs()
-        summer_objs = []
-        for sem in semesters:
-            if sem.term == "Summer":
-                summer_objs.append(sem)
-        return summer_objs
+    def get_summer_objs(self, curr=True):
+        if not curr:
+            summer_objs = []
+            current = True
+            semesters = self.get_year_order_objs(current)
+            for sem in semesters:
+                if sem.term == "Summer":
+                    summer_objs.append(sem)
+            return summer_objs
+        else:
+            summer_objs = []
+            semesters = self.get_year_order_objs()
+            for sem in semesters:
+                if sem.term == "Summer":
+                    summer_objs.append(sem)
+            return summer_objs
 
     """
     Gets relevant semesters based on current year and approximate term
-    """
-    def get_year_order_objs(self):
-        self.update_year_term()
-        curr_year = self.current_year
-        curr_term = self.current_term
-        all_semesters = semester.query.all()
-        order_objs = []
-        reached_term = False
-        for obj in all_semesters:
-            if reached_term:
-                order_objs.append(obj)
-                self.last_year = obj.year
-            elif obj.year == curr_year and obj.term == curr_term and not reached_term:
-                reached_term = True
-                order_objs.append(obj)
-                self.last_year = obj.year
-        return order_objs
-    
-    """
     Gets all semesters before current year
     Used for checking if a course will be offered
     """
-    def get_old_year_objs(self):
+    def get_year_order_objs(self, old = False):
         self.update_year_term()
         curr_year = self.current_year
         curr_term = self.current_term
         all_semesters = semester.query.all()
         order_objs = []
-        before_term = True
-        for obj in all_semesters:
-            if before_term:
-                order_objs.append(obj)
-            elif obj.year == curr_year and obj.term == curr_term and not before_term:
-                before_term = False
-                order_objs.append(obj)
-        return order_objs
-    
+        
+        if not old:
+            reached_term = False
+            for obj in all_semesters:
+                if reached_term:
+                    order_objs.append(obj)
+                    self.last_year = obj.year
+                elif obj.year == curr_year and obj.term == curr_term and not reached_term:
+                    reached_term = True
+                    order_objs.append(obj)
+                    self.last_year = obj.year
+        else:
+            before_term = True
+            for obj in all_semesters:
+                if before_term:
+                    order_objs.append(obj)
+                elif obj.year == curr_year and obj.term == curr_term and not before_term:
+                    before_term = False
+                    order_objs.append(obj)
+
+        return order_objs   
+
+    def get_past_courses_ids(self):
+        all_fall_objs = self.get_fall_objs(False)
+        crs = course()
+        fall_courses = {}
+
+        for sem in all_fall_objs:
+            courses = crs.get_courses_offered(sem.semester_id)
+            if courses:
+                fall_courses[sem.year] = []
+            for offr_id, crs_id, sem_id, freq in courses:
+                if sem_id == sem.semester_id:
+                    fall_courses[sem.year].append(crs_id)
+
+        return fall_courses
+
 
 class SemesterSchema(ma.Schema):
     class Meta:
@@ -746,3 +886,23 @@ class taken(db.Model):
     #to check if course can be take
     def requirement_choice():
         pass
+
+class TakenSchema(ma.Schema):
+    subject_code = fields.Function(lambda obj: obj.subject.sub_code if obj.subject else None)
+    class Meta:
+        fields = ("taken_id", "plan_id", "course_id", "requirement_id", "semester_id", "grade")
+
+taken_schema = TakenSchema()
+takens_schema = TakenSchema(many = True)
+
+class TakenCourseSchema(ma.Schema):
+    course_title = fields.Function(lambda obj: obj.course.course_title if obj.course else None)
+    year = fields.Function(lambda obj: obj.semester.year if obj.semester else None)
+    term = fields.Function(lambda obj: obj.semester.term if obj.semester else None)
+
+    class Meta:
+        fields = ("taken_id", "course_id", "course_title", "semester_id", "year", "term")
+
+taken_course_schema = TakenCourseSchema()
+taken_courses_schema = TakenCourseSchema(many = True)
+

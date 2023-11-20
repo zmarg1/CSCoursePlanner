@@ -1,3 +1,4 @@
 # Ignore Pycharm Intellij setup folder
 .idea/
 .DS_Store
+node_modules

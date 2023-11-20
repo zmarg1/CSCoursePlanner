@@ -1,0 +1,13 @@
+{
+  "title": "Plans for Retrievers",
+  "text": "Plan your classes for your entire college career quickly, all in one place. Made for UMBC undergraduates by UMBC undergraduates.",
+  "button": [
+    {
+      "title": "Make Plan"
+    },
+    {
+      "title": "Learn more",
+      "color": "#fff"
+    }
+  ]
+}

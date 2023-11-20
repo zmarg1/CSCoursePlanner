@@ -28,6 +28,7 @@ FAILED_GET = {"Failed": "Wrong method given expected GET"}
 FAILED_POST = {"Failed": "Wrong method given expected POST"}
 FAILED_DELETE = {"Failed": "Wrong method given expected DELETE"}
 FAILED_PUT = {"Failed": "Wrong method given expected PUT"}
+BLACKLIST = [";", "&", "\\", "$", ">", "<", "`", "!", "|", ",", "#", ".", "'"]
 
 """
 The user object class to interact with the authorization table in supabase

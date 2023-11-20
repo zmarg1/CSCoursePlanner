@@ -45,6 +45,11 @@ class users():
     """
     email = None
     admin = False
+    max_plans = 10
+    max_sem = 32 #Zach Limit
+    max_sem_crs = 7 #Brandon Limit
+    soft_cap_credits = 18
+    hard_cap_credits = 24
 
     #Makes a user if user given
     def __init__(self, new_email=None, admin=False):
@@ -60,16 +65,71 @@ class users():
         db.session.delete(self)
         db.session.commit()
 
+    def delete_term(self, plan_id, sem_id):
+        usr_plan = plan(plan_id)
+        pln_courses = usr_plan.get_taken_courses()
+        to_delete = []
+        sem = semester.query.get(sem_id)
+        term = sem.term
+
+        for obj in pln_courses:
+            if obj.semester_id == sem_id:
+                to_delete.append(obj)
+
+        if to_delete:
+            for crs in to_delete:
+                crs.delete_commit()
+            return {"Success": f"{term} term deleted"}
+        
+        else:
+            return {"Failed": "Semester not found"}
+
     def get_user_id(self):
         pub_usr = public_user_info(self.email)
         usr_id = pub_usr.user_id
         return usr_id
+    
+    def update_campus_id(self, new_c_id):
+        pub_user = public_user_info(self.email)
+        result = pub_user.update_campus_id(new_c_id)
+        return result
 
-    def update_user_plan_ids(self):
-        usr_id = self.get_user_id()
-        plan_objs = plan.query.filter(usr_id == plan.user_id)
-        for obj in plan_objs:
-            self.plan_ids.append(obj.plan_id)
+    def user_make_plan(self):
+        user_plans = self.get_plans()
+        if len(user_plans) < self.max_plans:
+            user_id = self.get_user_id()
+            new_plan = plan()
+            result = new_plan.make_plan(user_id)
+            if result:
+                new_plan.add_commit()
+                return {"Success": "Plan added successfully"}
+            
+            return {"Failed": "Error adding plan"}
+        
+        return {"Failed": "User has reached plan limit"}
+
+    #TODO: Have it check for credits instead
+    def add_course(self, plan_id, crs_id, req_id, sem_id, grade):
+        usr_plan = plan(plan_id)
+        pln_courses = usr_plan.get_taken_courses()
+        pln_semesters = set()
+        num_courses = len(pln_courses)
+
+        for obj in pln_courses:
+            pln_semesters.add(obj.semester_id)
+        num_sem = len(pln_semesters)
+
+        if num_courses <= self.max_sem_crs and num_sem <= self.max_sem:
+            add_to_plan = taken()
+            add_to_plan.add_course(plan_id, crs_id, req_id, sem_id, grade)
+            add_to_plan.add_commit()
+            return {"Success": "Added Plan"}
+        
+        elif num_courses > self.max_sem_crs:
+            return {"Failed": "User has reached the course limit"}
+        
+        else:
+            return {"Failed": "User has reached the semester limit"}
 
     #Gets the course objects of a users plan
     def get_pln_courses(self, plan_id):
@@ -168,7 +228,6 @@ class users():
         return usr_plan
 
 
-
 #TODO: Finish definitions
 class public_user_info(db.Model):
     public_user_id = db.Column(db.Integer, primary_key=True)
@@ -215,14 +274,16 @@ class public_user_info(db.Model):
             if user:
                 user.campus_id = new_c_id
                 self.add_commit()
+                return True
         
         else:
             user = public_user_info.query.get(self.email)
             if user:
                 user.campus_id = new_c_id
                 self.add_commit()
+                return True
 
-        print("Failed to update campus ID")
+        return False
 
     def update_name(self,new_f_name=None, new_l_name=None):
         pass
@@ -256,6 +317,7 @@ class plan(db.Model):
     plan_num = db.Column(db.Integer)
     plan_name = db.Column(db.String(100))
     created_at = db.Column(db.Time)
+    plan_limit = 10
 
     def __init__(self, new_plan_id=None):
         if new_plan_id:
@@ -295,10 +357,21 @@ class plan(db.Model):
                 self.plan_name = name
 
             self.created_at = datetime.now()
+            return True
+        return False
 
     def get_plan_name(self):
         plan_name = plan.query.filter(plan.plan_id == self.plan_id).order_by(plan.plan_name).first()
         return plan_name.plan_name
+
+    def rename_plan(self, usr_id, new_name):
+        usr_plan = plan.query.filter(plan.user_id == usr_id, plan.plan_id == self.plan_id).first()
+        if usr_plan:
+            usr_plan.plan_name = new_name
+            usr_plan.add_commit()
+            return {"Success": f"Plan nam changed to {new_name}"}
+        else:
+            return {"Failed": "User doesn't have that plan"}
 
 
     """"
@@ -310,9 +383,12 @@ class plan(db.Model):
     """
     def get_taken_courses(self):
         taken_plan_objs = taken.query.filter(self.plan_id == taken.plan_id)
+        taken_list = []
 
         if taken_plan_objs:
-            return taken_plan_objs
+            for obj in taken_plan_objs:
+                taken_list.append(obj)
+            return taken_list
         
         return None
     

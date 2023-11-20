@@ -17,7 +17,6 @@ import {
   Outline,
   Span,
 } from "./styles";
-import { Session } from "inspector";
 
 const Header = ({ t }: any) => {
   const [visible, setVisibility] = useState(false);
@@ -110,7 +109,7 @@ const Header = ({ t }: any) => {
             <Outline />
           </Burger>
         </Row>
-        <Drawer closable={false} visible={visible} onClose={onClose}>
+        <Drawer closable={false} open={visible} onClose={onClose}>
           <Col style={{ marginBottom: "2.5rem" }}>
             <Label onClick={onClose}>
               <Col span={12}>

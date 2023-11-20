@@ -204,8 +204,6 @@ const MakePlan: React.FC = () => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const result = await response.json();
-
       // Update the user's plan state
       // setUserPlan([...userPlan, { courseId: selectedCourseId, semesterId: parseInt(selectedSemesterId, 10) }]);
 

@@ -365,6 +365,14 @@ class plan(db.Model):
         return plan_name.plan_name
 
     def rename_plan(self, usr_id, new_name):
+        bad_input = False
+        for char in new_name:
+            if char in BLACKLIST:
+                bad_input =True
+        
+        if bad_input:
+            return {"Failed": "A Blacklisted charachter was input"}
+
         usr_plan = plan.query.filter(plan.user_id == usr_id, plan.plan_id == self.plan_id).first()
         if usr_plan:
             usr_plan.plan_name = new_name

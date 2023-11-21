@@ -52,7 +52,7 @@ const MakePlan: React.FC = () => {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [selectedSemesterId, setSelectedSemesterId] = useState('');
   const [selectedPlanId, setSelectedPlanId] = useState('');
-  // const [userPlan, setUserPlan] = useState<PlanItem[]>([]);
+  const [apiResult, setApiiResult] = useState(null);
 
   useEffect(() => {
 
@@ -93,29 +93,6 @@ const MakePlan: React.FC = () => {
         console.error('There has been a problem with your fetch operation:', error);
       }
     };
-
-    // const fetchPlan = async () => {
-    //   try {
-    //     const response = await fetch('http://127.0.0.1:5000/user/plan/get-plan', {
-    //       method: 'GET',
-    //       headers: {
-    //         'Content-Type': 'application/json',
-    //         // Include other headers as necessary
-    //       },
-    //     });
-
-    //     if (!response.ok) {
-    //       throw new Error(`HTTP error! status: ${response.status}`);
-    //     }
-
-    //     const planData = await response.json();
-    //     // Assuming the server returns an array of PlanItems
-    //     setUserPlan(planData);
-    //   } catch (error) {
-    //     console.error('There was an error fetching the plan:', error);
-    //   }
-    // }
-
 
     const fetchSemesters = async () => {
       try {
@@ -204,11 +181,12 @@ const MakePlan: React.FC = () => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json()
-      if(data.Success){
-        console.log(data)
-      }
       if(data.Failed){
-        console.log(data)
+        console.log(data.Failed)
+        setApiiResult(data.Failed)
+      }
+      if(data.Success){
+        setApiiResult(data.Success)
       }
 
       // Update the user's plan state
@@ -306,6 +284,12 @@ const MakePlan: React.FC = () => {
         </div>
         <StyledButton type="submit">Add Class</StyledButton>
       </form>
+
+      {apiResult &&(
+        <div>
+          <p>{apiResult}</p>
+        </div>
+      )}
     </div>
   );
 };

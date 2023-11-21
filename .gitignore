@@ -1,6 +1,5 @@
 # Ignore Pycharm Intellij setup folder
 .idea/
 .DS_Store
+__pycache__
 node_modules
-/_pycache_
-__pycache__/admin.cpython-311.pyc

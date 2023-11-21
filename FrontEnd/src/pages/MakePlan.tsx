@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { StyledSelect } from '../common/select/styles';
 import { StyledButton } from '../common/Button/styles';
 import { StyledLabel } from '../common/Label';
-import { supabase } from '../supabaseClient';
+import { supabase } from '../utils/supabaseClient';
 import { useUser } from '@clerk/clerk-react';
 
 interface CourseFromServer {
@@ -202,6 +202,13 @@ const MakePlan: React.FC = () => {
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json()
+      if(data.Success){
+        console.log(data)
+      }
+      if(data.Failed){
+        console.log(data)
       }
 
       // Update the user's plan state

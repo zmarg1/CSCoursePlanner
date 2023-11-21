@@ -6,8 +6,8 @@ import ContactContent from "../../content/ContactContent.json";
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 
-const Contact = lazy(() => import("../../components/ContactForm"));
-const MiddleBlock = lazy(() => import("../../components/MiddleBlock"));
+const Contact = lazy(() => import("../../components/ContactForm/contactFormIndex"));
+const MiddleBlock = lazy(() => import("../../components/MiddleBlock/middleIndex"));
 const Container = lazy(() => import("../../common/Container"));
 const ScrollToTop = lazy(() => import("../../common/ScrollToTop"));
 const ContentBlock = lazy(() => import("../../components/ContentBlock"));

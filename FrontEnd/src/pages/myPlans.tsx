@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useUser } from '@clerk/clerk-react';
 
 interface PlanFromServer {
-  plan_id: string;
+  plan_id: number;
   plan_name: string;
-  // Add other properties as needed from your server response
+  plan_num: number;
+  user_id: string;
 }
 
 interface Course {
@@ -16,21 +17,19 @@ interface Course {
 }
 
 interface Plan {
-  id: string;
+  id: number;
   name: string;
 }
 
 interface CourseData {
-  [year: string]: {
-    [term: string]: Course[];
-  };
+  [year: string]: {[term: string]: Course[];};
 }
 
 const ViewUserPlan: React.FC = () => {
   const { user } = useUser();
   const [courses, setCourses] = useState<CourseData>({});
   const [plans, setPlans] = useState<Plan[]>([]);
-  const [selectedPlanId, setSelectedPlanId] = useState('');
+  const [selectedPlanId, setSelectedPlanId] = useState(Number);
   const [error, setError] = useState<string>('');
 
   useEffect(() => {
@@ -44,7 +43,12 @@ const ViewUserPlan: React.FC = () => {
         throw new Error('User email is not available');
       }
 
-      const response = await fetch(`http://127.0.0.1:5000/user/plan/view-all-plans/${email}`);
+      const response = await fetch(`http://127.0.0.1:5000/user/plan/view-all-plans/${email}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+        });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -60,13 +64,17 @@ const ViewUserPlan: React.FC = () => {
     }
   };
 
-  const fetchUserPlan = async (planId: string) => {
+  const fetchUserPlan = async (planId: number) => {
     try {
-      const response = await fetch(`http://127.0.0.1:5000/user/plan/view-plan/${user?.emailAddresses[0]?.emailAddress}/${planId}`);
+      const email = user?.emailAddresses[0]?.emailAddress;
+      const response = await fetch(`http://127.0.0.1:5000/user/plan/view-plan/${email}/${planId}`);
+
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
       const data = await response.json();
       console.log(data);
       setCourses(data);
+
     } catch (error: any) {
       setError(error.message);
       console.error('Error fetching user plan:', error);
@@ -75,9 +83,10 @@ const ViewUserPlan: React.FC = () => {
 
   const handlePlanSelection = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const planId = event.target.value;
-    setSelectedPlanId(planId);
-    if (planId) {
-      fetchUserPlan(planId);
+    const parsedPlanId = parseInt(planId, 10);
+    setSelectedPlanId(parsedPlanId);
+    if (parsedPlanId) {
+      fetchUserPlan(parsedPlanId);
     }
   };
 
@@ -97,7 +106,7 @@ const ViewUserPlan: React.FC = () => {
           <div key={year}>
             {Object.entries(terms).map(([term, coursesList]) => (
               <div key={term}>
-                <h3>{year} - {term}</h3>
+                <h6>{year} - {term}</h6>
                 <ul>
                   {Array.isArray(coursesList) && coursesList.map((course, index) => (
                     <li key={index}>

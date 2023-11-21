@@ -176,19 +176,7 @@ Ex. {"2024": {"Fall": [{corse info}, {course info}] } }
 """
 @app.route("/user/plan/view-plan/<user_email>/<plan_id>", methods=["GET"])
 def user_view_plan(user_email, plan_id):
-    by_term = request.json["by_term"]
-    if request.method == "GET" and user_email and plan_id and not by_term:
-        user = users(user_email)
-        plan_id = int(plan_id)
-        if user.user_has_plan(plan_id):
-            curr_plan = plan(plan_id)
-            plans_courses = curr_plan.get_courses()
-            courses_dump = user_courses_schema.dump(plans_courses)
-            return jsonify(courses_dump)
-        
-        return jsonify(FAILED_PLAN)
-    
-    elif by_term:
+    if request.method == "GET" and user_email and plan_id:
         user = users(user_email)
         plan_id = int(plan_id)
         if user.user_has_plan(plan_id):
@@ -204,17 +192,14 @@ def user_view_plan(user_email, plan_id):
             spring_dump = taken_courses_schema.dump(spring_courses)
             summer_dump = taken_courses_schema.dump(summer_courses)
 
-            if fall_dump or winter_dump or spring_dump or summer_dump:
-                years = curr_plan.get_years()
-                usr_plan = {}
-                usr_plan = user.to_dict(years, usr_plan, fall_dump)
-                usr_plan = user.to_dict(years, usr_plan, winter_dump)
-                usr_plan = user.to_dict(years, usr_plan, spring_dump)
-                usr_plan = user.to_dict(years, usr_plan, summer_dump)
+            years = curr_plan.get_years()
+            usr_plan = {}
+            usr_plan = user.to_dict(years, usr_plan, fall_dump)
+            usr_plan = user.to_dict(years, usr_plan, winter_dump)
+            usr_plan = user.to_dict(years, usr_plan, spring_dump)
+            usr_plan = user.to_dict(years, usr_plan, summer_dump)
                 
-                return jsonify(usr_plan)
-            
-            return jsonify({"Success": {"Message": "Plan is empty","Plan": fall_dump}})
+            return jsonify(usr_plan)
         
         return jsonify(FAILED_PLAN)
     

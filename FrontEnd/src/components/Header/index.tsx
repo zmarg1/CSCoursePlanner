@@ -1,10 +1,11 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Row, Col, Drawer } from "antd";
 import { useNavigate } from 'react-router-dom';
 import { withTranslation } from "react-i18next";
 import Container from "../../common/Container";
 import { SvgIcon } from "../../common/SvgIcon";
 import { SignedIn, SignedOut, useClerk, UserButton } from '@clerk/clerk-react';
+import { useUser } from '@clerk/clerk-react';
 
 import {
   HeaderSection,
@@ -17,9 +18,9 @@ import {
   Outline,
   Span,
 } from "./styles";
-import { Session } from "inspector";
 
-const Header = ({ t }: any) => {
+const Header = ({ t }:any) => {
+  const { user } = useUser();
   const [visible, setVisibility] = useState(false);
   const navigate = useNavigate();
 
@@ -32,39 +33,24 @@ const Header = ({ t }: any) => {
   };
 
   const handleNavigationClick = (path: string, id?: string) => {
-    // Close the drawer if open
     setVisibility(false);
-    // Navigate to the path
-    navigate(path, {
-      state: { scrollToId: id } // Pass along the id to scroll to
-    });
+    navigate(path, { state: { scrollToId: id } });
   };
 
   const clerk = useClerk();
 
   const handleSignInClick = () => {
-    clerk.openSignIn();// Navigate to your sign-in route
+    clerk.openSignIn();
   };
 
   const handlePlanClick = () => {
-    navigate('/user/plan/make-plan'); // Navigate to your make-plan route
+    navigate('/user/plan/make-plan');
   };
 
-  // const handleAboutClick = () => {
-  //   navigate('/'); // Navigate to your sign-in route
-  // };
-
-  // const handleContactClick = () => {
-  //   navigate('/'); // Navigate to your sign-in route
-  // };
-
-  // const scrollTo = (id: string) => {
-  //   const element = document.getElementById(id) as HTMLDivElement;
-  //   element.scrollIntoView({
-  //     behavior: "smooth",
-  //   });
-  //   setVisibility(false);
-  // };
+  const handleMyPlanClick = () => {
+    const userEmail = user?.emailAddresses[0]?.emailAddress;
+    navigate(`/user/plan/view-plan/${userEmail}`);
+  };
 
   const MenuItem = () => {
     return (
@@ -73,7 +59,10 @@ const Header = ({ t }: any) => {
           <Span>{t("Home")}</Span>
         </CustomNavLinkSmall>
         <CustomNavLinkSmall onClick={handlePlanClick}>
-          <Span>{t("Plan")}</Span>
+          <Span>{t("Build Plan")}</Span>
+        </CustomNavLinkSmall>
+        <CustomNavLinkSmall onClick={handleMyPlanClick}>
+          <Span>{t("MyPlans")}</Span>
         </CustomNavLinkSmall>
         <CustomNavLinkSmall onClick={() => handleNavigationClick('/', 'about')}>
           <Span>{t("About")}</Span>
@@ -82,16 +71,15 @@ const Header = ({ t }: any) => {
           <Span>{t("Contact")}</Span>
         </CustomNavLinkSmall>
         <SignedOut>
-        <CustomNavLinkSmall onClick={handleSignInClick}>
-          <Span>{t("Sign In")}</Span>
-        </CustomNavLinkSmall>
+          <CustomNavLinkSmall onClick={handleSignInClick}>
+            <Span>{t("Sign In")}</Span>
+          </CustomNavLinkSmall>
         </SignedOut>
         <CustomNavLinkSmall>
-        <SignedIn>
-        <UserButton/>
-        </SignedIn>
+          <SignedIn>
+            <UserButton />
+          </SignedIn>
         </CustomNavLinkSmall>
-        
       </>
     );
   };

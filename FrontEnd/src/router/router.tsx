@@ -5,6 +5,7 @@ import Header from "../components/Header";
 import routes from "./config";
 import { Styles } from "../styles/styles";
 import MakePlan from "../pages/MakePlan";
+import ViewUserPlan from "../myPlans";
 
 const Router = () => {
   return (
@@ -24,6 +25,7 @@ const Router = () => {
           );
         })}
         <Route path="/user/plan/make-plan" element={<MakePlan />} />
+        <Route path="/user/plan/view-plan/:userEmail" element={<ViewUserPlan />} />
       </Routes>
       <Footer />
     </Suspense>

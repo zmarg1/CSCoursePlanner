@@ -47,7 +47,8 @@ const MakePlan: React.FC = () => {
   const { user } = useUser();
   const [courses, setCourses] = useState<Course[]>([]);
   const [selectedCourseId, setSelectedCourseId] = useState('');
-  const [selectedCourseTitle, setSelectedCourseTitle] = useState('');
+  //const [selectedCourseTitle, setSelectedCourseTitle] = useState('');
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [semesters, setSemesters] = useState<Semester[]>([]);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [selectedSemesterId, setSelectedSemesterId] = useState('');
@@ -212,10 +213,11 @@ const MakePlan: React.FC = () => {
 
 
   const handleCourseSelection = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedCourseTitle(event.target.title);
-    console.log('Added Class Title:', selectedCourseTitle);
+    //setSelectedCourseTitle(event.target.title);
+    //console.log('Added Class Title:', selectedCourseTitle);
+    //setSelectedCourseId(event.target.value);
+    //console.log('Added Class ID:', selectedCourseId);
     setSelectedCourseId(event.target.value);
-    console.log('Added Class ID:', selectedCourseId);
   };
 
   const handleSemesterSelection = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -226,6 +228,36 @@ const MakePlan: React.FC = () => {
     setSelectedPlanId(event.target.value);
   };
 
+  useEffect(() => {
+    const fetchCourseInfo = async () => {
+      if (selectedCourseId) {
+        try {
+          const email = user?.emailAddresses
+          const response = await fetch(`http://127.0.0.1:5000/user/course/${selectedCourseId}`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const courseInfo: CourseFromServer = await response.json();
+          setSelectedCourse({
+            id: courseInfo.course_id,
+            code: `${courseInfo.subject_code} ${courseInfo.course_num}`,
+            name: courseInfo.course_title,
+          });
+        } catch (error) {
+          console.error('Error fetching course information:', error);
+        }
+      }
+    };
+
+    fetchCourseInfo();
+  }, [selectedCourseId]);
 
   return (
     <div className="make-plan">
@@ -284,6 +316,17 @@ const MakePlan: React.FC = () => {
         </div>
         <StyledButton type="submit">Add Class</StyledButton>
       </form>
+      
+      <div>
+        {selectedCourse && (
+          <div>
+            <h3>Selected Course Information</h3>
+            <p>ID: {selectedCourse.id}</p>
+            <p>Code: {selectedCourse.code}</p>
+            <p>Name: {selectedCourse.name}</p>
+          </div>
+        )}
+      </div>
 
       {apiResult &&(
         <div>

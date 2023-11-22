@@ -214,6 +214,17 @@ def user_view_plan(user_email, plan_id):
 
 
 """
+Gets one course to display  
+Return: course object on
+"""
+@app.route("/user/course/<course_id>/", methods=["GET"])
+def get_course(course_id):
+    if course_id:
+        my_course = course.query.get(course_id)
+        return user_course_schema.jsonify(my_course)
+    return jsonify({"Failed": "Course not selected"})
+
+"""
 Views all the users plans 
 Return: plan obj on success
 """
@@ -337,7 +348,6 @@ def user_all_summer(user_email, plan_id):
     
     else:
         return jsonify(FAILED_GET)
-
 
 if __name__ == "__main__":
     with app.app_context():

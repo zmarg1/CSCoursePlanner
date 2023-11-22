@@ -32,6 +32,7 @@ const ViewUserPlan: React.FC = () => {
   const [courses, setCourses] = useState<CourseData>({});
   const [plans, setPlans] = useState<Plan[]>([]);
   const [selectedPlanId, setSelectedPlanId] = useState(Number);
+  const [selectedPlanName, setSelectedPlanName] = useState('');
   const [error, setError] = useState<string>('');
 
   useEffect(() => {
@@ -87,7 +88,11 @@ const ViewUserPlan: React.FC = () => {
     const planId = event.target.value;
     const parsedPlanId = parseInt(planId, 10);
     setSelectedPlanId(parsedPlanId);
-    if (parsedPlanId) {
+
+    const selectedPlan = plans.find(plan => plan.id === parsedPlanId);
+
+    if (selectedPlan) {
+      setSelectedPlanName(selectedPlan.name);
       fetchUserPlan(parsedPlanId);
     }
   };
@@ -138,7 +143,7 @@ const ViewUserPlan: React.FC = () => {
 
 
     // saves the pdf to specified name
-    doc.save('course_plan.pdf');
+    doc.save(`${selectedPlanName}.pdf`);
   };
 
   return (
@@ -148,7 +153,9 @@ const ViewUserPlan: React.FC = () => {
       <select value={selectedPlanId} onChange={handlePlanSelection}>
         <option value="">Select a Plan</option>
         {plans.map(plan => (
-          <option key={plan.id} value={plan.id}>{plan.name}</option>
+          <option key={plan.id} value={plan.id}>
+            {plan.name}
+          </option>
         ))}
       </select>
 

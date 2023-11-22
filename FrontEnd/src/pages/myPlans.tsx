@@ -92,30 +92,53 @@ const ViewUserPlan: React.FC = () => {
     }
   };
 
-  const generatePDF = () => {
-    const doc = new jsPDF();
-    let y = 10;
 
+  // Function to create the pdf once the download button is clicked
+  const generatePDF = () => {
+    
+    const doc = new jsPDF();
+    
+    let y = 10; // sets the vertical positioning
+
+    // Iterate through each year of the courses map
     Object.entries(courses).forEach(([year, terms]) => {
+      
+      // iterates over each term in a year
       Object.entries(terms).forEach(([term, coursesList]) => {
+        
+        // Set the font size for the term, year headers
         doc.setFontSize(14);
+        
+        // prints the year and term format
         doc.text(`${year} - ${term}`, 10, y);
+        
+        // now add space before the courses
         y += 10;
 
+        // font size for courses information
         doc.setFontSize(10);
+        
+        // Iterates over each course in the semester
         coursesList.forEach((course, index) => {
+          
+          // prints the course information
           const text = `${course.course_title} - ${course.subject_code} ${course.course_num}, ${course.credits} credits`;
+          
+          // finally add all the text to pdf
           doc.text(text, 15, y);
+          
+          // add more space between each course
           y += 10;
         });
 
-        // Add some extra spacing between terms
+        // andd more space between different terms
         y += 5;
       });
     });
 
 
-    doc.save('user_plan.pdf');
+    // saves the pdf to specified name
+    doc.save('course_plan.pdf');
   };
 
   return (

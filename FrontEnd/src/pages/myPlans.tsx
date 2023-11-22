@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useUser } from '@clerk/clerk-react';
+import { StyledButton } from '../common/Button/styles';
+import jsPDF from 'jspdf';
 
 interface PlanFromServer {
   plan_id: number;
@@ -90,6 +92,32 @@ const ViewUserPlan: React.FC = () => {
     }
   };
 
+  const generatePDF = () => {
+    const doc = new jsPDF();
+    let y = 10;
+
+    Object.entries(courses).forEach(([year, terms]) => {
+      Object.entries(terms).forEach(([term, coursesList]) => {
+        doc.setFontSize(14);
+        doc.text(`${year} - ${term}`, 10, y);
+        y += 10;
+
+        doc.setFontSize(10);
+        coursesList.forEach((course, index) => {
+          const text = `${course.course_title} - ${course.subject_code} ${course.course_num}, ${course.credits} credits`;
+          doc.text(text, 15, y);
+          y += 10;
+        });
+
+        // Add some extra spacing between terms
+        y += 5;
+      });
+    });
+
+
+    doc.save('user_plan.pdf');
+  };
+
   return (
     <div>
       <h2>User Plan</h2>
@@ -119,6 +147,8 @@ const ViewUserPlan: React.FC = () => {
           </div>
         ))}
       </div>
+
+      <StyledButton onClick={generatePDF}>Download PDF</StyledButton>
     </div>
   );
 };

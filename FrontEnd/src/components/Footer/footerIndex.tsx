@@ -119,7 +119,7 @@ const Footer = ({ t }: any) => {
             </NavLink>
             <FooterContainer>
               <SocialLink
-                href="https://github.com/zmarg1/CSCoursePlanner/tree/Api-Website-Connected"
+                href="https://github.com/zmarg1/CSCoursePlanner/"
                 src="github.svg"
               />
               <SocialLink
@@ -127,7 +127,7 @@ const Footer = ({ t }: any) => {
                 src="twitter.svg"
               />
               <SocialLink
-                href="https://www.linkedin.com/in/"
+                href="https://www.linkedin.com/"
                 src="linkedin.svg"
               />
               <a href="https://www.buymeacoffee.com/planumbc">

@@ -1,5 +1,5 @@
 from flask import Blueprint
-from setup import user_courses_schema, course, semester, semesters_schema
+from setup import user_courses_schema, course, semester, semesters_schema,user_course_schema
 from setup import jsonify, request
 from setup import FAILED_EMAIL, FAILED_GET
 

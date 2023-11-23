@@ -13,9 +13,21 @@ from setup import FAILED_EMAIL, FAILED_DELETE, FAILED_GET, FAILED_POST, FAILED_P
 from view_all import view_all_api
 from admin import admin_api
 
+
 app.register_blueprint(view_all_api)
 app.register_blueprint(admin_api)
 
+
+"""
+Gets one course to display  
+Return: course object on
+"""
+@app.route("/user/course/<course_id>/", methods=["GET"])
+def get_course(course_id):
+    if course_id:
+        my_course = course.query.get(course_id)
+        return user_course_schema.jsonify(my_course)
+    return jsonify(FAILED_GET)
 
 #TODO: Update route to not use session
 @app.route("/user/update-campus-id/<user_email>", methods=["POST"])
@@ -213,16 +225,9 @@ def user_view_plan(user_email, plan_id):
         return jsonify({"Failed": "Wrong method needs \"GET\" method"})
 
 
-"""
-Gets one course to display  
-Return: course object on
-"""
-@app.route("/user/course/<course_id>/", methods=["GET"])
-def get_course(course_id):
-    if course_id:
-        my_course = course.query.get(course_id)
-        return user_course_schema.jsonify(my_course)
-    return jsonify({"Failed": "Course not selected"})
+
+
+
 
 """
 Views all the users plans 

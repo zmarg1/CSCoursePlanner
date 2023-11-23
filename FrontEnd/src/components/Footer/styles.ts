@@ -88,31 +88,35 @@ export const Empty = styled("div")`
 `;
 
 export const FooterContainer = styled("div")`
-  max-width: 510px;
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  text-align: center;
-  align-items: center;
-  transition: all 0.1s ease-in-out;
+max-width: 500px;
+width: 100%;
+display: flex;
+justify-content: center; /* changed from space-between to center */
+text-align: center;
+align-items: center;
+transition: all 0.1s ease-in-out;
+margin-left: auto; /* center the container */
+margin-right: auto; /* center the container */
 
-  a {
-    &:hover,
-    &:active,
-    &:focus {
-      -webkit-transform: scale(1.1);
-      -ms-transform: scale(1.1);
-      transform: scale(1.1);
-    }
+a, div {
+  margin: 0 50px; /* add horizontal margin to each element */
+  cursor: pointer;
+
+  &:hover {
+    fill: rgb(255, 130, 92);
+    -webkit-transform: scale(1.1);
+    -ms-transform: scale(1.1);
+    transform: scale(1.1);
   }
+}
 
-  @media screen and (max-width: 769px) {
-    width: auto;
+@media screen and (max-width: 700px) {
+  width: auto;
 
-    a:not(:last-child) {
-      display: none;
-    }
+  a:not(:last-child) {
+    display: none;
   }
+}
 
   div {
     cursor: pointer;

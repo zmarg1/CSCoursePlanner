@@ -19,7 +19,7 @@ import {
   Span,
 } from "./styles";
 
-const Header = ({ t }:any) => {
+const Header = ({ t }: any) => {
   const { user } = useUser();
   const [visible, setVisibility] = useState(false);
   const navigate = useNavigate();
@@ -70,16 +70,6 @@ const Header = ({ t }:any) => {
         <CustomNavLinkSmall onClick={() => handleNavigationClick('/', 'contact')}>
           <Span>{t("Contact")}</Span>
         </CustomNavLinkSmall>
-        <SignedOut>
-          <CustomNavLinkSmall onClick={handleSignInClick}>
-            <Span>{t("Sign In")}</Span>
-          </CustomNavLinkSmall>
-        </SignedOut>
-        <CustomNavLinkSmall>
-          <SignedIn>
-            <UserButton />
-          </SignedIn>
-        </CustomNavLinkSmall>
       </>
     );
   };
@@ -87,31 +77,39 @@ const Header = ({ t }:any) => {
   return (
     <HeaderSection>
       <Container>
-        <Row justify="space-between">
-          <NotHidden>
-            <MenuItem />
-          </NotHidden>
-          <LogoContainer to="/" aria-label="homepage">
-            <SvgIcon src="logo.svg" width="141px" height="64px" />
-          </LogoContainer>
-          <Burger onClick={showDrawer}>
-            <Outline />
-          </Burger>
-        </Row>
-        <Drawer closable={false} open={visible} onClose={onClose}>
-          <Col style={{ marginBottom: "2.5rem" }}>
-            <Label onClick={onClose}>
-              <Col span={12}>
-                <Menu>{t("Menu")}</Menu>
-              </Col>
-              <Col span={12}>
-                <Outline />
-              </Col>
-            </Label>
+        <Row align="middle" style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <Col style={{ flex: 1.3 }}>
+            <LogoContainer to="/" aria-label="homepage">
+              <SvgIcon src="logo.svg" width="141px" height="64px" />
+            </LogoContainer>
           </Col>
-          <MenuItem />
-        </Drawer>
+
+          <Col style={{ display: 'flex', justifyContent: 'center'}}>
+            <NotHidden>
+              <MenuItem />
+            </NotHidden>
+          </Col>
+
+          <Col style={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
+            <SignedOut>
+              <CustomNavLinkSmall onClick={handleSignInClick}>
+                <Span>{t("Sign In")}</Span>
+              </CustomNavLinkSmall>
+            </SignedOut>
+            <SignedIn>
+              <UserButton />
+            </SignedIn>
+          </Col>
+        </Row>
+
+        <Burger onClick={showDrawer}>
+          <Outline />
+        </Burger>
       </Container>
+
+      <Drawer closable={false} open={visible} onClose={onClose}>
+        {/* Drawer content */}
+      </Drawer>
     </HeaderSection>
   );
 };

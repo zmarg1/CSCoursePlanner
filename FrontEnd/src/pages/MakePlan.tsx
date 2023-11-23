@@ -181,11 +181,11 @@ const MakePlan: React.FC = () => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json()
-      if(data.Failed){
+      if (data.Failed) {
         console.log(data.Failed)
         setApiiResult(data.Failed)
       }
-      if(data.Success){
+      if (data.Success) {
         setApiiResult(data.Success)
       }
 
@@ -268,24 +268,21 @@ const MakePlan: React.FC = () => {
         <div>
           <StyledLabel htmlFor="plan-dropdown">Select a plan:</StyledLabel>
           <StyledSelect
-            id="plan-dropdown"
             value={selectedPlanId}
             onChange={handlePlanSelection}
             required
             color="#fdb515"
           >
-            <option key="" value="">Select a plan</option>
-            {plans.map((plan) => (
-              <option key={plan.id} value={plan.id}>
-                {plan.name} {/* Adjust this to display relevant plan details */}
-              </option>
+            <option value="">Select a Plan</option>
+            {plans.map(plan => (
+              <option key={plan.id} value={plan.id}>{plan.name}</option>
             ))}
           </StyledSelect>
         </div>
         <StyledButton type="submit">Add Class</StyledButton>
       </form>
 
-      {apiResult &&(
+      {apiResult && (
         <div>
           <p>{apiResult}</p>
         </div>

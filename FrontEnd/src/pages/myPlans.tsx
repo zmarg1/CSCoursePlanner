@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import { StyledButton } from '../common/Button/styles';
+import { StyledSelect } from '../common/select/styles';
+import { StyledLabel } from '../common/Label';
 import jsPDF from 'jspdf';
+
+
 
 interface PlanFromServer {
   plan_id: number;
@@ -24,7 +28,7 @@ interface Plan {
 }
 
 interface CourseData {
-  [year: string]: {[term: string]: Course[];};
+  [year: string]: { [term: string]: Course[]; };
 }
 
 const ViewUserPlan: React.FC = () => {
@@ -47,11 +51,11 @@ const ViewUserPlan: React.FC = () => {
       }
 
       const response = await fetch(`http://127.0.0.1:5000/user/plan/view-all-plans/${email}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-        });
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+      });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -100,38 +104,38 @@ const ViewUserPlan: React.FC = () => {
 
   // Function to create the pdf once the download button is clicked
   const generatePDF = () => {
-    
+
     const doc = new jsPDF();
-    
+
     let y = 10; // sets the vertical positioning
 
     // Iterate through each year of the courses map
     Object.entries(courses).forEach(([year, terms]) => {
-      
+
       // iterates over each term in a year
       Object.entries(terms).forEach(([term, coursesList]) => {
-        
+
         // Set the font size for the term, year headers
         doc.setFontSize(14);
-        
+
         // prints the year and term format
         doc.text(`${year} - ${term}`, 10, y);
-        
+
         // now add space before the courses
         y += 10;
 
         // font size for courses information
         doc.setFontSize(10);
-        
+
         // Iterates over each course in the semester
         coursesList.forEach((course, index) => {
-          
+
           // prints the course information
           const text = `${course.course_title} - ${course.subject_code} ${course.course_num}, ${course.credits} credits`;
-          
+
           // finally add all the text to pdf
           doc.text(text, 15, y);
-          
+
           // add more space between each course
           y += 10;
         });
@@ -148,26 +152,29 @@ const ViewUserPlan: React.FC = () => {
 
   return (
     <div>
-      <h2>User Plan</h2>
+      <h2>View Plan</h2>
       {error && <p>Error: {error}</p>}
-      <select value={selectedPlanId} onChange={handlePlanSelection}>
+      <StyledSelect
+        value={selectedPlanId}
+        onChange={handlePlanSelection}
+        required
+        color="#fdb515"
+      >
         <option value="">Select a Plan</option>
         {plans.map(plan => (
-          <option key={plan.id} value={plan.id}>
-            {plan.name}
-          </option>
+          <option key={plan.id} value={plan.id}>{plan.name}</option>
         ))}
-      </select>
+      </StyledSelect>
 
-      <div>
+      <div style={{ margin: '10px' }}>
         {Object.entries(courses).map(([year, terms]) => (
-          <div key={year}>
+          <div key={year} style={{ marginBottom: '1px', paddingLeft: '1px' }}>
             {Object.entries(terms).map(([term, coursesList]) => (
               <div key={term}>
-                <h6>{year} - {term}</h6>
-                <ul>
+                <h6 style={{ color: '#333' }}>{year} - {term}</h6>
+                <ul style={{ listStyleType: 'none', paddingLeft: '5px' }}>
                   {Array.isArray(coursesList) && coursesList.map((course, index) => (
-                    <li key={index}>
+                    <li key={index} style={{ marginBottom: '10px' }}>
                       <strong>{course.course_title}</strong> - {course.subject_code} {course.course_num}, {course.credits} credits
                     </li>
                   ))}
@@ -178,7 +185,9 @@ const ViewUserPlan: React.FC = () => {
         ))}
       </div>
 
-      <StyledButton onClick={generatePDF}>Download PDF</StyledButton>
+      <StyledButton 
+      color="#fdb515"
+      onClick={generatePDF}>Download PDF</StyledButton>
     </div>
   );
 };

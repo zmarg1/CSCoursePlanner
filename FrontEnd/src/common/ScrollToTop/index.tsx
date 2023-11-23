@@ -25,11 +25,9 @@ const ScrollToTop = () => {
   }, []);
 
   const scrollUp = () => {
-    const element = document.getElementById("intro") as HTMLDivElement;
-    element.scrollIntoView({
-      behavior: "smooth",
-      block: "end",
-      inline: "nearest",
+    window.scrollTo({
+      top: 0, // Scroll to the top of the window
+      behavior: 'smooth' // For smooth scrolling
     });
   };
 

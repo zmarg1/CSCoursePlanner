@@ -21,13 +21,10 @@ app.register_blueprint(admin_api)
 @app.route("/user/update-campus-id/<user_email>", methods=["POST"])
 def update_campus_id(user_email):
     if user_email and request.method == "POST":
-        new_c_id = request.form["campus_id"]
+        new_c_id = request.json["campus_id"]
         curr_user = users(user_email)
-        changed = curr_user.update_campus_id(new_c_id)
-        if changed:
-            return jsonify({"Success": "Updated Campus ID"})
-        
-        return jsonify({"Failed": "Failed to Update Campus ID"})
+        result = curr_user.update_campus_id(new_c_id)
+        return jsonify(result)
     
     elif not user_email:
         return jsonify(FAILED_EMAIL)
@@ -43,9 +40,6 @@ def user_make_plan(user_email):
     if user_email and request.method == "POST":
         curr_user = users(user_email)
         result = curr_user.user_make_plan()
-        if "Success" in result:
-            return jsonify(result)
-        
         return jsonify(result)
     
     elif not user_email:

@@ -85,13 +85,13 @@ class users():
             return {"Failed": "Semester not found"}
 
     def get_user_id(self):
-        pub_usr = public_user_info(self.email)
-        usr_id = pub_usr.user_id
+        pub_usr = public_user_info()
+        usr_id = pub_usr.get_user_id(self.email)
         return usr_id
     
     def update_campus_id(self, new_c_id):
-        pub_user = public_user_info(self.email)
-        result = pub_user.update_campus_id(new_c_id)
+        pub_user = public_user_info()
+        result = pub_user.update_campus_id(new_c_id, self.email)
         return result
 
     def user_make_plan(self):
@@ -234,6 +234,12 @@ class users():
         else:
             return None
 
+    """
+    Adds courses to the users plan dictionary
+    Inputs: list of years, dictionary of users plan, schema dump of plan additions
+    Returns: A dictionary of years with a dictionary of term keys for a list of courses
+    ex. { 2023: {"Fall": [crs1, crs2]}, ... }
+    """
     def to_dict(self, years, usr_plan, dump):
         for year in years:
             if year not in usr_plan:
@@ -254,7 +260,6 @@ class users():
         return usr_plan
 
 
-#TODO: Finish definitions
 class public_user_info(db.Model):
     public_user_id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.String)
@@ -262,16 +267,6 @@ class public_user_info(db.Model):
     campus_id = db.Column(db.String)
     first_name = db.Column(db.String)
     last_name = db.Column(db.String)
-
-    def __init__(self, new_email, new_usr_id=None, new_campus_id=None, new_f_name=None, new_l_name=None):
-        if new_email:
-            self.email = new_email
-            self.campus_id = new_campus_id
-            self.first_name = new_f_name
-            self.last_name = new_l_name
-
-            user = public_user_info.query.filter(public_user_info.email == new_email).first()
-            self.user_id = user.user_id
 
     def add_commit(self):
         db.session.add(self)
@@ -281,7 +276,7 @@ class public_user_info(db.Model):
         db.session.delete(self)
         db.session.commit()
     
-    def get_user_id(email):
+    def get_user_id(self, email):
         user = public_user_info.query.filter(public_user_info.email == email).first()
         user_id = user.user_id
         return user_id
@@ -294,28 +289,36 @@ class public_user_info(db.Model):
         
         return users_list
 
-    def update_campus_id(self, new_c_id, email=None):
-        if email:
-            user = public_user_info.query.get(email)
-            if user:
-                user.campus_id = new_c_id
-                self.add_commit()
-                return True
+    def update_campus_id(self, new_c_id, email):
+        user = public_user_info.query.filter(public_user_info.email == email).first()
+        if user:
+            user.campus_id = new_c_id
+            db.session.commit()
+            return {"Success": "Updated Campus ID"}
+        else:  
+            return {"Failed": "Failed to Update Campus ID"}
+
+    def update_name(self,email, new_f_name=None, new_l_name=None):
+        user = public_user_info.query.filter(public_user_info.email == email).first()
+
+        if user and new_f_name and new_l_name:
+            user.first_name = new_f_name
+            user.last_name = new_l_name
+            db.session.commit()
+            return True
+        
+        elif user and new_f_name and not new_l_name:
+            user.first_name = new_f_name
+            db.session.commit()
+            return True
+        
+        elif user and not new_f_name and new_l_name:
+            user.last_name = new_l_name
+            db.session.commit()
+            return True
         
         else:
-            user = public_user_info.query.get(self.email)
-            if user:
-                user.campus_id = new_c_id
-                self.add_commit()
-                return True
-
-        return False
-
-    def update_name(self,new_f_name=None, new_l_name=None):
-        pass
-
-    def update_email(self):
-        pass
+            return False
 
 # Defines your user output
 class PublicUserSchema(ma.Schema):
@@ -469,16 +472,6 @@ class plan(db.Model):
                 plan_years = sorted(plan_years)
 
         return plan_years
-    
-    #TODO: make a dictionary of terms {2023: {Fall: [crs 1]}}
-    def get_terms(self):
-        years = self.get_years()
-        taken_plan_objs = taken.query.filter(self.plan_id == taken.plan_id)
-        taken_dump = taken_courses_schema.dump(taken_plan_objs)
-        terms = {}
-
-        for year in years:
-            terms[year] = {}
 
 
 class PlanSchema(ma.Schema):

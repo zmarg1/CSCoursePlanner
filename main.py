@@ -12,7 +12,7 @@ from setup import course, subject, users, public_user_info, plan, taken, semeste
 from setup import FAILED_EMAIL, FAILED_DELETE, FAILED_GET, FAILED_POST, FAILED_PLAN
 from view_all import view_all_api
 from admin import admin_api
-
+from flask_cors import CORS, cross_origin
 
 app.register_blueprint(view_all_api)
 app.register_blueprint(admin_api)

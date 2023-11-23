@@ -192,28 +192,8 @@ const MakePlan: React.FC = () => {
         setApiiResult(data.Success);
       }
 
-      /* Fetch and set the selected course details
-      const courseResponse = await fetch(`http://127.0.0.1:5000/user/course/${selectedCourseId}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!courseResponse.ok) {
-        throw new Error(`HTTP error! status: ${courseResponse.status}`);
-      }
-
-      const courseInfo: CourseFromServer = await courseResponse.json();
-
-      setSelectedCourse({
-        id: courseInfo.course_id,
-        code: `${courseInfo.subject_code} ${courseInfo.course_num}`,
-        name: courseInfo.course_title,
-      });*/
-
     } catch (error) {
-      console.error('Error adding class to plan:', error);
+      console.error('Error fetching course information:', error);
     }
   };
 
@@ -230,13 +210,32 @@ const MakePlan: React.FC = () => {
       }
     };
 
-  const handleCourseSelection = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedCourseTitle(event.target.title);
-    console.log('Added Class Title:', selectedCourseTitle);
-    setSelectedCourseId(event.target.value);
-    console.log('Added Class ID:', selectedCourseId);
-    //setSelectedCourseId(event.target.value);
-  };
+    const handleCourseSelection = async (event: React.ChangeEvent<HTMLSelectElement>) => {
+      try {
+        const selectedCourseId = event.target.value;
+        setSelectedCourseId(selectedCourseId);
+  
+        const response = await fetch(`http://127.0.0.1:5000/user/course/${selectedCourseId}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+  
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+  
+        const courseInfo: CourseFromServer = await response.json();
+        setSelectedCourse({
+          id: courseInfo.course_id,
+          code: `${courseInfo.subject_code} ${courseInfo.course_num}`,
+          name: courseInfo.course_title,
+        });
+      } catch (error) {
+        console.error('Error fetching course information:', error);
+      }
+    };
 
   const handleSemesterSelection = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedSemesterId(event.target.value);

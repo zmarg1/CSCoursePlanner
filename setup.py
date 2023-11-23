@@ -197,7 +197,7 @@ class users():
 
             return usr_spring
 
-        else:
+        elif term == "Summer":
             usr_summer = []
 
             summer_sems = sem.get_summer_objs()
@@ -207,6 +207,9 @@ class users():
                         usr_summer.append(t_crs)
 
             return usr_summer
+        
+        else:
+            return None
 
     def to_dict(self, years, usr_plan, dump):
         for year in years:
@@ -729,17 +732,24 @@ class semester(db.Model):
     current_term = None
     last_year = None
 
-    def __init__(self, term=None, year=None):
-        if term and year:
-            last_id = semester.query.order_by(semester.semester_id.desc()).first()
+    def __init__(self, sem_id=None):
+        if sem_id:
+            sem = semester.query.get(sem_id)
+            if sem:
+                self.term = sem.term
+                self.year = sem.year
 
-            if last_id:
-                self.semester_id = last_id.semester_id + 1
-            else:
+    def add_semester(self, term, year):
+        last_id = semester.query.order_by(semester.semester_id.desc()).first()
+
+        if last_id:
+            self.semester_id = last_id.semester_id + 1
+        else:
                 self.semester_id = 1
 
-            self.term = term
-            self.year = year
+        self.term = term
+        self.year = year
+        self.add_commit()
 
     def add_commit(self):
         db.session.add(self)

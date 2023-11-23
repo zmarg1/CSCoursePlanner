@@ -227,7 +227,8 @@ def admin_create_semester(admin):
         semester_id = request.json['semester_id']
         term = request.json['term']
         year = request.json['year']
-        new_semester = semester(semester_id, term, year)
+        new_semester = semester()
+        new_semester.add_semester(term, year)
 
         db.session.add(new_semester)
         db.session.commit()

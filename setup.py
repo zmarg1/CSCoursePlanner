@@ -110,26 +110,49 @@ class users():
 
     #TODO: Have it check for credits instead
     def add_course(self, plan_id, crs_id, req_id, sem_id, grade):
-        usr_plan = plan(plan_id)
-        pln_courses = usr_plan.get_taken_courses()
-        pln_semesters = set()
-        num_courses = len(pln_courses)
+        in_plan = plan.query.filter(plan.plan_id == plan_id).order_by(plan.plan_id.desc()).first()
+        in_course = course.query.filter(course.course_id == crs_id).order_by(course.course_id.desc()).first()
+        in_req = requirement.query.filter(requirement.requirement_id == req_id).order_by(requirement.requirement_id.desc()).first()
+        in_sem = semester.query.filter(semester.semester_id == sem_id).order_by(semester.semester_id.desc()).first()
 
-        for obj in pln_courses:
-            pln_semesters.add(obj.semester_id)
-        num_sem = len(pln_semesters)
+        crs_in_taken = taken.query.filter(taken.plan_id == plan_id, taken.course_id == crs_id).order_by(taken.course_id.desc()).first()
 
-        if num_courses <= self.max_sem_crs and num_sem <= self.max_sem:
-            add_to_plan = taken()
-            add_to_plan.add_course(plan_id, crs_id, req_id, sem_id, grade)
-            add_to_plan.add_commit()
-            return {"Success": "Added Plan"}
+        if in_plan and in_course and in_req and in_sem:
+            
+            usr_plan = plan(plan_id)
+            pln_courses = usr_plan.get_taken_courses()
+            pln_semesters = set()
+            num_sem_courses = 0
+
+            for obj in pln_courses:
+                pln_semesters.add(obj.semester_id)
+                if obj.semester_id == sem_id:
+                    num_sem_courses += 1
+            num_sem = len(pln_semesters)
+
+            if num_sem_courses < self.max_sem_crs and num_sem <= self.max_sem:
+                add_to_plan = taken()
+                add_to_plan.add_course(plan_id, crs_id, req_id, sem_id, grade)
+                add_to_plan.add_commit()
+                return {"Success": f"Added {in_course.course_title} to {in_plan.plan_name} for {in_sem.term}"}
         
-        elif num_courses > self.max_sem_crs:
-            return {"Failed": "User has reached the course limit"}
+            elif num_sem_courses >= self.max_sem_crs:
+                return {"Failed": "User has reached the course limit"}
+            
+            elif crs_in_taken:
+                return {"Failed": "Course already in chosen plan"}
         
+            else:
+                return {"Failed": "User has reached the semester limit"}
+
+        elif not in_plan:
+            return {"Failed": "Failed Plan id not in database"}
+        elif not in_course:
+            return {"Failed": "Failed Course id not in database"}
+        elif not in_req:
+            return {"Failed": "Failed Requirement id not in database"}
         else:
-            return {"Failed": "User has reached the semester limit"}
+            return {"Failed": "Failed Semester id not in database"}
 
     #Gets the course objects of a users plan
     def get_pln_courses(self, plan_id):
@@ -732,12 +755,18 @@ class semester(db.Model):
     current_term = None
     last_year = None
 
-    def __init__(self, sem_id=None):
+    def __init__(self, sem_id=None, year=None, term=None):
         if sem_id:
             sem = semester.query.get(sem_id)
             if sem:
                 self.term = sem.term
                 self.year = sem.year
+        elif year and term:
+            sem_obj = semester.query.filter(semester.term == term, semester.year == year).first()
+            if sem_obj:
+                self.semester_id = sem_obj.semester_id
+                self.term = term
+                self.year = year
 
     def add_semester(self, term, year):
         last_id = semester.query.order_by(semester.semester_id.desc()).first()

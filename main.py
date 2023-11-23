@@ -125,6 +125,7 @@ def user_add_course_to_plan(user_email, plan_id, crs_id, sem_id):
     if user_email and request.method == "POST":
         user = users(user_email)
         plan_id = int(plan_id)
+        sem_id = int(sem_id)
         usr_has = user.user_has_plan(plan_id)
 
         if usr_has:
@@ -133,35 +134,14 @@ def user_add_course_to_plan(user_email, plan_id, crs_id, sem_id):
 
             #Checks if correct 
             if plan_id and crs_id and req_id and sem_id:
-                in_plan = plan.query.filter(plan.plan_id == plan_id).order_by(plan.plan_id.desc()).first()
-                in_course = course.query.filter(course.course_id == crs_id).order_by(course.course_id.desc()).first()
-                in_req = requirement.query.filter(requirement.requirement_id == req_id).order_by(requirement.requirement_id.desc()).first()
-                in_sem = semester.query.filter(semester.semester_id == sem_id).order_by(semester.semester_id.desc()).first()
-
-                crs_in_taken = taken.query.filter(taken.plan_id == plan_id, taken.course_id == crs_id).order_by(taken.course_id.desc()).first()
-
-                if in_plan and in_course and in_req and in_sem and not crs_in_taken:
-                    result = user.add_course(plan_id, crs_id, req_id, sem_id, grade)
-                    if "Success" in result:
-                        return jsonify({"Success": f"Added {in_course.course_title} to {in_plan.plan_name} for {in_sem.term}"})
-                    else:
-                        return jsonify(result)
-                
-                elif crs_in_taken:
-                    return jsonify({"Failed": "Course already in chosen plan"})
-                elif not in_plan:
-                    return jsonify({"Failed": "Failed Plan id not in database"})
-                elif not in_course:
-                    return jsonify({"Failed": "Failed Course id not in database"})
-                elif not in_req:
-                    return jsonify({"Failed": "Failed Requirement id not in database"})
-                else:
-                    return jsonify({"Failed": "Failed Semester id not in database"})
-
-            return jsonify({"Failed": "Failed missing inputs expected plan_id, course_id, semester_id"})
+                result = user.add_course(plan_id, crs_id, req_id, sem_id, grade)
+                return jsonify(result)
+            
+            else:
+                return jsonify({"Failed": "Failed missing inputs expected plan_id, course_id, semester_id"})
         
-        elif not usr_has:
-            return jsonify({"Failed": "User doesn't have plan"})
+        else:
+            return jsonify(FAILED_PLAN)
         
     elif not request.method == "POST":
         return jsonify(FAILED_POST)
@@ -285,10 +265,10 @@ def user_all_term(user_email, plan_id, term):
         if plan_courses and user.user_has_plan(plan_id):
             curr_plan = plan(plan_id)
             years = curr_plan.get_years(term)
-            fall_dump = taken_courses_schema.dump(plan_courses)
-            fall_plan = {}
-            fall_plan = user.to_dict(years, fall_plan, fall_dump)
-            return jsonify(fall_plan)
+            term_dump = taken_courses_schema.dump(plan_courses)
+            term_plan = {}
+            term_plan = user.to_dict(years, term_plan, term_dump)
+            return jsonify(term_plan)
         
         elif not plan_courses:
             return jsonify({"Failed": f"{term} courses not in plan"})

@@ -17,16 +17,18 @@ app.register_blueprint(view_all_api)
 app.register_blueprint(admin_api)
 
 
-#TODO: Update route to not use session
+#TODO: Test it
 @app.route("/user/update-campus-id/<user_email>", methods=["POST"])
 def update_campus_id(user_email):
     if user_email and request.method == "POST":
         new_c_id = request.form["campus_id"]
-        usr_email = session["user_email"]
-        curr_user = public_user_info(usr_email)
-        curr_user.update_campus_id(new_c_id)
-        curr_user.add_commit()
-        return jsonify({"Success": "Successful campus id change"})
+        curr_user = users(user_email)
+        changed = curr_user.update_campus_id(new_c_id)
+        if changed:
+            return jsonify({"Success": "Updated Campus ID"})
+        
+        return jsonify({"Failed": "Failed to Update Campus ID"})
+    
     elif not user_email:
         return jsonify(FAILED_EMAIL)
     else:
@@ -34,20 +36,51 @@ def update_campus_id(user_email):
 
 
 """
-Makes an empty plan for the user
+Makes an empty plan for the user if they have not reached the plan limit
 """
 @app.route("/user/plan/make-plan/<user_email>", methods=["POST"])
 def user_make_plan(user_email):
     if user_email and request.method == "POST":
         curr_user = users(user_email)
-        usr_id = curr_user.get_user_id()
-        new_plan = plan()
-        new_plan.make_plan(usr_id)
-        if new_plan:
-            new_plan.add_commit()
-            return jsonify({"Success": "Successfully made plan"})
+        result = curr_user.user_make_plan()
+        if "Success" in result:
+            return jsonify(result)
+        
+        return jsonify(result)
+    
     elif not user_email:
         return jsonify(FAILED_EMAIL)
+    else:
+        return jsonify(FAILED_POST)
+
+
+#TODO: Implement
+@app.route("/user/plan/rename-plan/<user_email>/<plan_id>", methods=["POST"])
+def rename_plan(user_email, plan_id):
+    if user_email and request.method == "POST" and "new_name" in request.json:
+        new_name = request.json["new_name"]
+        user = users(user_email)
+        plan_id = int(plan_id)
+        user_has = user.user_has_plan(plan_id)
+
+        if user_has and new_name:
+            usr_plan = plan(plan_id)
+            result = usr_plan.rename_plan(user.get_user_id(), new_name)
+
+            if "Success" in result:
+                return jsonify(result)
+            else:
+                return jsonify(result)
+
+        else:
+            return jsonify(FAILED_PLAN)
+
+    elif not user_email:
+        return jsonify(FAILED_EMAIL)
+    
+    elif not "new_name" in request.json:
+        return jsonify({"Failed": "Missing json data \"new_name\""})
+    
     else:
         return jsonify(FAILED_POST)
 
@@ -89,15 +122,14 @@ Adds a course to users plan using taken
 """
 @app.route("/user/plan/add-course-to-plan/<user_email>/<plan_id>/<crs_id>/<sem_id>", methods=["POST"])
 def user_add_course_to_plan(user_email, plan_id, crs_id, sem_id):
-    if user_email:
+    if user_email and request.method == "POST":
         user = users(user_email)
         plan_id = int(plan_id)
         usr_has = user.user_has_plan(plan_id)
 
-        if request.method == "POST" and usr_has:
+        if usr_has:
             req_id = 1
             grade = None
-            
 
             #Checks if correct 
             if plan_id and crs_id and req_id and sem_id:
@@ -109,11 +141,12 @@ def user_add_course_to_plan(user_email, plan_id, crs_id, sem_id):
                 crs_in_taken = taken.query.filter(taken.plan_id == plan_id, taken.course_id == crs_id).order_by(taken.course_id.desc()).first()
 
                 if in_plan and in_course and in_req and in_sem and not crs_in_taken:
-                    add_to_plan = taken()
-                    add_to_plan.add_course(plan_id, crs_id, req_id, sem_id, grade)
-                    add_to_plan.add_commit()
-
-                    return jsonify({"Success": f"Added {in_course.course_title} to {in_plan.plan_name} for {in_sem.term}"})
+                    result = user.add_course(plan_id, crs_id, req_id, sem_id, grade)
+                    if "Success" in result:
+                        return jsonify({"Success": f"Added {in_course.course_title} to {in_plan.plan_name} for {in_sem.term}"})
+                    else:
+                        return jsonify(result)
+                
                 elif crs_in_taken:
                     return jsonify({"Failed": "Course already in chosen plan"})
                 elif not in_plan:
@@ -129,10 +162,11 @@ def user_add_course_to_plan(user_email, plan_id, crs_id, sem_id):
         
         elif not usr_has:
             return jsonify({"Failed": "User doesn't have plan"})
-        else:
-            return jsonify(FAILED_POST)
-    
-    return jsonify(FAILED_EMAIL)
+        
+    elif not request.method == "POST":
+        return jsonify(FAILED_POST)
+    else:
+        return jsonify(FAILED_EMAIL)
 
 
 """
@@ -337,6 +371,33 @@ def user_all_summer(user_email, plan_id):
     
     else:
         return jsonify(FAILED_GET)
+
+
+""" 
+Deletes a term given its a Fall, Spring, Summer, Winter term from a year
+"""
+@app.route("/user/plan/delete-term/<user_email>/<plan_id>/<sem_id>", methods=["DELETE"])
+def delete_term(user_email, plan_id, sem_id):
+    if request.method == "DELETE" and user_email:
+        user = users(user_email)
+        plan_id = int(plan_id)
+        user_has = user.user_has_plan(plan_id)
+
+        if user_has:
+            sem_id = int(sem_id)
+            result = user.delete_term(plan_id, sem_id)
+            if "Success" in result:
+                return jsonify(result)
+            else:
+                return jsonify(result)
+        else:
+            return jsonify(FAILED_PLAN)
+
+    elif not user_email:
+        return jsonify(FAILED_EMAIL)
+    
+    else:
+        return jsonify(FAILED_DELETE)
 
 
 if __name__ == "__main__":

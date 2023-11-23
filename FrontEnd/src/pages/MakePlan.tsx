@@ -209,6 +209,7 @@ const MakePlan: React.FC = () => {
       }
     };
   };
+  
 
 
   const handleCourseSelection = (event: React.ChangeEvent<HTMLSelectElement>) => {

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import { StyledButton } from '../common/Button/styles';
 import { StyledSelect } from '../common/select/styles';
-import { StyledLabel } from '../common/Label';
 import jsPDF from 'jspdf';
 
 

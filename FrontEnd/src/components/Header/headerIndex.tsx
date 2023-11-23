@@ -105,11 +105,22 @@ const Header = ({ t }: any) => {
         <Burger onClick={showDrawer}>
           <Outline />
         </Burger>
-      </Container>
+      {/* </Container> */}
 
       <Drawer closable={false} open={visible} onClose={onClose}>
-        {/* Drawer content */}
-      </Drawer>
+          <Col style={{ marginBottom: "2.5rem" }}>
+            <Label onClick={onClose}>
+              <Col span={12}>
+                <Menu>{t("Menu")}</Menu>
+              </Col>
+              <Col span={12}>
+                <Outline />
+              </Col>
+            </Label>
+          </Col>
+          <MenuItem />
+        </Drawer>
+      </Container>
     </HeaderSection>
   );
 };

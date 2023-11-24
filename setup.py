@@ -29,6 +29,7 @@ FAILED_POST = {"Failed": "Wrong method given expected POST"}
 FAILED_DELETE = {"Failed": "Wrong method given expected DELETE"}
 FAILED_PUT = {"Failed": "Wrong method given expected PUT"}
 BLACKLIST = [";", "&", "\\", "$", ">", "<", "`", "!", "|", ",", "#", ".", "'"]
+FAILED_BLACKLIST = {"Failed": "A Blacklisted charachter was input"}
 
 """
 The user object class to interact with the authorization table in supabase
@@ -46,8 +47,8 @@ class users():
     email = None
     admin = False
     max_plans = 10
-    max_sem = 32 #Zach Limit
-    max_sem_crs = 7 #Brandon Limit
+    zach_limit = 32 #max semesters
+    brandon_limit = 7 #max courses
     soft_cap_credits = 18
     hard_cap_credits = 24
 
@@ -91,12 +92,22 @@ class users():
     
     def update_campus_id(self, new_c_id):
         pub_user = public_user_info()
+
+        valid = True
+        for char in new_c_id:
+            if char in BLACKLIST:
+                valid = False
+
+        if not valid:
+            return FAILED_BLACKLIST
+        
         result = pub_user.update_campus_id(new_c_id, self.email)
         return result
+            
 
     def user_make_plan(self):
         user_plans = self.get_plans()
-        if len(user_plans) < self.max_plans:
+        if len(user_plans) < self.zach_limit:
             user_id = self.get_user_id()
             new_plan = plan()
             result = new_plan.make_plan(user_id)
@@ -130,13 +141,13 @@ class users():
                     num_sem_courses += 1
             num_sem = len(pln_semesters)
 
-            if num_sem_courses < self.max_sem_crs and num_sem <= self.max_sem:
+            if num_sem_courses < self.brandon_limit and num_sem <= self.zach_limit:
                 add_to_plan = taken()
                 add_to_plan.add_course(plan_id, crs_id, req_id, sem_id, grade)
                 add_to_plan.add_commit()
                 return {"Success": f"Added {in_course.course_title} to {in_plan.plan_name} for {in_sem.term}"}
         
-            elif num_sem_courses >= self.max_sem_crs:
+            elif num_sem_courses >= self.brandon_limit:
                 return {"Failed": "User has reached the course limit"}
             
             elif crs_in_taken:
@@ -364,43 +375,45 @@ class plan(db.Model):
     Makes a plan for the user
     """
     def make_plan(self, user_id ,num=0, name="default plan 0"):
-        if user_id:
-            self.user_id = user_id
+        self.user_id = user_id
 
-            #Get last id in list if any
-            last_id = plan.query.order_by(plan.plan_id.desc()).first() 
-            last_num = plan.query.filter(plan.user_id == self.user_id).order_by(plan.plan_num.desc()).first()
+        #Get last id in list if any
+        last_id = plan.query.order_by(plan.plan_id.desc()).first() 
+        last_num = plan.query.filter(plan.user_id == self.user_id).order_by(plan.plan_num.desc()).first()
 
-            #Increments databse plan id if not empty or makes the first plan w/ id 1
-            if last_id:
-                self.plan_id = last_id.plan_id + 1
-            else:
-                self.plan_id = 1
+        #Increments databse plan id if not empty or makes the first plan w/ id 1
+        if last_id:
+            self.plan_id = last_id.plan_id + 1
+        else:
+            self.plan_id = 1
 
-            if last_num:
-                self.plan_num = last_num.plan_num + 1
+        if last_num:
+            self.plan_num = last_num.plan_num + 1
+
+            if name == "default plan 0":
                 self.plan_name = f"default plan {last_num.plan_num+1}"
-
             else:
-                self.plan_num = num
                 self.plan_name = name
 
-            self.created_at = datetime.now()
-            return True
-        return False
+        else:
+            self.plan_num = num
+            self.plan_name = name
+
+        self.created_at = datetime.now()
+        return True
 
     def get_plan_name(self):
         plan_name = plan.query.filter(plan.plan_id == self.plan_id).order_by(plan.plan_name).first()
         return plan_name.plan_name
 
     def rename_plan(self, usr_id, new_name):
-        bad_input = False
+        valid = True
         for char in new_name:
             if char in BLACKLIST:
-                bad_input =True
+                valid = False
         
-        if bad_input:
-            return {"Failed": "A Blacklisted charachter was input"}
+        if not valid:
+            return FAILED_BLACKLIST
 
         usr_plan = plan.query.filter(plan.user_id == usr_id, plan.plan_id == self.plan_id).first()
         if usr_plan:

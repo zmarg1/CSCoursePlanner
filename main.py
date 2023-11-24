@@ -60,11 +60,10 @@ def rename_plan(user_email, plan_id):
         if user_has and new_name:
             usr_plan = plan(plan_id)
             result = usr_plan.rename_plan(user.get_user_id(), new_name)
-
-            if "Success" in result:
-                return jsonify(result)
-            else:
-                return jsonify(result)
+            return jsonify(result)
+        
+        elif not new_name:
+            return jsonify({"Failed": "No name entered"})
 
         else:
             return jsonify(FAILED_PLAN)

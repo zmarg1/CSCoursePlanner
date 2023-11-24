@@ -66,7 +66,7 @@ const MakePlan: React.FC = () => {
       duration: 10,
     });
   };
-
+  
   const openAddClassNotification = (courseTitle: string) => {
     notification["success"]({
       message: "Class Added Successfully",
@@ -74,7 +74,7 @@ const MakePlan: React.FC = () => {
       duration: 10,
     });
   };
-  
+
 
   const handleViewPlanClick = () => {
     const userEmail = user?.emailAddresses[0]?.emailAddress;
@@ -278,7 +278,7 @@ const MakePlan: React.FC = () => {
   return (
     <div className="make-plan">
       <h2>Make Your Plan</h2>
-      <StyledButton color="#fdb515" onClick={handleCreatePlan}>Create Plan</StyledButton>
+      <StyledButton color="#fdb515" onClick={handleCreatePlan} style={{ marginBottom: '30px' }}>Create Plan</StyledButton>
       <form onSubmit={handleAddClass}>
         <div>
           <StyledLabel htmlFor="semester-dropdown">Select a term:</StyledLabel>
@@ -328,11 +328,10 @@ const MakePlan: React.FC = () => {
             ))}
           </StyledSelect>
         </div>
-        <div className='button-container' style={{ marginTop: '20px' }}>
+        <div className='button-container-makePlan' style={{ marginTop: '200px' }}> {/* Increased space above the buttons */}
           <StyledButton color="#fdb515" type="submit">Add Class</StyledButton>
           <StyledButton color="#fdb515" onClick={handleViewPlanClick}>View Plan</StyledButton>
         </div>
-
       </form>
 
       {apiResult && (

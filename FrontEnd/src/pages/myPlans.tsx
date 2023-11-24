@@ -8,6 +8,8 @@ import { SmallerStyledButton } from '../common/Button/styles';
 import '../common/PlanStyling/Plan.css'
 import { useNavigate } from 'react-router-dom';
 import '../common/PlanStyling/Plan.css';
+import { notification } from "antd";
+
 
 interface PlanFromServer {
   plan_id: number;
@@ -78,6 +80,60 @@ const ViewUserPlan: React.FC = () => {
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [courseToDelete, setCourseToDelete] = useState<CourseToDelete | null>(null);
+  const [planToDelete, setPlanToDelete] = useState<number | null>(null);
+
+  const openDeletionNotification = (title: string) => {
+      notification["success"]({
+      message: "Plan Deleted Successfully",
+      description: `Your plan "${title}" has been successfully deleted.`,
+      duration: 10,
+    });
+  };
+
+  const confirmPlanDelete = (planId: number) => {
+    setPlanToDelete(planId); // Set the plan to delete
+    setIsModalOpen(true); // Open the confirmation modal
+  };
+
+  const handleDeletePlanConfirmation = () => {
+    if (planToDelete !== null) {
+      removePlan(planToDelete); // Call the function to remove the plan
+    }
+    setIsModalOpen(false); // Close the confirmation modal
+  };
+
+  const removePlan = async (planId: number) => {
+    const email = user?.emailAddresses[0]?.emailAddress;
+    if (!email) {
+      setError('User email is not available');
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://127.0.0.1:5000/user/plan/delete-plan/${email}/${planId}`, {
+        method: 'DELETE'
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const responseData = await response.json();
+      if (responseData.Success) {
+        console.log(responseData.Success);
+        setPlans(prevPlans => prevPlans.filter(plan => plan.id !== planId));
+        const deletedPlanName = plans.find(plan => plan.id === planId)?.name || "Unknown Plan";
+        openDeletionNotification(deletedPlanName);
+      } 
+      else {
+        throw new Error(responseData.Failed || 'Failed to delete the plan');
+      }
+      
+    } catch (error: any) {
+      setError(error.message);
+      console.error('Error removing plan:', error);
+    }
+  };
 
   const isPlanEmpty = () => {
     return Object.values(courses).every(term => Object.values(term).every(courseList => courseList.length === 0));
@@ -315,11 +371,12 @@ const ViewUserPlan: React.FC = () => {
         ))}
       </StyledSelect>
 
+
       {isPlanEmpty() ? (
         <div style={{ textAlign: 'center', marginTop: '20px' }}>
-          <p>Your plan is currently empty.</p>
-          <p>Select a plan to view or add more classes!!!</p>
-          <img src= "/img/Retriever_sad.png" alt="Empty Plan" />
+          <p className='Empty-Plan'>Your plan is currently empty.</p>
+          <p className='Empty-Plan'>Select a plan to view or add more classes!!!</p>
+          <img className='Empty-Picture' src="/img/Retriever_sad.png" alt="Empty Plan" />
         </div>
       ) : (
         <div style={{ margin: '10px' }}>
@@ -350,14 +407,23 @@ const ViewUserPlan: React.FC = () => {
           ))}
         </div>
       )}
-      <div className='button-container' style={{ marginTop: '20px' }}>
+      <div className='button-container-myPlan' style={{ marginTop: '20px' }}>
         <StyledButton color="#fdb515" onClick={generatePDF}>Download PDF</StyledButton>
         <StyledButton color="#fdb515" onClick={handleAddMoreClick}>Add More Classes</StyledButton>
+        <StyledButton
+          color="#fdb515"
+          onClick={() => selectedPlanId && confirmPlanDelete(selectedPlanId)} style={{ marginTop: '10px' }}>Remove Plan</StyledButton>
         <ConfirmationModal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           onConfirm={handleDeleteConfirmation}
           message="Are you sure you want to delete this course?"
+        />
+        <ConfirmationModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onConfirm={planToDelete ? handleDeletePlanConfirmation : handleDeleteConfirmation}
+          message="Are you sure you want to delete this plan?"
         />
       </div>
     </div>

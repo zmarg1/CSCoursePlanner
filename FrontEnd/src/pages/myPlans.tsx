@@ -3,7 +3,8 @@ import { useUser } from '@clerk/clerk-react';
 import { StyledButton } from '../common/Button/styles';
 import { StyledSelect } from '../common/select/styles';
 import jsPDF from 'jspdf';
-
+import '../common/Modal/modal.css';
+import { SmallerStyledButton } from '../common/Button/styles';
 
 
 interface PlanFromServer {
@@ -26,11 +27,119 @@ interface Plan {
   name: string;
 }
 
+interface ConfirmationModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  message: string;
+}
+
 interface CourseData {
   [year: string]: { [term: string]: Course[]; };
 }
 
+interface CourseToDelete {
+  courseId: number;
+  planId: number;
+  year: string;
+  term: string;
+}
+
+const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ isOpen, onClose, onConfirm, message }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal-content">
+        <p>{message}</p>
+        <SmallerStyledButton
+          color="#fdb515"
+          onClick={onConfirm}>Confirm
+        </SmallerStyledButton>
+        <SmallerStyledButton
+          color="#fdb515"
+          onClick={onClose}>Cancel
+        </SmallerStyledButton>
+      </div>
+    </div>
+  );
+};
+
+
 const ViewUserPlan: React.FC = () => {
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [courseToDelete, setCourseToDelete] = useState<CourseToDelete | null>(null);
+
+
+  const confirmDelete = (courseId: number, planId: number, year: string, term: string) => {
+    setCourseToDelete({ courseId, planId, year, term }); // Ensure this matches the CourseToDelete type
+    setIsModalOpen(true);
+  };
+
+  const handleDeleteConfirmation = () => {
+    if (courseToDelete) {
+      removeCourseFromPlan(courseToDelete.courseId, courseToDelete.planId, courseToDelete.year, courseToDelete.term);
+    }
+    setIsModalOpen(false);
+  };
+
+  const removeCourse = (year: string, term: string, courseId: number) => {
+    setCourses(prevCourses => {
+      // Filter out the removed course
+      const updatedCourses = prevCourses[year][term].filter(course => course.course_id !== courseId);
+
+      // Check if the term is empty after removing the course
+      if (updatedCourses.length === 0) {
+        // If empty, remove the term
+        const { [term]: removedTerm, ...updatedTerms } = prevCourses[year];
+        return {
+          ...prevCourses,
+          [year]: updatedTerms
+        };
+      } else {
+        // If not empty, update the term with the remaining courses
+        return {
+          ...prevCourses,
+          [year]: {
+            ...prevCourses[year],
+            [term]: updatedCourses
+          }
+        };
+      }
+    });
+  };
+
+  const removeCourseFromPlan = async (courseId: number, planId: number, year: string, term: string) => {
+    const email = user?.emailAddresses[0]?.emailAddress;
+    if (!email) {
+      setError('User email is not available');
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://127.0.0.1:5000/user/plan/delete-course-from-plan/${email}/${planId}/${courseId}`, {
+        method: 'DELETE'
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      // Optionally handle the response if needed
+      const responseData = await response.json();
+      console.log(responseData);
+
+      // Update local state to reflect the change
+      removeCourse(year, term, courseId);
+
+    } catch (error: any) {
+      setError(error.message);
+      console.error('Error removing course from plan:', error);
+    }
+  };
+
+
   const { user } = useUser();
   const [courses, setCourses] = useState<CourseData>({});
   const [plans, setPlans] = useState<Plan[]>([]);
@@ -150,7 +259,7 @@ const ViewUserPlan: React.FC = () => {
   };
 
   return (
-    <div>
+    <div className='myPlan'>
       <h2>View Plan</h2>
       {error && <p>Error: {error}</p>}
       <StyledSelect
@@ -172,9 +281,15 @@ const ViewUserPlan: React.FC = () => {
               <div key={term}>
                 <h6 style={{ color: '#333' }}>{year} - {term}</h6>
                 <ul style={{ listStyleType: 'none', paddingLeft: '5px' }}>
-                  {Array.isArray(coursesList) && coursesList.map((course, index) => (
-                    <li key={index} style={{ marginBottom: '10px' }}>
-                      <strong>{course.course_title}</strong> - {course.subject_code} {course.course_num}, {course.credits} credits
+                  {coursesList.map((course, index) => (
+                    <li key={index} style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+                      <div style={{ flex: 0.36, marginRight: '10px' }}>
+                        <strong>{course.course_title}</strong> - {course.subject_code} {course.course_num}, {course.credits} credits
+                      </div>
+                      <SmallerStyledButton
+                        color="#fdb515"
+                        onClick={() => confirmDelete(course.course_id, selectedPlanId, year, term)}>Remove
+                      </SmallerStyledButton>
                     </li>
                   ))}
                 </ul>
@@ -183,10 +298,15 @@ const ViewUserPlan: React.FC = () => {
           </div>
         ))}
       </div>
-
-      <StyledButton 
-      color="#fdb515"
-      onClick={generatePDF}>Download PDF</StyledButton>
+      <StyledButton
+        color="#fdb515"
+        onClick={generatePDF}>Download PDF</StyledButton>
+      <ConfirmationModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onConfirm={handleDeleteConfirmation}
+        message="Are you sure you want to delete this course?"
+      />
     </div>
   );
 };

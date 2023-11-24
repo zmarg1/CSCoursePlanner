@@ -1,0 +1,9 @@
+.make-plan {
+    text-align: left; 
+    padding-left: 175px; 
+  }
+
+  .myPlan{
+    text-align: left; /* Align text to the left */
+    padding-left: 175px; /* Add padding to the right to push content to the left */
+  }

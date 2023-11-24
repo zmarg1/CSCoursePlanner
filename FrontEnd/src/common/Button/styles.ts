@@ -23,3 +23,29 @@ export const StyledButton = styled("button")<any>`
     background-color: #636466;
   }
 `;
+
+
+export const SmallerStyledButton = styled("button")<any>`
+  background: ${(p) => p.color || "#fdb515"};
+  color: ${(p) => (p.color ? "#2E186A" : "#fff")};
+  font-size: 0.8rem; /* Smaller font size */
+  font-weight: 700;
+  width: 70%; /* Smaller width */
+  border: 2px solid #000000;
+  border-radius: 4px;
+  padding: 10px 0; /* Smaller padding */
+  cursor: pointer;
+  margin-top: 0.625rem;
+  max-width: 140px; /* Smaller max-width */
+  transition: all 0.3s ease-in-out;
+  box-shadow: 0 16px 30px rgb(23 31 114 / 20%);
+
+  &:hover,
+  &:active,
+  &:focus {
+    color: #fff;
+    border: 2px solid #000000;
+    background-color: #636466;
+  }
+`;
+

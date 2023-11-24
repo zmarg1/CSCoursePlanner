@@ -6,7 +6,7 @@ export const StyledSelect = styled.select<any>`
   color: ${(p) => (p.color ? "#2E186A" : "#fff")};
   font-size: 1rem;
   font-weight: 600;
-  width: 40%;
+  width: 43.5%;
   border: 1px solid #000000;
   border-radius: 4px;
   padding: 0.05 rem; // Adjusted for a select dropdown

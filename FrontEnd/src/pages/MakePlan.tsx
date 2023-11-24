@@ -4,6 +4,8 @@ import { StyledButton } from '../common/Button/styles';
 import { StyledLabel } from '../common/Label';
 import { supabase } from '../utils/supabaseClient';
 import { useUser } from '@clerk/clerk-react';
+import '../common/PlanStyling/Plan.css';
+
 
 interface CourseFromServer {
   course_id: number;

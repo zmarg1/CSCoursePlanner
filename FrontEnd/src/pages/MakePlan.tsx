@@ -5,6 +5,8 @@ import { StyledLabel } from '../common/Label';
 import { supabase } from '../utils/supabaseClient';
 import { useUser } from '@clerk/clerk-react';
 import '../common/PlanStyling/Plan.css';
+import { useNavigate } from 'react-router-dom';
+
 
 
 interface CourseFromServer {
@@ -46,6 +48,7 @@ interface Plan {
 
 
 const MakePlan: React.FC = () => {
+  const navigate = useNavigate();
   const { user } = useUser();
   const [courses, setCourses] = useState<Course[]>([]);
   const [selectedCourseId, setSelectedCourseId] = useState('');
@@ -55,6 +58,12 @@ const MakePlan: React.FC = () => {
   const [selectedSemesterId, setSelectedSemesterId] = useState('');
   const [selectedPlanId, setSelectedPlanId] = useState('');
   const [apiResult, setApiiResult] = useState(null);
+
+  const handleViewPlanClick = () => {
+    const userEmail = user?.emailAddresses[0]?.emailAddress;
+    navigate(`/user/plan/view-plan/${userEmail}`);
+  };
+
 
   useEffect(() => {
 
@@ -282,7 +291,11 @@ const MakePlan: React.FC = () => {
             ))}
           </StyledSelect>
         </div>
-        <StyledButton type="submit">Add Class</StyledButton>
+        <div className='button-container' style={{ marginTop: '20px' }}>
+        <StyledButton color="#fdb515" type="submit">Add Class</StyledButton>
+        <StyledButton color="#fdb515" onClick={handleViewPlanClick}>View Plan</StyledButton>
+        </div>
+
       </form>
 
       {apiResult && (

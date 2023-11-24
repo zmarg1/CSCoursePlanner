@@ -53,20 +53,26 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ isOpen, onClose, 
 
   return (
     <div className="modal-overlay">
-      <div className="modal-content">
-        <p>{message}</p>
-        <SmallerStyledButton
-          color="#fdb515"
-          onClick={onConfirm}>Confirm
-        </SmallerStyledButton>
-        <SmallerStyledButton
-          color="#fdb515"
-          onClick={onClose}>Cancel
-        </SmallerStyledButton>
+      <div className="modal-container"> 
+        <img src="/img/Retriever_clipart.png" alt="Left Side" className="modal-side-image" />
+        <div className="modal-content">
+          <p>{message}</p>
+          <SmallerStyledButton
+            color="#fdb515"
+            onClick={onConfirm}>Confirm
+          </SmallerStyledButton>
+          <SmallerStyledButton
+            color="#fdb515"
+            onClick={onClose}>Cancel
+          </SmallerStyledButton>
+        </div>
+        <img src="/img/Retriever_clipart.png" alt="Right Side" className="modal-side-image" />
       </div>
     </div>
   );
 };
+
+
 
 
 const ViewUserPlan: React.FC = () => {

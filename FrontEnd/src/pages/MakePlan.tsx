@@ -9,6 +9,10 @@ import { useNavigate } from 'react-router-dom';
 import { notification } from "antd";
 
 
+// const Freshman_Status = "/img/Freshman_Status-removebg-preview.png"
+// const Sophomore_Status = "/img/Sophomore_Status-removebg-preview.png"
+// const Junior_Status = "/img/Junior_Status-removebg-preview.png"
+// const Senior_Status = "/img/Senior_Status-removebg-preview.png"
 
 interface CourseFromServer {
   course_id: number;
@@ -58,6 +62,14 @@ const MakePlan: React.FC = () => {
   const [selectedSemesterId, setSelectedSemesterId] = useState('');
   const [selectedPlanId, setSelectedPlanId] = useState('');
   const [apiResult, setApiiResult] = useState(null);
+  const [studentStatus, setStudentStatus] = useState('');
+
+  const determineStudentStatus = (semesterCount: number) => {
+    if (semesterCount < 2) return 'Freshman';
+    if (semesterCount < 4) return 'Sophomore';
+    if (semesterCount < 6) return 'Junior';
+    return 'Senior';
+  };
 
   const openNotificationWithIcon = (title: string) => {
     notification["success"]({
@@ -269,6 +281,7 @@ const MakePlan: React.FC = () => {
 
   const handleSemesterSelection = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedSemesterId(event.target.value);
+
   };
 
   const handlePlanSelection = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -278,6 +291,12 @@ const MakePlan: React.FC = () => {
   return (
     <div className="make-plan">
       <h2>Make Your Plan</h2>
+      {/* <div style={{ flex: 1, paddingLeft: '20px' }}> 
+        {studentStatus === 'Freshman' && <img src={Freshman_Status} alt="Freshman" />}
+        {studentStatus === 'Sophomore' && <img src={Sophomore_Status} alt="Sophomore" />}
+        {studentStatus === 'Junior' && <img src={Junior_Status} alt="Junior" />}
+        {studentStatus === 'Senior' && <img src={Senior_Status} alt="Senior" />}
+      </div> */}
       <StyledButton color="#fdb515" onClick={handleCreatePlan} style={{ marginBottom: '30px' }}>Create Plan</StyledButton>
       <form onSubmit={handleAddClass}>
         <div>

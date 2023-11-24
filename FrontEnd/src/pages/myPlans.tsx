@@ -222,54 +222,78 @@ const ViewUserPlan: React.FC = () => {
     }
   };
 
-
-  // Function to create the pdf once the download button is clicked
   const generatePDF = () => {
-
     const doc = new jsPDF();
-
-    let y = 10; // sets the vertical positioning
-
-    // Iterate through each year of the courses map
+    let y = 20; // Starting vertical position
+  
+    const headers = ["Course Title", "Subject Code", "Course Num", "Credits"];
+    const columnWidths = [90, 30, 40, 30]; // Adjust as needed
+  
+    doc.setFont("helvetica", "bold");
+  
+    const splitText = (text: string, maxWidth: number): string[] => {
+      // This function will split the text into lines based on the maxWidth
+      return doc.splitTextToSize(text, maxWidth);
+    };
+  
     Object.entries(courses).forEach(([year, terms]) => {
-
-      // iterates over each term in a year
       Object.entries(terms).forEach(([term, coursesList]) => {
-
-        // Set the font size for the term, year headers
+        let termTotalCredits = 0;
+  
+        doc.setTextColor(0, 0, 255); // Blue color for headers
         doc.setFontSize(14);
-
-        // prints the year and term format
         doc.text(`${year} - ${term}`, 10, y);
-
-        // now add space before the courses
         y += 10;
-
-        // font size for courses information
+  
+        doc.setTextColor(0, 0, 0); // Black color for text
         doc.setFontSize(10);
-
-        // Iterates over each course in the semester
-        coursesList.forEach((course, index) => {
-
-          // prints the course information
-          const text = `${course.course_title} - ${course.subject_code} ${course.course_num}, ${course.credits} credits`;
-
-          // finally add all the text to pdf
-          doc.text(text, 15, y);
-
-          // add more space between each course
-          y += 10;
+        let x = 10; // Starting horizontal position
+        headers.forEach((header, index) => {
+          doc.text(header, x, y);
+          x += columnWidths[index];
         });
-
-        // andd more space between different terms
-        y += 5;
+        y += 10;
+  
+        coursesList.forEach((course) => {
+          let x = 10; // Reset horizontal position
+          const courseCredits = course.credits || 0;
+          const splitCourseTitle = splitText(course.course_title, columnWidths[0]);
+          const lineHeight = 7; // Adjust line height as needed
+          let maxY = y;
+  
+          // Print Course Title (potentially multiple lines)
+          splitCourseTitle.forEach((line: string) => {
+            doc.text(line, x, maxY);
+            maxY += lineHeight;
+          });
+  
+          // Print other course details (aligned with the first line of the title)
+          doc.text(course.subject_code, x + columnWidths[0], y);
+          doc.text(course.course_num, x + columnWidths[0] + columnWidths[1], y);
+          doc.text(courseCredits.toString(), x + columnWidths[0] + columnWidths[1] + columnWidths[2], y);
+  
+          y = Math.max(maxY, y + lineHeight); // Move to next row, considering multi-line titles
+  
+          // Add to term total credits
+          if (course.credits != null) {
+            termTotalCredits += course.credits;
+          }
+        });
+  
+        doc.setFontSize(12);
+        doc.setTextColor(255, 0, 0); // Red color for total credits
+        doc.text(`Total Credits for ${term}: ${termTotalCredits}`, 10, y);
+        y += 15; // Space after each term's total credits
       });
     });
-
-
-    // saves the pdf to specified name
+  
     doc.save(`${selectedPlanName}.pdf`);
   };
+  
+  
+  
+  
+  
 
   return (
     <div className='myPlan'>

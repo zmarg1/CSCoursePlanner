@@ -30,7 +30,7 @@ export const SmallerStyledButton = styled("button")<any>`
   color: ${(p) => (p.color ? "#2E186A" : "#fff")};
   font-size: 0.8rem; /* Smaller font size */
   font-weight: 700;
-  width: 70%; /* Smaller width */
+  width: 200%; /* Smaller width */
   border: 2px solid #000000;
   border-radius: 4px;
   padding: 10px 0; /* Smaller padding */

@@ -4,6 +4,20 @@
   }
 
   .myPlan{
-    text-align: left; /* Align text to the left */
-    padding-left: 175px; /* Add padding to the right to push content to the left */
+    text-align: left; 
+    padding-left: 175px; 
   }
+
+  .terms-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px; /* Adjust this for spacing between terms */
+  }
+
+  .button-container {
+    display: flex;
+    justify-content: left; /* Align buttons in the center */
+    align-items: center; /* Vertically align buttons */
+    gap: 108px;
+  }
+  

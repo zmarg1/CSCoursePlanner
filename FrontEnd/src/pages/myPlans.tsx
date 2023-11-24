@@ -5,6 +5,9 @@ import { StyledSelect } from '../common/select/styles';
 import jsPDF from 'jspdf';
 import '../common/Modal/modal.css';
 import { SmallerStyledButton } from '../common/Button/styles';
+import '../common/PlanStyling/Plan.css'
+import { useNavigate } from 'react-router-dom';
+
 
 
 interface PlanFromServer {
@@ -67,9 +70,13 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ isOpen, onClose, 
 
 
 const ViewUserPlan: React.FC = () => {
-
+  const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [courseToDelete, setCourseToDelete] = useState<CourseToDelete | null>(null);
+
+  const handleAddMoreClick = () => {
+    navigate('/user/plan/make-plan');
+  };
 
 
   const confirmDelete = (courseId: number, planId: number, year: string, term: string) => {
@@ -276,20 +283,22 @@ const ViewUserPlan: React.FC = () => {
 
       <div style={{ margin: '10px' }}>
         {Object.entries(courses).map(([year, terms]) => (
-          <div key={year} style={{ marginBottom: '1px', paddingLeft: '1px' }}>
+          <div key={year} className="terms-container">
             {Object.entries(terms).map(([term, coursesList]) => (
-              <div key={term}>
+              <div key={term} className="term">
                 <h6 style={{ color: '#333' }}>{year} - {term}</h6>
                 <ul style={{ listStyleType: 'none', paddingLeft: '5px' }}>
                   {coursesList.map((course, index) => (
-                    <li key={index} style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+                    <li key={index} style={{ display: 'flex', alignItems: 'left', marginBottom: '10px' }}>
                       <div style={{ flex: 0.36, marginRight: '10px' }}>
                         <strong>{course.course_title}</strong> - {course.subject_code} {course.course_num}, {course.credits} credits
                       </div>
-                      <SmallerStyledButton
-                        color="#fdb515"
-                        onClick={() => confirmDelete(course.course_id, selectedPlanId, year, term)}>Remove
-                      </SmallerStyledButton>
+                      <div style={{ marginLeft: '50px' }}> {/* Padding between description and button */}
+                        <SmallerStyledButton
+                          color="#fdb515"
+                          onClick={() => confirmDelete(course.course_id, selectedPlanId, year, term)}>Remove
+                        </SmallerStyledButton>
+                      </div>
                     </li>
                   ))}
                 </ul>
@@ -298,15 +307,16 @@ const ViewUserPlan: React.FC = () => {
           </div>
         ))}
       </div>
-      <StyledButton
-        color="#fdb515"
-        onClick={generatePDF}>Download PDF</StyledButton>
-      <ConfirmationModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onConfirm={handleDeleteConfirmation}
-        message="Are you sure you want to delete this course?"
-      />
+      <div className='button-container' style={{ marginTop: '20px' }}>
+        <StyledButton color="#fdb515" onClick={generatePDF}>Download PDF</StyledButton>
+        <StyledButton color="#fdb515" onClick={handleAddMoreClick}>Add More Classes</StyledButton>
+        <ConfirmationModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onConfirm={handleDeleteConfirmation}
+          message="Are you sure you want to delete this course?"
+        />
+      </div>
     </div>
   );
 };

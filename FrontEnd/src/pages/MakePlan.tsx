@@ -6,6 +6,7 @@ import { supabase } from '../utils/supabaseClient';
 import { useUser } from '@clerk/clerk-react';
 import '../common/PlanStyling/Plan.css';
 import { useNavigate } from 'react-router-dom';
+import { notification } from "antd";
 
 
 
@@ -46,7 +47,6 @@ interface Plan {
   name: string;
 }
 
-
 const MakePlan: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useUser();
@@ -59,118 +59,170 @@ const MakePlan: React.FC = () => {
   const [selectedPlanId, setSelectedPlanId] = useState('');
   const [apiResult, setApiiResult] = useState(null);
 
+  const openNotificationWithIcon = (title: string) => {
+    notification["success"]({
+      message: "Plan Created Successfully",
+      description: `Your plan "${title}" has been created!`,
+      duration: 10,
+    });
+  };
+
+  const openAddClassNotification = (courseTitle: string) => {
+    notification["success"]({
+      message: "Class Added Successfully",
+      description: `The class "${courseTitle}" has been added to your plan.`,
+      duration: 10,
+    });
+  };
+  
+
   const handleViewPlanClick = () => {
     const userEmail = user?.emailAddresses[0]?.emailAddress;
     navigate(`/user/plan/view-plan/${userEmail}`);
   };
 
+  const fetchPlans = async () => {
+    try {
+      const email = user?.emailAddresses
+      const response = await fetch(`http://127.0.0.1:5000/user/plan/view-all-plans/${email}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const plansData: PlanFromServer[] = await response.json();
+
+      // Assuming you want to set the plan IDs in a state
+      setPlans(plansData.map(plan => ({
+        id: plan.plan_id,
+        name: `${plan.plan_name}`
+        // You can add more fields if you have additional data for each plan
+      })));
+    } catch (error) {
+      console.error('Error fetching plans:', error);
+    }
+  };
+
+  const handleCreatePlan = async () => {
+    // Ensure that the user's email is available
+    const userEmail = user?.emailAddresses[0]?.emailAddress;
+    if (!userEmail) {
+      console.error('User email is not available');
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://127.0.0.1:5000/user/plan/make-plan/${userEmail}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        // You can send additional data in the request body, if necessary
+        // body: JSON.stringify({ additionalData: 'value' })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('Plan creation result:', result);
+
+      const newPlanTitle = result.title;
+      openNotificationWithIcon(newPlanTitle);
+      await fetchPlans();
+
+      // You can add additional logic here to handle the response,
+      // such as navigating to a different page, updating the state, etc.
+
+    } catch (error) {
+      console.error('There was an error creating the plan:', error);
+    }
+  };
+
+  const fetchCourses = async () => {
+    try {
+      const response = await fetch('http://127.0.0.1:5000/user/view-all-courses', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      let coursesData;
+      try {
+        coursesData = await response.json();
+      } catch (jsonParseError) {
+        console.error('Error parsing JSON:', jsonParseError);
+        const rawResponse = await response.text();
+        console.log('Raw response:', rawResponse);
+        return;
+      }
+
+      // Sort by Course Num
+      const sortedCoursesData = coursesData.sort((a: CourseFromServer, b: CourseFromServer) => {
+        const courseNumA = parseInt(a.course_num, 10);
+        const courseNumB = parseInt(b.course_num, 10);
+        return courseNumA - courseNumB;
+      });
+
+      setCourses(sortedCoursesData.map((course: CourseFromServer) => ({
+        id: course.course_id,
+        code: `${course.subject_code} ${course.course_num}: `,
+        name: `${course.course_title}`
+      })));
+    } catch (error) {
+      console.error('There has been a problem with your fetch operation:', error);
+    }
+  };
+
+  const fetchSemesters = async () => {
+    try {
+      const response = await fetch('http://127.0.0.1:5000/user/view-all-semesters', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const semestersData: SemesterFromServer[] = await response.json();
+
+      setSemesters(semestersData.map(semester => ({
+        id: semester.semester_id,
+        name: `${semester.term} ${semester.year}`
+      })));
+    } catch (error) {
+      console.error('Error fetching semesters:', error);
+    }
+  };
+
+  const fetchUserDataFromSupabase = async () => {
+    if (user) {
+      try {
+        const { data, error } = await supabase
+          .from('public_user_info') // Replace with your table name
+          .select('*')
+          .eq('user_id', user.id); // Adjust as per your Supabase table's user ID column
+
+        if (error) throw error;
+
+        console.log('Fetched user-specific data:', data);
+        // Handle the fetched data (e.g., set it to a state)
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    }
+  };
 
   useEffect(() => {
-
-    const fetchCourses = async () => {
-      try {
-        const response = await fetch('http://127.0.0.1:5000/user/view-all-courses', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        });
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        let coursesData;
-        try {
-          coursesData = await response.json();
-        } catch (jsonParseError) {
-          console.error('Error parsing JSON:', jsonParseError);
-          const rawResponse = await response.text();
-          console.log('Raw response:', rawResponse);
-          return;
-        }
-
-        // Sort by Course Num
-        const sortedCoursesData = coursesData.sort((a: CourseFromServer, b: CourseFromServer) => {
-          const courseNumA = parseInt(a.course_num, 10);
-          const courseNumB = parseInt(b.course_num, 10);
-          return courseNumA - courseNumB;
-        });
-
-        setCourses(sortedCoursesData.map((course: CourseFromServer) => ({
-          id: course.course_id,
-          code: `${course.subject_code} ${course.course_num}: `,
-          name: `${course.course_title}`
-        })));
-      } catch (error) {
-        console.error('There has been a problem with your fetch operation:', error);
-      }
-    };
-
-    const fetchSemesters = async () => {
-      try {
-        const response = await fetch('http://127.0.0.1:5000/user/view-all-semesters', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        });
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const semestersData: SemesterFromServer[] = await response.json();
-
-        setSemesters(semestersData.map(semester => ({
-          id: semester.semester_id,
-          name: `${semester.term} ${semester.year}`
-        })));
-      } catch (error) {
-        console.error('Error fetching semesters:', error);
-      }
-    };
-
-    // Fetch User Data from Supabase
-    const fetchUserDataFromSupabase = async () => {
-      if (user) {
-        try {
-          const { data, error } = await supabase
-            .from('public_user_info') // Replace with your table name
-            .select('*')
-            .eq('user_id', user.id); // Adjust as per your Supabase table's user ID column
-
-          if (error) throw error;
-
-          console.log('Fetched user-specific data:', data);
-          // Handle the fetched data (e.g., set it to a state)
-        } catch (error) {
-          console.error('Error fetching data:', error);
-        }
-      }
-    };
-
-    const fetchPlans = async () => {
-      try {
-        const email = user?.emailAddresses
-        const response = await fetch(`http://127.0.0.1:5000/user/plan/view-all-plans/${email}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-        });
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const plansData: PlanFromServer[] = await response.json();
-
-        // Assuming you want to set the plan IDs in a state
-        setPlans(plansData.map(plan => ({
-          id: plan.plan_id,
-          name: `${plan.plan_name}`
-          // You can add more fields if you have additional data for each plan
-        })));
-      } catch (error) {
-        console.error('Error fetching plans:', error);
-      }
-    };
-
+    fetchCourses();
     fetchPlans();
     fetchCourses();
     fetchSemesters();
@@ -193,11 +245,12 @@ const MakePlan: React.FC = () => {
       }
       const data = await response.json()
       if (data.Failed) {
-        console.log(data.Failed)
-        setApiiResult(data.Failed)
+        console.log(data.Failed);
+        setApiiResult(data.Failed);
       }
       if (data.Success) {
-        setApiiResult(data.Success)
+        setApiiResult(data.Success);
+        openAddClassNotification(selectedCourseTitle);
       }
 
       // Update the user's plan state
@@ -206,28 +259,12 @@ const MakePlan: React.FC = () => {
     } catch (error) {
       console.error('Error adding class to plan:', error);
     }
-
-    const handleMakePlan = async () => {
-      try {
-        const response = await fetch('/user/plan/make-plan', {
-          method: 'POST',
-          // Include headers and credentials as necessary for your setup
-        });
-        const result = await response.text();
-        alert(result); // Or handle the success/failure in a more robust way
-      } catch (error) {
-        console.error('There was an error making the plan:', error);
-      }
-    };
   };
-  
-
 
   const handleCourseSelection = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedCourseTitle(event.target.title);
-    console.log('Added Class Title:', selectedCourseTitle);
+    const selectedTitle = event.target.options[event.target.selectedIndex].text;
+    setSelectedCourseTitle(selectedTitle);
     setSelectedCourseId(event.target.value);
-    console.log('Added Class ID:', selectedCourseId);
   };
 
   const handleSemesterSelection = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -238,10 +275,10 @@ const MakePlan: React.FC = () => {
     setSelectedPlanId(event.target.value);
   };
 
-
   return (
     <div className="make-plan">
       <h2>Make Your Plan</h2>
+      <StyledButton color="#fdb515" onClick={handleCreatePlan}>Create Plan</StyledButton>
       <form onSubmit={handleAddClass}>
         <div>
           <StyledLabel htmlFor="semester-dropdown">Select a term:</StyledLabel>
@@ -292,8 +329,8 @@ const MakePlan: React.FC = () => {
           </StyledSelect>
         </div>
         <div className='button-container' style={{ marginTop: '20px' }}>
-        <StyledButton color="#fdb515" type="submit">Add Class</StyledButton>
-        <StyledButton color="#fdb515" onClick={handleViewPlanClick}>View Plan</StyledButton>
+          <StyledButton color="#fdb515" type="submit">Add Class</StyledButton>
+          <StyledButton color="#fdb515" onClick={handleViewPlanClick}>View Plan</StyledButton>
         </div>
 
       </form>

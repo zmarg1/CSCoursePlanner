@@ -7,8 +7,7 @@ import '../common/Modal/modal.css';
 import { SmallerStyledButton } from '../common/Button/styles';
 import '../common/PlanStyling/Plan.css'
 import { useNavigate } from 'react-router-dom';
-
-
+import '../common/PlanStyling/Plan.css';
 
 interface PlanFromServer {
   plan_id: number;
@@ -53,7 +52,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ isOpen, onClose, 
 
   return (
     <div className="modal-overlay">
-      <div className="modal-container"> 
+      <div className="modal-container">
         <img src="/img/Retriever_clipart.png" alt="Left Side" className="modal-side-image" />
         <div className="modal-content">
           <p>{message}</p>
@@ -80,6 +79,10 @@ const ViewUserPlan: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [courseToDelete, setCourseToDelete] = useState<CourseToDelete | null>(null);
 
+  const isPlanEmpty = () => {
+    return Object.values(courses).every(term => Object.values(term).every(courseList => courseList.length === 0));
+  };
+
   const handleAddMoreClick = () => {
     navigate('/user/plan/make-plan');
   };
@@ -105,10 +108,10 @@ const ViewUserPlan: React.FC = () => {
       // Check if the term is empty after removing the course
       if (updatedCourses.length === 0) {
         // If empty, remove the term
-        const { [term]: removedTerm, ...updatedTerms } = prevCourses[year];
+        const { [term]: removedTerm, ...remainingTerms } = prevCourses[year];
         return {
           ...prevCourses,
-          [year]: updatedTerms
+          [year]: remainingTerms
         };
       } else {
         // If not empty, update the term with the remaining courses
@@ -225,26 +228,26 @@ const ViewUserPlan: React.FC = () => {
   const generatePDF = () => {
     const doc = new jsPDF();
     let y = 20; // Starting vertical position
-  
+
     const headers = ["Course Title", "Subject Code", "Course Num", "Credits"];
     const columnWidths = [90, 30, 40, 30]; // Adjust as needed
-  
+
     doc.setFont("helvetica", "bold");
-  
+
     const splitText = (text: string, maxWidth: number): string[] => {
       // This function will split the text into lines based on the maxWidth
       return doc.splitTextToSize(text, maxWidth);
     };
-  
+
     Object.entries(courses).forEach(([year, terms]) => {
       Object.entries(terms).forEach(([term, coursesList]) => {
         let termTotalCredits = 0;
-  
+
         doc.setTextColor(0, 0, 255); // Blue color for headers
         doc.setFontSize(14);
         doc.text(`${year} - ${term}`, 10, y);
         y += 10;
-  
+
         doc.setTextColor(0, 0, 0); // Black color for text
         doc.setFontSize(10);
         let x = 10; // Starting horizontal position
@@ -253,52 +256,53 @@ const ViewUserPlan: React.FC = () => {
           x += columnWidths[index];
         });
         y += 10;
-  
+
         coursesList.forEach((course) => {
           let x = 10; // Reset horizontal position
           const courseCredits = course.credits || 0;
           const splitCourseTitle = splitText(course.course_title, columnWidths[0]);
           const lineHeight = 7; // Adjust line height as needed
           let maxY = y;
-  
+
           // Print Course Title (potentially multiple lines)
           splitCourseTitle.forEach((line: string) => {
             doc.text(line, x, maxY);
             maxY += lineHeight;
           });
-  
+
           // Print other course details (aligned with the first line of the title)
           doc.text(course.subject_code, x + columnWidths[0], y);
           doc.text(course.course_num, x + columnWidths[0] + columnWidths[1], y);
           doc.text(courseCredits.toString(), x + columnWidths[0] + columnWidths[1] + columnWidths[2], y);
-  
+
           y = Math.max(maxY, y + lineHeight); // Move to next row, considering multi-line titles
-  
+
           // Add to term total credits
           if (course.credits != null) {
             termTotalCredits += course.credits;
           }
         });
-  
+
         doc.setFontSize(12);
         doc.setTextColor(255, 0, 0); // Red color for total credits
         doc.text(`Total Credits for ${term}: ${termTotalCredits}`, 10, y);
         y += 15; // Space after each term's total credits
       });
     });
-  
+
     doc.save(`${selectedPlanName}.pdf`);
   };
-  
-  
-  
-  
-  
+
+
+
+
+
 
   return (
     <div className='myPlan'>
       <h2>View Plan</h2>
       {error && <p>Error: {error}</p>}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}></div>
       <StyledSelect
         value={selectedPlanId}
         onChange={handlePlanSelection}
@@ -311,32 +315,41 @@ const ViewUserPlan: React.FC = () => {
         ))}
       </StyledSelect>
 
-      <div style={{ margin: '10px' }}>
-        {Object.entries(courses).map(([year, terms]) => (
-          <div key={year} className="terms-container">
-            {Object.entries(terms).map(([term, coursesList]) => (
-              <div key={term} className="term">
-                <h6 style={{ color: '#333' }}>{year} - {term}</h6>
-                <ul style={{ listStyleType: 'none', paddingLeft: '5px' }}>
-                  {coursesList.map((course, index) => (
-                    <li key={index} style={{ display: 'flex', alignItems: 'left', marginBottom: '10px' }}>
-                      <div style={{ flex: 0.36, marginRight: '10px' }}>
-                        <strong>{course.course_title}</strong> - {course.subject_code} {course.course_num}, {course.credits} credits
-                      </div>
-                      <div style={{ marginLeft: '50px' }}> {/* Padding between description and button */}
-                        <SmallerStyledButton
-                          color="#fdb515"
-                          onClick={() => confirmDelete(course.course_id, selectedPlanId, year, term)}>Remove
-                        </SmallerStyledButton>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        ))}
-      </div>
+      {isPlanEmpty() ? (
+        <div style={{ textAlign: 'center', marginTop: '20px' }}>
+          <p>Your plan is currently empty.</p>
+          <p>Select a plan to view or add more classes!!!</p>
+          <img src= "/img/Retriever_sad.png" alt="Empty Plan" />
+        </div>
+      ) : (
+        <div style={{ margin: '10px' }}>
+          {Object.entries(courses).map(([year, terms]) => (
+            <div key={year} className="terms-container">
+              {Object.entries(terms).filter(([_, coursesList]) => coursesList.length > 0)
+                .map(([term, coursesList]) => (
+                  <div key={term} className="term">
+                    <h6 style={{ color: '#333' }}>{year} - {term}</h6>
+                    <ul style={{ listStyleType: 'none', paddingLeft: '5px' }}>
+                      {coursesList.map((course, index) => (
+                        <li key={index} style={{ display: 'flex', alignItems: 'left', marginBottom: '10px' }}>
+                          <div style={{ flex: 0.36, marginRight: '10px' }}>
+                            <strong>{course.course_title}</strong> - {course.subject_code} {course.course_num}, {course.credits} credits
+                          </div>
+                          <div style={{ marginLeft: '50px' }}> {/* Padding between description and button */}
+                            <SmallerStyledButton
+                              color="#fdb515"
+                              onClick={() => confirmDelete(course.course_id, selectedPlanId, year, term)}>Remove
+                            </SmallerStyledButton>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+            </div>
+          ))}
+        </div>
+      )}
       <div className='button-container' style={{ marginTop: '20px' }}>
         <StyledButton color="#fdb515" onClick={generatePDF}>Download PDF</StyledButton>
         <StyledButton color="#fdb515" onClick={handleAddMoreClick}>Add More Classes</StyledButton>

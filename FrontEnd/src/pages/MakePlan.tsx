@@ -285,7 +285,6 @@ const MakePlan: React.FC = () => {
   useEffect(() => {
     fetchPlans();
     fetchSemesters();
-    fetchCourses("-1") //Default -1 to show all courses
     fetchUserDataFromSupabase();
   }, [user]);
 

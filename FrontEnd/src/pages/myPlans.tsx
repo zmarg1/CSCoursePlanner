@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import '../common/PlanStyling/Plan.css';
 import { notification } from "antd";
 
+const URL = `http://127.0.0.1:5000`
 
 interface PlanFromServer {
   plan_id: number;
@@ -110,7 +111,7 @@ const ViewUserPlan: React.FC = () => {
     }
 
     try {
-      const response = await fetch(`http://127.0.0.1:5000/user/plan/delete-plan/${email}/${planId}`, {
+      const response = await fetch(`${URL}/user/plan/delete-plan/${email}/${planId}`, {
         method: 'DELETE'
       });
 
@@ -190,7 +191,7 @@ const ViewUserPlan: React.FC = () => {
     }
 
     try {
-      const response = await fetch(`http://127.0.0.1:5000/user/plan/delete-course-from-plan/${email}/${planId}/${courseId}`, {
+      const response = await fetch(`${URL}/user/plan/delete-course-from-plan/${email}/${planId}/${courseId}`, {
         method: 'DELETE'
       });
 
@@ -230,7 +231,7 @@ const ViewUserPlan: React.FC = () => {
         throw new Error('User email is not available');
       }
 
-      const response = await fetch(`http://127.0.0.1:5000/user/plan/view-all-plans/${email}`, {
+      const response = await fetch(`${URL}/user/plan/view-all-plans/${email}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json'
@@ -254,7 +255,7 @@ const ViewUserPlan: React.FC = () => {
   const fetchUserPlan = async (planId: number) => {
     try {
       const email = user?.emailAddresses[0]?.emailAddress;
-      const response = await fetch(`http://127.0.0.1:5000/user/plan/view-plan/${email}/${planId}`);
+      const response = await fetch(`${URL}/user/plan/view-plan/${email}/${planId}`);
 
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 

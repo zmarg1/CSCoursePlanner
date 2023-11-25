@@ -23,6 +23,7 @@ db = SQLAlchemy(app)
 ma = Marshmallow(app)
 
 FAILED_EMAIL = {"Failed": "Incorrect Email given or missing"}
+FAILED_PLAN_ID = {"Failed": "Plan ID missing"}
 FAILED_PLAN = {"Failed": "User doesn't have plan"}
 FAILED_GET = {"Failed": "Wrong method given expected GET"}
 FAILED_POST = {"Failed": "Wrong method given expected POST"}
@@ -295,6 +296,26 @@ class users():
         
         else:
             return None
+
+    def view_courses(self, plan_id):
+        all_courses = course.query.all()
+        user_plan = self.get_pln_courses(plan_id)
+        not_taken = True
+        view_courses = []
+
+        if user_plan:
+            for crs in all_courses:
+                not_taken = True
+                for taken_crs in user_plan:
+                    if crs.course_id == taken_crs.course_id:
+                        not_taken = False
+                if not_taken:
+                    view_courses.append(crs)
+
+            return view_courses
+        
+        else:
+            return all_courses
 
     """
     Adds courses to the users plan dictionary

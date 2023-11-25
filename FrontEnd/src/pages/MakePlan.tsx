@@ -14,6 +14,7 @@ import { StyledContainer } from '../common/Container/styles';
 // const Sophomore_Status = "/img/Sophomore_Status-removebg-preview.png"
 // const Junior_Status = "/img/Junior_Status-removebg-preview.png"
 // const Senior_Status = "/img/Senior_Status-removebg-preview.png"
+const URL = `http://127.0.0.1:5000`
 
 interface Course {
   course_id: number;
@@ -111,7 +112,7 @@ const MakePlan: React.FC = () => {
   const fetchPlans = async () => {
     try {
       const email = user?.emailAddresses
-      const response = await fetch(`http://127.0.0.1:5000/user/plan/view-all-plans/${email}`, {
+      const response = await fetch(`${URL}/user/plan/view-all-plans/${email}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json'
@@ -142,7 +143,7 @@ const MakePlan: React.FC = () => {
     }
 
     try {
-      const response = await fetch(`http://127.0.0.1:5000/user/plan/make-plan/${userEmail}`, {
+      const response = await fetch(`${URL}/user/plan/make-plan/${userEmail}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -174,9 +175,10 @@ const MakePlan: React.FC = () => {
     }
   };
 
-  const fetchCourses = async () => {
+  const fetchCourses = async (plan_id: string) => {
     try {
-      const response = await fetch('http://127.0.0.1:5000/user/view-all-courses', {
+      const email = user?.emailAddresses
+      const response = await fetch(`${URL}/user/view-all-courses/${email}/${plan_id}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json'
@@ -216,7 +218,7 @@ const MakePlan: React.FC = () => {
 
   const fetchSemesters = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:5000/user/view-all-semesters', {
+      const response = await fetch(`${URL}/user/view-all-semesters`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json'
@@ -240,7 +242,7 @@ const MakePlan: React.FC = () => {
   const viewSemesterCourses = async (plan_id: string, sem_id: string) => {
     try{
       const email = user?.emailAddresses
-      const response = await fetch(`http://127.0.0.1:5000//user/plan/view-semester-courses/${email}/${plan_id}/${sem_id}`, {
+      const response = await fetch(`${URL}//user/plan/view-semester-courses/${email}/${plan_id}/${sem_id}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json'
@@ -281,10 +283,9 @@ const MakePlan: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchCourses();
     fetchPlans();
-    fetchCourses();
     fetchSemesters();
+    fetchCourses("-1") //Default -1 to show all courses
     fetchUserDataFromSupabase();
   }, [user]);
 
@@ -340,6 +341,7 @@ const MakePlan: React.FC = () => {
     if (selectedSemesterId){
       viewSemesterCourses(event.target.value, selectedSemesterId);
     }
+    fetchCourses(event.target.value);
   };
 
   return (
@@ -359,14 +361,26 @@ const MakePlan: React.FC = () => {
 
       <form onSubmit={handleAddClass}>
         <StyledContainer>
+
+          <StyledLabel htmlFor="plan-dropdown">Select a plan:</StyledLabel>
+          <StyledSelect
+            value={selectedPlanId}
+            onChange={handlePlanSelection}
+            required
+            color="#fdb515">
+            <option value="">Select a Plan</option>
+            {plans.map(plan => (
+              <option key={plan.id} value={plan.id}>{plan.name}</option>
+            ))}
+          </StyledSelect>
+
           <StyledLabel htmlFor="semester-dropdown">Select a term:</StyledLabel>
           <StyledSelect
             id="semester-dropdown"
             value={selectedSemesterId}
             onChange={handleSemesterSelection}
             required
-            color="#fdb515"
-          >
+            color="#fdb515">
             <option key="" value="">Select a term</option>
             {semesters.map((semester, index) => (
               <option key={semester.id || index} value={semester.id}>
@@ -374,16 +388,14 @@ const MakePlan: React.FC = () => {
               </option>
             ))}
           </StyledSelect>
-        </StyledContainer>
-        <StyledContainer>
+
           <StyledLabel htmlFor="course-dropdown">Select a class:</StyledLabel>
           <StyledSelect
             id="course-dropdown"
             value={selectedCourseId}
             onChange={handleCourseSelection}
             required
-            color="#fdb515"
-          >
+            color="#fdb515">
             <option key="" value="" title="">Select a class</option>
             {courses.map((course) => (
               <option key={course.course_id} value={course.course_id} title={course.course_title}>
@@ -391,21 +403,9 @@ const MakePlan: React.FC = () => {
               </option>
             ))}
           </StyledSelect>
+        
         </StyledContainer>
-        <StyledContainer>
-          <StyledLabel htmlFor="plan-dropdown">Select a plan:</StyledLabel>
-          <StyledSelect
-            value={selectedPlanId}
-            onChange={handlePlanSelection}
-            required
-            color="#fdb515"
-          >
-            <option value="">Select a Plan</option>
-            {plans.map(plan => (
-              <option key={plan.id} value={plan.id}>{plan.name}</option>
-            ))}
-          </StyledSelect>
-        </StyledContainer>
+        
         <StyledContainer className='button-container-makePlan' style={{ marginTop: '50px' }}> {/* Increased space above the buttons */}
           <StyledButton color="#fdb515" type="submit">Add Course</StyledButton>
           <StyledButton color="#fdb515" onClick={handleViewPlanClick}>View Plans</StyledButton>

@@ -9,11 +9,11 @@ TODO: Finish the classes, app.routes to send and receive from site
 from setup import session, app, jsonify, request, db
 from setup import admin_course_schema, admin_courses_schema, plan_schema, user_courses_schema, user_course_schema , plans_schema, taken_courses_schema
 from setup import course, subject, users, public_user_info, plan, taken, semester, requirement
-from setup import FAILED_EMAIL, FAILED_DELETE, FAILED_GET, FAILED_POST, FAILED_PLAN
-from view_all import view_all_api
+from setup import FAILED_EMAIL, FAILED_DELETE, FAILED_GET, FAILED_POST, FAILED_PLAN, FAILED_PLAN_ID
+from view import view_api
 from admin import admin_api
 
-app.register_blueprint(view_all_api)
+app.register_blueprint(view_api)
 app.register_blueprint(admin_api)
 
 
@@ -51,7 +51,7 @@ def user_make_plan(user_email):
 #TODO: Implement
 @app.route("/user/plan/rename-plan/<user_email>/<plan_id>", methods=["POST"])
 def rename_plan(user_email, plan_id):
-    if user_email and request.method == "POST" and "new_name" in request.json:
+    if user_email and request.method == "POST" and "new_name" in request.json and plan_id:
         new_name = request.json["new_name"]
         user = users(user_email)
         plan_id = int(plan_id)
@@ -70,6 +70,9 @@ def rename_plan(user_email, plan_id):
 
     elif not user_email:
         return jsonify(FAILED_EMAIL)
+    
+    elif not plan_id:
+        return jsonify(FAILED_PLAN_ID)
     
     elif not "new_name" in request.json:
         return jsonify({"Failed": "Missing json data \"new_name\""})
@@ -174,124 +177,12 @@ def user_delete_planned_course(user_email, crs_id, plan_id):
         return jsonify({"Failed": "No Form"})
 
 
-"""
-Chooses a plan to view
-Gets user from session
-Views the current users chosen plan
-Returns: a users plan as a dictionary of years with a dictionary of terms storing the array of dictionary course objects
-Ex. {"2024": {"Fall": [{corse info}, {course info}] } }
-"""
-@app.route("/user/plan/view-plan/<user_email>/<plan_id>", methods=["GET"])
-def user_view_plan(user_email, plan_id):
-    if request.method == "GET" and user_email and plan_id:
-        user = users(user_email)
-        plan_id = int(plan_id)
-        if user.user_has_plan(plan_id):
-            curr_plan = plan(plan_id)
-            fall_courses = user.get_all_terms_courses(plan_id, "Fall")
-            winter_courses = user.get_all_terms_courses(plan_id, "Winter")
-            spring_courses = user.get_all_terms_courses(plan_id, "Spring")
-            summer_courses = user.get_all_terms_courses(plan_id, "Summer")
-
-            #dump will be [] if no classes in term
-            fall_dump = taken_courses_schema.dump(fall_courses)
-            winter_dump = taken_courses_schema.dump(winter_courses)
-            spring_dump = taken_courses_schema.dump(spring_courses)
-            summer_dump = taken_courses_schema.dump(summer_courses)
-
-            years = curr_plan.get_years()
-            usr_plan = {}
-            usr_plan = user.to_dict(years, usr_plan, fall_dump)
-            usr_plan = user.to_dict(years, usr_plan, winter_dump)
-            usr_plan = user.to_dict(years, usr_plan, spring_dump)
-            usr_plan = user.to_dict(years, usr_plan, summer_dump)
-                
-            return jsonify(usr_plan)
-        
-        return jsonify(FAILED_PLAN)
-    
-    elif not user_email:
-        return jsonify(FAILED_EMAIL)
-    
-    elif not plan_id:
-        return jsonify({"Failed": "Plan Id not given"})
-    
-    else:
-        return jsonify({"Failed": "Wrong method needs \"GET\" method"})
-
-"""
-Views all the users plans 
-Return: plan obj on success
-"""
-@app.route("/user/plan/view-all-plans/<user_email>", methods=["GET"])
-def user_view_all_plans(user_email):
-    if user_email:
-        user = users(user_email)
-        usr_plans = user.get_plans()
-        if usr_plans is not None:
-            plans_dump = plans_schema.dump(usr_plans)
-            return jsonify(plans_dump)
-        else:
-            return jsonify({"Failed": "User has no plans"})
-    return jsonify({"Failed": "User not signed in"})
-
-@app.route("/user/plan/view-term/<user_email>/<plan_id>/<sem_id>", methods=["GET"])
-def user_view_term(user_email, plan_id, sem_id):
-    if user_email and request.method == "GET":
-        pass
-
-    elif not user_email:
-        return jsonify(FAILED_EMAIL)
-    
-    else:
-        return jsonify(FAILED_GET)
-
-"""
-View all the classes in a selected term
-"""
-@app.route("/user/plan/view-semester-courses/<user_email>/<plan_id>/<sem_id>", methods=["GET"])
-def view_semester(user_email, plan_id, sem_id):
-    if user_email and request.method == "GET" and plan_id and sem_id:
-        user = users(user_email)
-        plan_id = int(plan_id)
-        sem_id = int(sem_id)
-
-        if user.user_has_plan(plan_id):
-            plan_courses = user.get_term_courses(plan_id, sem_id)
-
-            if plan_courses:
-                sem = semester(sem_id)
-                term_dump = taken_courses_schema.dump(plan_courses)
-                term_plan = {}
-                years = [sem.year]
-                term_plan = user.to_dict(years, term_plan, term_dump)
-                return jsonify(term_plan)
-        
-            elif not plan_courses:
-                return jsonify({"Failed": "Semester not in plan"})
-        
-        else:
-            return(FAILED_PLAN)
-
-    elif not user_email:
-        return jsonify(FAILED_EMAIL)
-    
-    elif not plan_id:
-        return jsonify({"Failed": "Expected plan ID"})
-    
-    elif not term:
-        return jsonify({"Failed": "Term is expected"})
-    
-    else:
-        return jsonify(FAILED_GET)
-
-
 """ 
 Deletes a term given its a Fall, Spring, Summer, Winter term from a year
 """
 @app.route("/user/plan/delete-term/<user_email>/<plan_id>/<sem_id>", methods=["DELETE"])
 def delete_term(user_email, plan_id, sem_id):
-    if request.method == "DELETE" and user_email:
+    if request.method == "DELETE" and user_email and plan_id:
         user = users(user_email)
         plan_id = int(plan_id)
         user_has = user.user_has_plan(plan_id)
@@ -308,6 +199,9 @@ def delete_term(user_email, plan_id, sem_id):
 
     elif not user_email:
         return jsonify(FAILED_EMAIL)
+    
+    elif not plan_id:
+        return jsonify(FAILED_PLAN_ID)
     
     else:
         return jsonify(FAILED_DELETE)

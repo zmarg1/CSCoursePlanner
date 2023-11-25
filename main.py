@@ -188,10 +188,10 @@ def user_view_plan(user_email, plan_id):
         plan_id = int(plan_id)
         if user.user_has_plan(plan_id):
             curr_plan = plan(plan_id)
-            fall_courses = user.get_term_courses(plan_id, "Fall")
-            winter_courses = user.get_term_courses(plan_id, "Winter")
-            spring_courses = user.get_term_courses(plan_id, "Spring")
-            summer_courses = user.get_term_courses(plan_id, "Summer")
+            fall_courses = user.get_all_terms_courses(plan_id, "Fall")
+            winter_courses = user.get_all_terms_courses(plan_id, "Winter")
+            spring_courses = user.get_all_terms_courses(plan_id, "Spring")
+            summer_courses = user.get_all_terms_courses(plan_id, "Summer")
 
             #dump will be [] if no classes in term
             fall_dump = taken_courses_schema.dump(fall_courses)
@@ -218,7 +218,6 @@ def user_view_plan(user_email, plan_id):
     
     else:
         return jsonify({"Failed": "Wrong method needs \"GET\" method"})
-
 
 """
 Views all the users plans 
@@ -247,24 +246,29 @@ def user_view_term(user_email, plan_id, sem_id):
     else:
         return jsonify(FAILED_GET)
 
-
-@app.route("/user/plan/view-all-term/<user_email>/<plan_id>/<term>", methods=["GET"])
-def user_all_term(user_email, plan_id, term):
-    if user_email and request.method == "GET" and plan_id and term:
+"""
+View all the classes in a selected term
+"""
+@app.route("/user/plan/view-semester-courses/<user_email>/<plan_id>/<sem_id>", methods=["GET"])
+def view_semester(user_email, plan_id, sem_id):
+    if user_email and request.method == "GET" and plan_id and sem_id:
         user = users(user_email)
-        plan_courses = user.get_term_courses(plan_id, term)
         plan_id = int(plan_id)
+        sem_id = int(sem_id)
 
-        if plan_courses and user.user_has_plan(plan_id):
-            curr_plan = plan(plan_id)
-            years = curr_plan.get_years(term)
-            term_dump = taken_courses_schema.dump(plan_courses)
-            term_plan = {}
-            term_plan = user.to_dict(years, term_plan, term_dump)
-            return jsonify(term_plan)
+        if user.user_has_plan(plan_id):
+            plan_courses = user.get_term_courses(plan_id, sem_id)
+
+            if plan_courses:
+                sem = semester(sem_id)
+                term_dump = taken_courses_schema.dump(plan_courses)
+                term_plan = {}
+                years = [sem.year]
+                term_plan = user.to_dict(years, term_plan, term_dump)
+                return jsonify(term_plan)
         
-        elif not plan_courses:
-            return jsonify({"Failed": f"{term} courses not in plan"})
+            elif not plan_courses:
+                return jsonify({"Failed": "Semester not in plan"})
         
         else:
             return(FAILED_PLAN)

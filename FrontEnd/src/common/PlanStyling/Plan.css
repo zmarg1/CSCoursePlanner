@@ -9,9 +9,8 @@
   }
 
   .term {
-    border: 2px solid #ccc; /* Example border style */
     padding: 10px; /* Space inside the border */
-    margin-bottom: 15px; /* Space between each term */
+    margin-bottom: 10px; /* Space between each term */
     min-height: 150px;
     gap: 50px;
   }

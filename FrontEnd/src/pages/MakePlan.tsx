@@ -309,6 +309,7 @@ const MakePlan: React.FC = () => {
       if (result.Success){
         openAddClassNotificationSuccess(result.Success)
         viewSemesterCourses(selectedPlanId, selectedSemesterId);
+        fetchCourses(selectedPlanId) 
       }
       else{
         openAddClassNotificationFailed(result.Failed)

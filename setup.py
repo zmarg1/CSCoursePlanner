@@ -104,16 +104,15 @@ class users():
         result = pub_user.update_campus_id(new_c_id, self.email)
         return result
             
-
     def user_make_plan(self):
         user_plans = self.get_plans()
-        if len(user_plans) < self.zach_limit:
+        if len(user_plans) < self.max_plans:
             user_id = self.get_user_id()
             new_plan = plan()
             result = new_plan.make_plan(user_id)
             if result:
                 new_plan.add_commit()
-                return {"Success": "Plan added successfully"}
+                return {"Success": f"{result}"}
             
             return {"Failed": "Error adding plan"}
         
@@ -141,14 +140,14 @@ class users():
                     num_sem_courses += 1
             num_sem = len(pln_semesters)
 
-            if num_sem_courses < self.brandon_limit and num_sem <= self.zach_limit:
+            if num_sem_courses < self.brandon_limit and num_sem <= self.zach_limit and not crs_in_taken:
                 add_to_plan = taken()
                 add_to_plan.add_course(plan_id, crs_id, req_id, sem_id, grade)
                 add_to_plan.add_commit()
-                return {"Success": f"Added {in_course.course_title} to {in_plan.plan_name} for {in_sem.term}"}
+                return {"Success": f"Added {in_course.course_title} to {in_plan.plan_name} for {in_sem.term} {in_sem.year}"}
         
             elif num_sem_courses >= self.brandon_limit:
-                return {"Failed": "User has reached the course limit"}
+                return {"Failed": "User has reached the course limit for this Semester"}
             
             elif crs_in_taken:
                 return {"Failed": "Course already in chosen plan"}
@@ -193,7 +192,7 @@ class users():
                 usr_has = True
         return usr_has
 
-    def get_term_courses(self, plan_id, term):
+    def get_all_terms_courses(self, plan_id, term):
         usr_plan = plan(plan_id)
         taken_courses = usr_plan.get_taken_courses()
         sem = semester()
@@ -238,6 +237,58 @@ class users():
             for t_crs in taken_courses:
                 for sem_obj in summer_sems:
                     if t_crs.semester_id == sem_obj.semester_id:
+                        usr_summer.append(t_crs)
+
+            return usr_summer
+        
+        else:
+            return None
+
+    def get_term_courses(self, plan_id, sem_id):
+        usr_plan = plan(plan_id)
+        taken_courses = usr_plan.get_taken_courses()
+        sem = semester(sem_id)
+
+        if sem.term == "Fall":
+            usr_fall = []
+
+            fall_sems = sem.get_fall_objs()
+            for t_crs in taken_courses:
+                for sem_obj in fall_sems:
+                    if t_crs.semester_id == sem_obj.semester_id and t_crs.semester_id == sem_id:
+                        usr_fall.append(t_crs)
+
+            return usr_fall
+
+        elif sem.term == "Winter":
+            usr_winter = []
+
+            winter_sems = sem.get_winter_objs()
+            for t_crs in taken_courses:
+                for sem_obj in winter_sems:
+                    if t_crs.semester_id == sem_obj.semester_id and t_crs.semester_id == sem_id:
+                        usr_winter.append(t_crs)
+
+            return usr_winter
+
+        elif sem.term == "Spring":
+            usr_spring = []
+
+            spring_sems = sem.get_spring_objs()
+            for t_crs in taken_courses:
+                for sem_obj in spring_sems:
+                    if t_crs.semester_id == sem_obj.semester_id and t_crs.semester_id == sem_id:
+                        usr_spring.append(t_crs)
+
+            return usr_spring
+
+        elif sem.term == "Summer":
+            usr_summer = []
+
+            summer_sems = sem.get_summer_objs()
+            for t_crs in taken_courses:
+                for sem_obj in summer_sems:
+                    if t_crs.semester_id == sem_obj.semester_id and t_crs.semester_id == sem_id:
                         usr_summer.append(t_crs)
 
             return usr_summer
@@ -400,7 +451,7 @@ class plan(db.Model):
             self.plan_name = name
 
         self.created_at = datetime.now()
-        return True
+        return self.plan_name
 
     def get_plan_name(self):
         plan_name = plan.query.filter(plan.plan_id == self.plan_id).order_by(plan.plan_name).first()

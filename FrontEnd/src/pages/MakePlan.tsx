@@ -7,6 +7,7 @@ import { useUser } from '@clerk/clerk-react';
 import '../common/PlanStyling/Plan.css';
 import { useNavigate } from 'react-router-dom';
 import { notification } from "antd";
+import { StyledContainer } from '../common/Container/styles';
 
 
 // const Freshman_Status = "/img/Freshman_Status-removebg-preview.png"
@@ -14,18 +15,12 @@ import { notification } from "antd";
 // const Junior_Status = "/img/Junior_Status-removebg-preview.png"
 // const Senior_Status = "/img/Senior_Status-removebg-preview.png"
 
-interface CourseFromServer {
+interface Course {
   course_id: number;
   course_num: string;
   course_title: string;
   credits: number;
   subject_code: string;
-}
-
-interface Course {
-  id: number;
-  code: string;
-  name: string;
 }
 
 interface SemesterFromServer {
@@ -51,6 +46,10 @@ interface Plan {
   name: string;
 }
 
+interface CourseData {
+  [year: string]: { [term: string]: Course[]; };
+}
+
 const MakePlan: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useUser();
@@ -61,8 +60,8 @@ const MakePlan: React.FC = () => {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [selectedSemesterId, setSelectedSemesterId] = useState('');
   const [selectedPlanId, setSelectedPlanId] = useState('');
-  const [apiResult, setApiiResult] = useState(null);
   const [studentStatus, setStudentStatus] = useState('');
+  const [semesterCourses, setSemesterCourses] = useState<CourseData>({});
 
   const determineStudentStatus = (semesterCount: number) => {
     if (semesterCount < 2) return 'Freshman';
@@ -71,18 +70,34 @@ const MakePlan: React.FC = () => {
     return 'Senior';
   };
 
-  const openNotificationWithIcon = (title: string) => {
+  const openPlanNotificationSuccess = (title: string) => {
     notification["success"]({
       message: "Plan Created Successfully",
       description: `Your plan "${title}" has been created!`,
       duration: 10,
     });
   };
+
+  const openPlanNotificationFailed = (response: string) => {
+    notification["error"]({
+      message: "Plan Failed To Be Created",
+      description: `${response}`,
+      duration: 10,
+    });
+  };
   
-  const openAddClassNotification = (courseTitle: string) => {
+  const openAddClassNotificationSuccess = (courseTitle: string) => {
     notification["success"]({
       message: "Class Added Successfully",
       description: `The class "${courseTitle}" has been added to your plan.`,
+      duration: 10,
+    });
+  };
+
+  const openAddClassNotificationFailed = (response: string) => {
+    notification["error"]({
+      message: "Failed To Add Course",
+      description: `${response}`,
       duration: 10,
     });
   };
@@ -143,8 +158,12 @@ const MakePlan: React.FC = () => {
       const result = await response.json();
       console.log('Plan creation result:', result);
 
-      const newPlanTitle = result.title;
-      openNotificationWithIcon(newPlanTitle);
+      if (result.Success){
+        openPlanNotificationSuccess(result.Success);
+      }
+      else{
+        openPlanNotificationFailed(result.Failed);
+      }
       await fetchPlans();
 
       // You can add additional logic here to handle the response,
@@ -177,16 +196,18 @@ const MakePlan: React.FC = () => {
       }
 
       // Sort by Course Num
-      const sortedCoursesData = coursesData.sort((a: CourseFromServer, b: CourseFromServer) => {
+      const sortedCoursesData = coursesData.sort((a: Course, b: Course) => {
         const courseNumA = parseInt(a.course_num, 10);
         const courseNumB = parseInt(b.course_num, 10);
         return courseNumA - courseNumB;
       });
 
-      setCourses(sortedCoursesData.map((course: CourseFromServer) => ({
-        id: course.course_id,
-        code: `${course.subject_code} ${course.course_num}: `,
-        name: `${course.course_title}`
+      setCourses(sortedCoursesData.map((course: Course) => ({
+        course_id: course.course_id,
+        course_num: course.course_num,
+        course_title: course.course_title,
+        credits: course.credits,
+        subject_code: course.subject_code,
       })));
     } catch (error) {
       console.error('There has been a problem with your fetch operation:', error);
@@ -212,6 +233,32 @@ const MakePlan: React.FC = () => {
       })));
     } catch (error) {
       console.error('Error fetching semesters:', error);
+    }
+  };
+
+
+  const viewSemesterCourses = async (plan_id: string, sem_id: string) => {
+    try{
+      const email = user?.emailAddresses
+      const response = await fetch(`http://127.0.0.1:5000//user/plan/view-semester-courses/${email}/${plan_id}/${sem_id}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+
+      if (!data.Failed){
+        console.log(data);
+        setSemesterCourses(data);
+      }
+
+    }
+    catch(error){
+      console.error('Error viewing semester:', error);
     }
   };
 
@@ -252,17 +299,18 @@ const MakePlan: React.FC = () => {
         }
       });
 
+      const result = await response.json()
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      const data = await response.json()
-      if (data.Failed) {
-        console.log(data.Failed);
-        setApiiResult(data.Failed);
+
+      if (result.Success){
+        openAddClassNotificationSuccess(result.Success)
+        viewSemesterCourses(selectedPlanId, selectedSemesterId);
       }
-      if (data.Success) {
-        setApiiResult(data.Success);
-        openAddClassNotification(selectedCourseTitle);
+      else{
+        openAddClassNotificationFailed(result.Failed)
       }
 
       // Update the user's plan state
@@ -281,25 +329,36 @@ const MakePlan: React.FC = () => {
 
   const handleSemesterSelection = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedSemesterId(event.target.value);
+    if (selectedPlanId){
+      viewSemesterCourses(selectedPlanId, event.target.value);
+    }
 
   };
 
   const handlePlanSelection = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedPlanId(event.target.value);
+    if (selectedSemesterId){
+      viewSemesterCourses(event.target.value, selectedSemesterId);
+    }
   };
 
   return (
-    <div className="make-plan">
+    <StyledContainer className="make-plan">
+      <StyledContainer>
       <h2>Make Your Plan</h2>
+      </StyledContainer>
       {/* <div style={{ flex: 1, paddingLeft: '20px' }}> 
         {studentStatus === 'Freshman' && <img src={Freshman_Status} alt="Freshman" />}
         {studentStatus === 'Sophomore' && <img src={Sophomore_Status} alt="Sophomore" />}
         {studentStatus === 'Junior' && <img src={Junior_Status} alt="Junior" />}
         {studentStatus === 'Senior' && <img src={Senior_Status} alt="Senior" />}
       </div> */}
-      <StyledButton color="#fdb515" onClick={handleCreatePlan} style={{ marginBottom: '30px' }}>Create Plan</StyledButton>
+      <StyledContainer>
+      <StyledButton color="#fdb515" onClick={handleCreatePlan} style={{ marginBottom: '30px'}}>Create Plan</StyledButton>
+      </StyledContainer>
+
       <form onSubmit={handleAddClass}>
-        <div>
+        <StyledContainer>
           <StyledLabel htmlFor="semester-dropdown">Select a term:</StyledLabel>
           <StyledSelect
             id="semester-dropdown"
@@ -315,8 +374,8 @@ const MakePlan: React.FC = () => {
               </option>
             ))}
           </StyledSelect>
-        </div>
-        <div>
+        </StyledContainer>
+        <StyledContainer>
           <StyledLabel htmlFor="course-dropdown">Select a class:</StyledLabel>
           <StyledSelect
             id="course-dropdown"
@@ -327,13 +386,13 @@ const MakePlan: React.FC = () => {
           >
             <option key="" value="" title="">Select a class</option>
             {courses.map((course) => (
-              <option key={course.id} value={course.id} title={course.name}>
-                {course.code}{course.name}
+              <option key={course.course_id} value={course.course_id} title={course.course_title}>
+                {course.subject_code} {course.course_num}: {course.course_title} {course.credits}cr
               </option>
             ))}
           </StyledSelect>
-        </div>
-        <div>
+        </StyledContainer>
+        <StyledContainer>
           <StyledLabel htmlFor="plan-dropdown">Select a plan:</StyledLabel>
           <StyledSelect
             value={selectedPlanId}
@@ -346,19 +405,36 @@ const MakePlan: React.FC = () => {
               <option key={plan.id} value={plan.id}>{plan.name}</option>
             ))}
           </StyledSelect>
-        </div>
-        <div className='button-container-makePlan' style={{ marginTop: '200px' }}> {/* Increased space above the buttons */}
-          <StyledButton color="#fdb515" type="submit">Add Class</StyledButton>
-          <StyledButton color="#fdb515" onClick={handleViewPlanClick}>View Plan</StyledButton>
-        </div>
+        </StyledContainer>
+        <StyledContainer className='button-container-makePlan' style={{ marginTop: '50px' }}> {/* Increased space above the buttons */}
+          <StyledButton color="#fdb515" type="submit">Add Course</StyledButton>
+          <StyledButton color="#fdb515" onClick={handleViewPlanClick}>View Plans</StyledButton>
+        </StyledContainer>
       </form>
 
-      {apiResult && (
-        <div>
-          <p>{apiResult}</p>
-        </div>
-      )}
-    </div>
+        <StyledContainer style={{ margin: '15px' }}>
+          {Object.entries(semesterCourses).map(([year, terms]) => (
+            <div key={year} className="terms-container">
+              {Object.entries(terms).filter(([_, coursesList]) => coursesList.length > 0)
+                .map(([term, coursesList]) => (
+                  <div key={term} className="term">
+                    <h6 style={{ color: '#333' }}>{year} - {term}</h6>
+                    <ul style={{ listStyleType: 'none', paddingLeft: '5px' }}>
+                      {coursesList && Array.isArray(coursesList) && coursesList.map((course, index) => (
+                        <li key={index} style={{ display: 'flex', alignItems: 'left', marginBottom: '10px' }}>
+                          <div style={{ flex: 0.36, marginRight: '10px' }}>
+                            <strong>{course.course_title}</strong> - {course.subject_code} {course.course_num}, {course.credits} credits
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+            </div>
+          ))}
+        </StyledContainer>
+
+    </StyledContainer>
   );
 };
 

@@ -9,6 +9,7 @@ import '../common/PlanStyling/Plan.css'
 import { useNavigate } from 'react-router-dom';
 import '../common/PlanStyling/Plan.css';
 import { notification } from "antd";
+import { StyledContainer } from '../common/Container/styles';
 
 const URL = `http://127.0.0.1:5000`
 
@@ -356,7 +357,7 @@ const ViewUserPlan: React.FC = () => {
 
 
   return (
-    <div className='myPlan'>
+    <StyledContainer className='myPlan'>
       <h2>View Plan</h2>
       {error && <p>Error: {error}</p>}
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}></div>
@@ -390,8 +391,11 @@ const ViewUserPlan: React.FC = () => {
                     <ul style={{ listStyleType: 'none', paddingLeft: '5px' }}>
                       {coursesList.map((course, index) => (
                         <li key={index} style={{ display: 'flex', alignItems: 'left', marginBottom: '10px' }}>
-                          <div style={{ flex: 0.36, marginRight: '10px' }}>
-                            <strong>{course.course_title}</strong> - {course.subject_code} {course.course_num}, {course.credits} credits
+                          <div style={{ flex: 0.60, marginRight: '10px' }}>
+                            <strong>{course.course_title}:</strong>
+                            <div style={{ flex: 0.50, marginRight: '10px' }}>
+                              <strong>{course.subject_code} {course.course_num}, {course.credits} credits</strong>
+                            </div>
                           </div>
                           <div style={{ marginLeft: '50px' }}> {/* Padding between description and button */}
                             <SmallerStyledButton
@@ -427,7 +431,7 @@ const ViewUserPlan: React.FC = () => {
           message="Are you sure you want to delete this plan?"
         />
       </div>
-    </div>
+    </StyledContainer>
   );
 };
 

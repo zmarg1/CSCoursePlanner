@@ -83,6 +83,15 @@ const ViewUserPlan: React.FC = () => {
   const [courseToDelete, setCourseToDelete] = useState<CourseToDelete | null>(null);
   const [planToDelete, setPlanToDelete] = useState<number | null>(null);
 
+  useEffect(() => {
+    if (isModalOpen) {
+      document.body.classList.add('no-scroll');
+    } else {
+      document.body.classList.remove('no-scroll');
+    }
+  }, [isModalOpen]);
+  
+
   const openDeletionNotification = (title: string) => {
       notification["success"]({
       message: "Plan Deleted Successfully",

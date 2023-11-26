@@ -55,3 +55,15 @@
   justify-content: left; 
   padding-right: 10%;
 }
+
+.no-scroll {
+  overflow: hidden;
+}
+
+.modal-overlay {
+  background-color: rgba(0, 0, 0, 0.6); 
+}
+
+.modal-container {
+  background-color: white;
+}

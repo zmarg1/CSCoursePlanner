@@ -10,10 +10,6 @@ import { notification } from "antd";
 import { StyledContainer } from '../common/Container/styles';
 
 
-// const Freshman_Status = "/img/Freshman_Status-removebg-preview.png"
-// const Sophomore_Status = "/img/Sophomore_Status-removebg-preview.png"
-// const Junior_Status = "/img/Junior_Status-removebg-preview.png"
-// const Senior_Status = "/img/Senior_Status-removebg-preview.png"
 const URL = `http://127.0.0.1:5000`
 
 interface Course {
@@ -346,22 +342,12 @@ const MakePlan: React.FC = () => {
 
   return (
     <StyledContainer className="make-plan">
-      <div>
+      <div className="grid-container">
+      <div className="form-section">
       <h2>Make Your Plan</h2>
-      </div>
-      {/* <div style={{ flex: 1, paddingLeft: '20px' }}> 
-        {studentStatus === 'Freshman' && <img src={Freshman_Status} alt="Freshman" />}
-        {studentStatus === 'Sophomore' && <img src={Sophomore_Status} alt="Sophomore" />}
-        {studentStatus === 'Junior' && <img src={Junior_Status} alt="Junior" />}
-        {studentStatus === 'Senior' && <img src={Senior_Status} alt="Senior" />}
-      </div> */}
-      <div>
       <StyledButton color="#fdb515" onClick={handleCreatePlan} style={{ marginBottom: '30px'}}>Create Plan</StyledButton>
-      </div>
 
       <form onSubmit={handleAddClass}>
-        <div>
-
           <StyledLabel htmlFor="plan-dropdown">Select a plan:</StyledLabel>
           <StyledSelect
             value={selectedPlanId}
@@ -403,40 +389,37 @@ const MakePlan: React.FC = () => {
               </option>
             ))}
           </StyledSelect>
-        
-        </div>
+          </form>
         
         <div className='button-container-makePlan' style={{ marginTop: '50px' }}> {/* Increased space above the buttons */}
           <StyledButton color="#fdb515" type="submit">Add Course</StyledButton>
           <StyledButton color="#fdb515" onClick={handleViewPlanClick}>View Plans</StyledButton>
         </div>
-      </form>
-
-        <div style={{ margin: '15px' }}>
-          {Object.entries(semesterCourses).map(([year, terms]) => (
-            <div key={year} className="terms-container">
-              {Object.entries(terms).filter(([_, coursesList]) => coursesList.length > 0)
-                .map(([term, coursesList]) => (
-                  <div key={term} className="term">
-                    <h6 style={{ color: '#333' }}>{year} - {term}</h6>
-                    <ul style={{ listStyleType: 'none', paddingLeft: '5px' }}>
-                      {coursesList && Array.isArray(coursesList) && coursesList.map((course, index) => (
-                        <li key={index} style={{ display: 'flex', alignItems: 'left', marginBottom: '10px' }}>
-                          <div>
-                            <div style={{ flex: 0.40, marginRight: '10px' }}>
-                              <strong>{course.course_title} - </strong>
-                            </div>
-                            <strong>{course.subject_code} {course.course_num}, {course.credits} credits </strong>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-            </div>
-          ))}
         </div>
 
+        <div className="terms-section">
+          {Object.entries(semesterCourses).map(([year, terms]) => (
+            Object.entries(terms).filter(([_, coursesList]) => coursesList.length > 0)
+              .map(([term, coursesList]) => (
+                <div key={term} className="term">
+                  <h6 style={{ color: '#333' }}>{term} {year}</h6>
+                  <ul style={{ listStyleType: 'none', paddingLeft: '5px' }}>
+                    {coursesList.map((course, index) => (
+                      <li key={index} style={{ display: 'flex', alignItems: 'left', marginBottom: '10px' }}>
+                        <div>
+                          <div style={{ flex: 0.40, marginRight: '10px' }}>
+                            <strong>{course.course_title} - </strong>
+                          </div>
+                          <strong>{course.subject_code} {course.course_num}, {course.credits} credits</strong>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))
+          ))}
+        </div>
+      </div>
     </StyledContainer>
   );
 };

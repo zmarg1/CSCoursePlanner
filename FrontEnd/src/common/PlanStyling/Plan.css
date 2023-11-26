@@ -34,7 +34,7 @@
   justify-content: left;
   align-items: left;
   gap: 15%;
-  padding-left: 30%;
+  padding-left: 50%;
 }
 
 .button-container-myPlan {
@@ -76,4 +76,16 @@
 .modal-container {
   background-color: white;
   border-radius: 5px;
+}
+
+.grid-container {
+  display: grid;
+  grid-template-columns: 3fr 1fr; /* Two columns of equal width */
+  gap: 1%; /* Space between columns */
+}
+
+@media (max-width: 768px) {
+  .grid-container {
+    grid-template-columns: 1fr; /* Stack columns on top of each other on small screens */
+  }
 }

@@ -285,7 +285,6 @@ const MakePlan: React.FC = () => {
   useEffect(() => {
     fetchPlans();
     fetchSemesters();
-    fetchCourses("-1") //Default -1 to show all courses
     fetchUserDataFromSupabase();
   }, [user]);
 
@@ -347,21 +346,21 @@ const MakePlan: React.FC = () => {
 
   return (
     <StyledContainer className="make-plan">
-      <StyledContainer>
+      <div>
       <h2>Make Your Plan</h2>
-      </StyledContainer>
+      </div>
       {/* <div style={{ flex: 1, paddingLeft: '20px' }}> 
         {studentStatus === 'Freshman' && <img src={Freshman_Status} alt="Freshman" />}
         {studentStatus === 'Sophomore' && <img src={Sophomore_Status} alt="Sophomore" />}
         {studentStatus === 'Junior' && <img src={Junior_Status} alt="Junior" />}
         {studentStatus === 'Senior' && <img src={Senior_Status} alt="Senior" />}
       </div> */}
-      <StyledContainer>
+      <div>
       <StyledButton color="#fdb515" onClick={handleCreatePlan} style={{ marginBottom: '30px'}}>Create Plan</StyledButton>
-      </StyledContainer>
+      </div>
 
       <form onSubmit={handleAddClass}>
-        <StyledContainer>
+        <div>
 
           <StyledLabel htmlFor="plan-dropdown">Select a plan:</StyledLabel>
           <StyledSelect
@@ -405,15 +404,15 @@ const MakePlan: React.FC = () => {
             ))}
           </StyledSelect>
         
-        </StyledContainer>
+        </div>
         
-        <StyledContainer className='button-container-makePlan' style={{ marginTop: '50px' }}> {/* Increased space above the buttons */}
+        <div className='button-container-makePlan' style={{ marginTop: '50px' }}> {/* Increased space above the buttons */}
           <StyledButton color="#fdb515" type="submit">Add Course</StyledButton>
           <StyledButton color="#fdb515" onClick={handleViewPlanClick}>View Plans</StyledButton>
-        </StyledContainer>
+        </div>
       </form>
 
-        <StyledContainer style={{ margin: '15px' }}>
+        <div style={{ margin: '15px' }}>
           {Object.entries(semesterCourses).map(([year, terms]) => (
             <div key={year} className="terms-container">
               {Object.entries(terms).filter(([_, coursesList]) => coursesList.length > 0)
@@ -423,8 +422,11 @@ const MakePlan: React.FC = () => {
                     <ul style={{ listStyleType: 'none', paddingLeft: '5px' }}>
                       {coursesList && Array.isArray(coursesList) && coursesList.map((course, index) => (
                         <li key={index} style={{ display: 'flex', alignItems: 'left', marginBottom: '10px' }}>
-                          <div style={{ flex: 0.36, marginRight: '10px' }}>
-                            <strong>{course.course_title}</strong> - {course.subject_code} {course.course_num}, {course.credits} credits
+                          <div>
+                            <div style={{ flex: 0.40, marginRight: '10px' }}>
+                              <strong>{course.course_title} - </strong>
+                            </div>
+                            <strong>{course.subject_code} {course.course_num}, {course.credits} credits </strong>
                           </div>
                         </li>
                       ))}
@@ -433,7 +435,7 @@ const MakePlan: React.FC = () => {
                 ))}
             </div>
           ))}
-        </StyledContainer>
+        </div>
 
     </StyledContainer>
   );

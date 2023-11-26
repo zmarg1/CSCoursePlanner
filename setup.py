@@ -193,6 +193,7 @@ class users():
                 usr_has = True
         return usr_has
 
+    #Gets all the courses for the matching Term
     def get_all_terms_courses(self, plan_id, term):
         usr_plan = plan(plan_id)
         taken_courses = usr_plan.get_taken_courses()
@@ -245,6 +246,7 @@ class users():
         else:
             return None
 
+    #Gets all users courses for the matching Semester ID
     def get_term_courses(self, plan_id, sem_id):
         usr_plan = plan(plan_id)
         taken_courses = usr_plan.get_taken_courses()
@@ -302,20 +304,26 @@ class users():
         user_plan = self.get_pln_courses(plan_id)
         not_taken = True
         view_courses = []
+        prereq_ = prereq()
 
         if user_plan:
+            #Iterates through all available courses
             for crs in all_courses:
                 not_taken = True
+                #Iterates through all users taken courses
                 for taken_crs in user_plan:
                     if crs.course_id == taken_crs.course_id:
                         not_taken = False
-                if not_taken:
+                        break
+                if not_taken and prereq_.check_prereqs(crs.course_id, user_plan):
                     view_courses.append(crs)
-
-            return view_courses
         
         else:
-            return all_courses
+            for crs in all_courses:
+                if prereq_.check_prereqs(crs.course_id, user_plan):
+                    view_courses.append(crs)
+
+        return view_courses
 
     """
     Adds courses to the users plan dictionary
@@ -669,6 +677,41 @@ class prereq(db.Model):
     def delete_commit(self):
         db.session.delete(self)
         db.session.commit()
+
+    def get_prereq_ints(self):
+        pre_list = prereq.query.all()
+
+        for obj in pre_list:
+            for crs in obj.prereq_courses:
+                crs = int(crs)
+
+        return pre_list
+    
+    #Checks if a course can be taken by checking if one of its prereqs has been taken if it has prereqs
+    def check_prereqs(self, crs_id, taken_courses):
+        pre_list = self.get_prereq_ints()
+        can_take = True
+        course_req = []
+
+        for obj in pre_list:
+            if crs_id == obj.crs_id:
+                course_req.append(obj.prereq_courses)
+
+        #Runs only if a course has prereqs and has taken courses
+        if course_req and taken_courses:
+            in_req = False
+            for pre_obj in course_req:
+                for taken_obj in taken_courses:
+                    if taken_obj.course_id in pre_obj:
+                        in_req = True
+                if in_req == False:
+                    return in_req
+                
+        #Has prereqs but has not taken any courses
+        elif course_req and not taken_courses:
+            can_take = False
+        
+        return can_take
 
 # Defines your prereq output
 class PrereqSchema(ma.Schema):

@@ -62,7 +62,6 @@ def user_view_plan(user_email, plan_id):
         user = users(user_email)
         plan_id = int(plan_id)
         if user.user_has_plan(plan_id):
-            curr_plan = plan(plan_id)
             fall_courses = user.get_all_terms_courses(plan_id, "Fall")
             winter_courses = user.get_all_terms_courses(plan_id, "Winter")
             spring_courses = user.get_all_terms_courses(plan_id, "Spring")
@@ -74,6 +73,7 @@ def user_view_plan(user_email, plan_id):
             spring_dump = taken_courses_schema.dump(spring_courses)
             summer_dump = taken_courses_schema.dump(summer_courses)
 
+            curr_plan = plan(plan_id)
             years = curr_plan.get_years()
             usr_plan = {}
             usr_plan = user.to_dict(years, usr_plan, fall_dump)

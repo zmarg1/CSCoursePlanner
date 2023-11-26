@@ -1,59 +1,59 @@
 .make-plan {
-    text-align: left; 
-    padding-left: 175px; 
-  }
+  text-align: left;
+  padding-left: 175px;
+}
 
-  .myPlan{
-    text-align: left; 
-    padding-left: 175px; 
-  }
+.myPlan {
+  text-align: left;
+  padding-left: 30%;
+}
 
-  .term {
-    padding: 10px; /* Space inside the border */
-    margin-bottom: 10px; /* Space between each term */
-    min-height: 150px;
-    gap: 50px;
-  }
+.term {
+  padding: 1%;
+  margin-bottom: 2%;
+  min-height: 10%;
+  gap: 10%;
+}
 
-  .term ul {
-    padding: 0;
-    margin: 0;
-    list-style-type: none;
-  }
-  
+.term ul {
+  padding: 0%;
+  margin: 0;
+  list-style-type: none;
+}
 
-  .terms-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px; 
-  }
 
-  .button-container-makePlan {
-    margin-top: 200px; 
-    display: flex;
-    justify-content: left; 
-    align-items: left; 
-    gap: 108px; 
-    padding-left: 25%; 
+.terms-container {
+  display: grid;
+  flex-wrap: wrap;
+  gap: 5%;
+}
+
+.button-container-makePlan {
+  margin-top: 20%;
+  display: flex;
+  justify-content: left;
+  align-items: left;
+  gap: 15%;
+  padding-left: 30%;
 }
 
 .button-container-myPlan {
-  margin-top: 200px; 
+  margin-top: 20%;
   display: flex;
-  justify-content: left; 
-  align-items: left; 
-  gap: 108px; 
-  padding-left: 14%; 
+  justify-content: left;
+  align-items: left;
+  gap: 20%;
+  padding-left: 4%;
 }
 
 .Empty-Plan {
-  justify-content: left; 
-  padding-right: 10%;
+  justify-content: left;
+  padding-right: 0%;
 }
 
 .Empty-Picture {
-  justify-content: left; 
-  padding-right: 10%;
+  justify-content: left;
+  padding-right: 0%;
 }
 
 .no-scroll {
@@ -61,9 +61,19 @@
 }
 
 .modal-overlay {
-  background-color: rgba(0, 0, 0, 0.6); 
+  background-color: rgba(0, 0, 0, 0.6);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .modal-container {
   background-color: white;
+  border-radius: 5px;
 }

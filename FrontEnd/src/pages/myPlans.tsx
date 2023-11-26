@@ -80,17 +80,18 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ isOpen, onClose, 
 
 const ViewUserPlan: React.FC = () => {
   const navigate = useNavigate();
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCourseModalOpen, setIsCourseModalOpen] = useState(false);
+  const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
   const [courseToDelete, setCourseToDelete] = useState<CourseToDelete | null>(null);
   const [planToDelete, setPlanToDelete] = useState<number | null>(null);
 
   useEffect(() => {
-    if (isModalOpen) {
+    if (isCourseModalOpen || isPlanModalOpen) {
       document.body.classList.add('no-scroll');
     } else {
       document.body.classList.remove('no-scroll');
     }
-  }, [isModalOpen]);
+  }, [isCourseModalOpen || isPlanModalOpen]);
   
 
   const openDeletionNotification = (title: string) => {
@@ -103,14 +104,14 @@ const ViewUserPlan: React.FC = () => {
 
   const confirmPlanDelete = (planId: number) => {
     setPlanToDelete(planId); // Set the plan to delete
-    setIsModalOpen(true); // Open the confirmation modal
+    setIsPlanModalOpen(true); // Open the confirmation modal
   };
 
   const handleDeletePlanConfirmation = () => {
     if (planToDelete !== null) {
       removePlan(planToDelete); // Call the function to remove the plan
     }
-    setIsModalOpen(false); // Close the confirmation modal
+    setIsPlanModalOpen(false); // Close the confirmation modal
   };
 
   const removePlan = async (planId: number) => {
@@ -157,14 +158,14 @@ const ViewUserPlan: React.FC = () => {
 
   const confirmDelete = (courseId: number, planId: number, year: string, term: string) => {
     setCourseToDelete({ courseId, planId, year, term }); // Ensure this matches the CourseToDelete type
-    setIsModalOpen(true);
+    setIsCourseModalOpen(true);
   };
 
   const handleDeleteConfirmation = () => {
     if (courseToDelete) {
       removeCourseFromPlan(courseToDelete.courseId, courseToDelete.planId, courseToDelete.year, courseToDelete.term);
     }
-    setIsModalOpen(false);
+    setIsCourseModalOpen(false);
   };
 
   const removeCourse = (year: string, term: string, courseId: number) => {
@@ -360,11 +361,6 @@ const ViewUserPlan: React.FC = () => {
     doc.save(`${selectedPlanName}.pdf`);
   };
 
-
-
-
-
-
   return (
     <StyledContainer className='myPlan'>
       <h2>View Plan</h2>
@@ -384,29 +380,29 @@ const ViewUserPlan: React.FC = () => {
 
 
       {isPlanEmpty() ? (
-        <div style={{ textAlign: 'center', marginTop: '20px' }}>
+        <div style={{ textAlign: 'center', marginTop: '3%' }}>
           <p className='Empty-Plan'>Your plan is currently empty.</p>
           <p className='Empty-Plan'>Select a plan to view or add more classes!!!</p>
           <img className='Empty-Picture' src="/img/Retriever_sad.png" alt="Empty Plan" />
         </div>
       ) : (
-        <div style={{ margin: '10px' }}>
+        <div style={{ margin: '1%' }}>
           {Object.entries(courses).map(([year, terms]) => (
             <div key={year} className="terms-container">
               {Object.entries(terms).filter(([_, coursesList]) => coursesList.length > 0)
                 .map(([term, coursesList]) => (
                   <div key={term} className="term">
                     <h6 style={{ color: '#333' }}>{year} - {term}</h6>
-                    <ul style={{ listStyleType: 'none', paddingLeft: '5px' }}>
+                    <ul style={{ listStyleType: 'none', paddingLeft: '1%' }}>
                       {coursesList.map((course, index) => (
-                        <li key={index} style={{ display: 'flex', alignItems: 'left', marginBottom: '10px' }}>
-                          <div style={{ flex: 0.60, marginRight: '10px' }}>
+                        <li key={index} style={{ display: 'flex', alignItems: 'center', marginBottom: '2%', marginRight:'3%' }}>
+                          <div style={{ flex: 0.9, marginRight: '2%' }}>
                             <strong>{course.course_title}:</strong>
-                            <div style={{ flex: 0.50, marginRight: '10px' }}>
+                            <div style={{ flex: 1, marginRight: '2%' }}>
                               <strong>{course.subject_code} {course.course_num}, {course.credits} credits</strong>
                             </div>
                           </div>
-                          <div style={{ marginLeft: '50px' }}> {/* Padding between description and button */}
+                          <div style={{ marginLeft: '20%' }}> {/* Padding between description and button */}
                             <SmallerStyledButton
                               color="#fdb515"
                               onClick={() => confirmDelete(course.course_id, selectedPlanId, year, term)}>Remove
@@ -421,21 +417,21 @@ const ViewUserPlan: React.FC = () => {
           ))}
         </div>
       )}
-      <div className='button-container-myPlan' style={{ marginTop: '20px' }}>
+      <div className='button-container-myPlan' style={{ marginTop: '5%' }}>
         <StyledButton color="#fdb515" onClick={generatePDF}>Download PDF</StyledButton>
         <StyledButton color="#fdb515" onClick={handleAddMoreClick}>Add More Classes</StyledButton>
         <StyledButton
           color="#fdb515"
-          onClick={() => selectedPlanId && confirmPlanDelete(selectedPlanId)} style={{ marginTop: '10px' }}>Remove Plan</StyledButton>
+          onClick={() => selectedPlanId && confirmPlanDelete(selectedPlanId)} style={{ marginTop: '1%' }}>Remove Plan</StyledButton>
         <ConfirmationModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
+          isOpen={isCourseModalOpen}
+          onClose={() => setIsCourseModalOpen(false)}
           onConfirm={handleDeleteConfirmation}
           message="Are you sure you want to delete this course?"
         />
         <ConfirmationModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
+          isOpen={isPlanModalOpen}
+          onClose={() => setIsPlanModalOpen(false)}
           onConfirm={planToDelete ? handleDeletePlanConfirmation : handleDeleteConfirmation}
           message="Are you sure you want to delete this plan?"
         />

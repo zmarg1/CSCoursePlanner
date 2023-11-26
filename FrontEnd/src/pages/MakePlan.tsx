@@ -348,6 +348,7 @@ const MakePlan: React.FC = () => {
       <StyledButton color="#fdb515" onClick={handleCreatePlan} style={{ marginBottom: '30px'}}>Create Plan</StyledButton>
 
       <form onSubmit={handleAddClass}>
+
           <StyledLabel htmlFor="plan-dropdown">Select a plan:</StyledLabel>
           <StyledSelect
             value={selectedPlanId}

@@ -82,7 +82,7 @@ const MakePlan: React.FC = () => {
       duration: 10,
     });
   };
-  
+
   const openAddClassNotificationSuccess = (courseTitle: string) => {
     notification["success"]({
       message: "Class Added Successfully",
@@ -155,10 +155,10 @@ const MakePlan: React.FC = () => {
       const result = await response.json();
       console.log('Plan creation result:', result);
 
-      if (result.Success){
+      if (result.Success) {
         openPlanNotificationSuccess(result.Success);
       }
-      else{
+      else {
         openPlanNotificationFailed(result.Failed);
       }
       await fetchPlans();
@@ -236,7 +236,7 @@ const MakePlan: React.FC = () => {
 
 
   const viewSemesterCourses = async (plan_id: string, sem_id: string) => {
-    try{
+    try {
       const email = user?.emailAddresses
       const response = await fetch(`${URL}//user/plan/view-semester-courses/${email}/${plan_id}/${sem_id}`, {
         method: 'GET',
@@ -249,13 +249,13 @@ const MakePlan: React.FC = () => {
       }
       const data = await response.json();
 
-      if (!data.Failed){
+      if (!data.Failed) {
         console.log(data);
         setSemesterCourses(data);
       }
 
     }
-    catch(error){
+    catch (error) {
       console.error('Error viewing semester:', error);
     }
   };
@@ -301,12 +301,12 @@ const MakePlan: React.FC = () => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      if (result.Success){
+      if (result.Success) {
         openAddClassNotificationSuccess(result.Success)
         viewSemesterCourses(selectedPlanId, selectedSemesterId);
-        fetchCourses(selectedPlanId) 
+        fetchCourses(selectedPlanId)
       }
-      else{
+      else {
         openAddClassNotificationFailed(result.Failed)
       }
 
@@ -326,7 +326,7 @@ const MakePlan: React.FC = () => {
 
   const handleSemesterSelection = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedSemesterId(event.target.value);
-    if (selectedPlanId){
+    if (selectedPlanId) {
       viewSemesterCourses(selectedPlanId, event.target.value);
     }
 
@@ -334,7 +334,7 @@ const MakePlan: React.FC = () => {
 
   const handlePlanSelection = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedPlanId(event.target.value);
-    if (selectedSemesterId){
+    if (selectedSemesterId) {
       viewSemesterCourses(event.target.value, selectedSemesterId);
     }
     fetchCourses(event.target.value);
@@ -343,59 +343,60 @@ const MakePlan: React.FC = () => {
   return (
     <StyledContainer className="make-plan">
       <div className="grid-container">
-      <div className="form-section">
-      <h2>Make Your Plan</h2>
-      <StyledButton color="#fdb515" onClick={handleCreatePlan} style={{ marginBottom: '30px'}}>Create Plan</StyledButton>
+        <div className="form-section">
+          <h2>Make Your Plan</h2>
+          <StyledButton color="#fdb515" onClick={handleCreatePlan} style={{ marginBottom: '30px' }}>Create Plan</StyledButton>
 
-      <form onSubmit={handleAddClass}>
+          <form onSubmit={handleAddClass}>
 
-          <StyledLabel htmlFor="plan-dropdown">Select a plan:</StyledLabel>
-          <StyledSelect
-            value={selectedPlanId}
-            onChange={handlePlanSelection}
-            required
-            color="#fdb515">
-            <option value="">Select a Plan</option>
-            {plans.map(plan => (
-              <option key={plan.id} value={plan.id}>{plan.name}</option>
-            ))}
-          </StyledSelect>
+            <StyledLabel htmlFor="plan-dropdown">Select a plan:</StyledLabel>
+            <StyledSelect
+              value={selectedPlanId}
+              onChange={handlePlanSelection}
+              required
+              color="#fdb515">
+              <option value="">Select a Plan</option>
+              {plans.map(plan => (
+                <option key={plan.id} value={plan.id}>{plan.name}</option>
+              ))}
+            </StyledSelect>
 
-          <StyledLabel htmlFor="semester-dropdown">Select a term:</StyledLabel>
-          <StyledSelect
-            id="semester-dropdown"
-            value={selectedSemesterId}
-            onChange={handleSemesterSelection}
-            required
-            color="#fdb515">
-            <option key="" value="">Select a term</option>
-            {semesters.map((semester, index) => (
-              <option key={semester.id || index} value={semester.id}>
-                {semester.name}
-              </option>
-            ))}
-          </StyledSelect>
+            <StyledLabel htmlFor="semester-dropdown">Select a term:</StyledLabel>
+            <StyledSelect
+              id="semester-dropdown"
+              value={selectedSemesterId}
+              onChange={handleSemesterSelection}
+              required
+              color="#fdb515">
+              <option key="" value="">Select a term</option>
+              {semesters.map((semester, index) => (
+                <option key={semester.id || index} value={semester.id}>
+                  {semester.name}
+                </option>
+              ))}
+            </StyledSelect>
 
-          <StyledLabel htmlFor="course-dropdown">Select a class:</StyledLabel>
-          <StyledSelect
-            id="course-dropdown"
-            value={selectedCourseId}
-            onChange={handleCourseSelection}
-            required
-            color="#fdb515">
-            <option key="" value="" title="">Select a class</option>
-            {courses.map((course) => (
-              <option key={course.course_id} value={course.course_id} title={course.course_title}>
-                {course.subject_code} {course.course_num}: {course.course_title} {course.credits}cr
-              </option>
-            ))}
-          </StyledSelect>
+            <StyledLabel htmlFor="course-dropdown">Select a class:</StyledLabel>
+            <StyledSelect
+              id="course-dropdown"
+              value={selectedCourseId}
+              onChange={handleCourseSelection}
+              required
+              color="#fdb515">
+              <option key="" value="" title="">Select a class</option>
+              {courses.map((course) => (
+                <option key={course.course_id} value={course.course_id} title={course.course_title}>
+                  {course.subject_code} {course.course_num}: {course.course_title} {course.credits}cr
+                </option>
+              ))}
+            </StyledSelect>
+            <div className='button-container-makePlan' style={{ marginTop: '50px' }}>
+              <StyledButton color="#fdb515" onclick={handleAddClass} type="submit">Add Course</StyledButton>
+              <StyledButton color="#fdb515" onClick={handleViewPlanClick}>View Plans</StyledButton>
+            </div>
           </form>
-        
-        <div className='button-container-makePlan' style={{ marginTop: '50px' }}> {/* Increased space above the buttons */}
-          <StyledButton color="#fdb515" type="submit">Add Course</StyledButton>
-          <StyledButton color="#fdb515" onClick={handleViewPlanClick}>View Plans</StyledButton>
-        </div>
+
+
         </div>
 
         <div className="terms-section">

@@ -381,7 +381,7 @@ const ViewUserPlan: React.FC = () => {
 
       {isPlanEmpty() ? (
         <div style={{ textAlign: 'center', marginTop: '3%' }}>
-          <p className='Empty-Plan'>Your plan is currently empty.</p>
+          <p className='Empty-Plan'>Your plan is currently empty. Chip is sad.</p>
           <p className='Empty-Plan'>Select a plan to view or add more classes!!!</p>
           <img className='Empty-Picture' src="/img/Retriever_sad.png" alt="Empty Plan" />
         </div>

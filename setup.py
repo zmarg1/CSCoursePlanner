@@ -33,6 +33,14 @@ FAILED_PUT = {"Failed": "Wrong method given expected PUT"}
 BLACKLIST = [";", "&", "\\", "$", ">", "<", "`", "!", "|", ",", "#", ".", "'"]
 FAILED_BLACKLIST = {"Failed": "A Blacklisted charachter was input"}
 
+def check_input(usr_input):
+    valid = True
+    for char in usr_input:
+        if char in BLACKLIST:
+            valid = False
+    
+    return valid
+
 """
 The user object class to interact with the authorization table in supabase
 user_obj - Stores the created supabase 'user' object
@@ -106,12 +114,17 @@ class users():
         result = pub_user.update_campus_id(new_c_id, self.email)
         return result
             
-    def user_make_plan(self):
+    def user_make_plan(self, pln_name=None):
         user_plans = self.get_plans()
         if len(user_plans) < self.max_plans:
             user_id = self.get_user_id()
             new_plan = plan()
-            result = new_plan.make_plan(user_id)
+
+            if pln_name:
+                result = new_plan.make_plan(user_id)
+            else:
+                result = new_plan.make_plan(user_id, pln_name)
+
             if result:
                 new_plan.add_commit()
                 return {"Success": f"{result}"}
@@ -483,7 +496,7 @@ class plan(db.Model):
     """
     Makes a plan for the user
     """
-    def make_plan(self, user_id ,num=0, name="default plan 0"):
+    def make_plan(self, user_id ,name="default plan 0", num=0):
         self.user_id = user_id
 
         #Get last id in list if any
@@ -502,7 +515,12 @@ class plan(db.Model):
             if name == "default plan 0":
                 self.plan_name = f"default plan {last_num.plan_num+1}"
             else:
-                self.plan_name = name
+                valid = check_input(name)
+
+                if valid:
+                    self.plan_name = name
+                else:
+                    self.plan_name = f"default plan {last_num.plan_num+1}"
 
         else:
             self.plan_num = num
@@ -516,10 +534,7 @@ class plan(db.Model):
         return plan_name.plan_name
 
     def rename_plan(self, usr_id, new_name):
-        valid = True
-        for char in new_name:
-            if char in BLACKLIST:
-                valid = False
+        valid = check_input(new_name)
         
         if not valid:
             return FAILED_BLACKLIST
@@ -699,6 +714,10 @@ class prereq(db.Model):
     prereq_courses = db.Column(db.ARRAY(db.Integer))
     grade_required = db.Column(db.Integer)
 
+    def __init__(self, course_id=None):
+        if course_id:
+            self.crs_id = course_id
+
     def add_commit(self):
         db.session.add(self)
         db.session.commit()
@@ -707,6 +726,7 @@ class prereq(db.Model):
         db.session.delete(self)
         db.session.commit()
 
+    #Gets the prereq courses list and converts the string course ids to ints
     def get_prereq_ints(self):
         pre_list = prereq.query.all()
 
@@ -717,13 +737,13 @@ class prereq(db.Model):
         return pre_list
     
     #Checks if a course can be taken by checking if one of its prereqs has been taken if it has prereqs
-    def check_prereqs(self, crs_id, taken_courses):
+    def check_prereqs(self, taken_courses):
         pre_list = self.get_prereq_ints()
         can_take = True
         course_req = []
 
         for obj in pre_list:
-            if crs_id == obj.crs_id:
+            if self.crs_id == obj.crs_id:
                 course_req.append(obj.prereq_courses)
 
         #Runs only if a course has prereqs and has taken courses
@@ -741,12 +761,23 @@ class prereq(db.Model):
             can_take = False
         
         return can_take
+    
+    #Gets the prereqs for the given course
+    def get_prereqs(self):
+        pre_list = self.get_prereq_ints()
+        courses_req = []
+
+        for obj in pre_list:
+            if self.crs_id == obj.crs_id:
+                courses_req.append(obj.prereq_courses)
+        
+        return courses_req
 
 # Defines your prereq output
 class PrereqSchema(ma.Schema):
     class Meta:
         # Fields to expose
-        fields = ("prereq_id","crs_id", "prereq_courses", "grade_required")
+        fields = ("prereq_id", "crs_id", "prereq_courses", "grade_required")
 
 prereq_schema = PrereqSchema()
 prereqs_schema = PrereqSchema(many=True)

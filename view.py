@@ -1,6 +1,6 @@
 from flask import Blueprint
-from setup import course, semester, users, plan
-from setup import jsonify, request, taken_courses_schema, plans_schema, semesters_schema, user_courses_schema
+from setup import course, semester, users, plan, prereq
+from setup import jsonify, request, taken_courses_schema, plans_schema, semesters_schema, user_courses_schema, user_course_schema, prereqs_schema
 from setup import FAILED_EMAIL, FAILED_GET, FAILED_PLAN, FAILED_PLAN_ID, FAILED_SEM_ID
 
 view_api = Blueprint('view_api', __name__)
@@ -151,6 +151,34 @@ def view_semester_courses(user_email, plan_id, sem_id):
     
     elif not sem_id:
         return jsonify({"Failed": "Expected Semester ID"})
+    
+    else:
+        return jsonify(FAILED_GET)
+    
+
+@view_api.route("/user/course/view-prereqs/<crs_id>", methods=["GET"])
+def get_prereqs(crs_id):
+    if crs_id and request.method == "GET":
+        crs_id = int(crs_id)
+        preqs = prereq(crs_id)
+        all_prereqs = preqs.get_prereqs()
+        print("ALL PREREQS", all_prereqs)
+
+        _course = course()
+        preq_crs_dump = {}
+        i = 0
+        for preq in all_prereqs:
+            key = f"req{i}"
+            preq_crs_dump[key] = []
+            for crs in preq:
+                crs_obj = _course.get_course(crs)
+                preq_crs_dump[key].append(user_course_schema.dump(crs_obj))
+            i += 1
+
+        return preq_crs_dump
+
+    elif not crs_id:
+        return jsonify({"Failed": "Course ID missing"})
     
     else:
         return jsonify(FAILED_GET)

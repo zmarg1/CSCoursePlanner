@@ -37,13 +37,24 @@ Makes an empty plan for the user if they have not reached the plan limit
 """
 @app.route("/user/plan/make-plan/<user_email>", methods=["POST"])
 def user_make_plan(user_email):
-    if user_email and request.method == "POST":
+    if user_email and request.method == "POST" and  "plan_name" in request.json:
+        plan_name = request.json["plan_name"]
+
         curr_user = users(user_email)
-        result = curr_user.user_make_plan()
+
+        if plan_name:
+            result = curr_user.user_make_plan(plan_name)
+        else:
+            result = curr_user.user_make_plan()
+            
         return jsonify(result)
     
     elif not user_email:
         return jsonify(FAILED_EMAIL)
+    
+    elif "plan_name" in request.json:
+        return jsonify({"Failed": "Missing json \'plan_name\'"})
+
     else:
         return jsonify(FAILED_POST)
 

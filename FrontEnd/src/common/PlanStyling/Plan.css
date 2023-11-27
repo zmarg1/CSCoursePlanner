@@ -31,10 +31,10 @@
 .button-container-makePlan {
   margin-top: 20%;
   display: flex;
-  justify-content: left;
-  align-items: left;
+  justify-content: center;
   gap: 15%;
-  padding-left: 50%;
+  margin-right: auto;
+  /* padding-left: 50%; */
 }
 
 .button-container-myPlan {

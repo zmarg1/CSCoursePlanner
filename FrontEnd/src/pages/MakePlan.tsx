@@ -390,7 +390,7 @@ const MakePlan: React.FC = () => {
                 </option>
               ))}
             </StyledSelect>
-            <StyledContainer className='button-container-makePlan' style={{ marginTop: '50px', marginLeft: '0px'}}>
+            <StyledContainer className='button-container-makePlan' style={{ marginTop: '50px', marginLeft: '-12%'}}>
               <StyledButton color="#fdb515" onclick={handleAddClass} type="submit">Add Course</StyledButton>
               <StyledButton color="#fdb515" onClick={handleViewPlanClick}>View Plans</StyledButton>
             </StyledContainer>

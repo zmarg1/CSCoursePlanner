@@ -107,30 +107,35 @@ const MakePlan: React.FC = () => {
 };
 
 
-  const renamePlan = async (userEmail: string, planId: number, newName: string) => {
-    try {
-      const renameResponse = await fetch(`${URL}/user/plan/rename-plan/${userEmail}/${planId}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ new_name: newName })    });
+const renamePlan = async (userEmail: string, planId: number, newName: string) => {
+  try {
+      // Construct the correct URL with path parameters
+      const url = `${URL}/user/plan/rename-plan/${userEmail}/${planId}`;
 
-      if (!renameResponse.ok) {
-        throw new Error(`HTTP error! status: ${renameResponse.status}`);
+      const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ new_name: newName }) // Include new_name in the request body
+      });
+
+      if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const renameResult = await renameResponse.json();
-      if (renameResult.Success) {
-        openPlanNotificationSuccess(`Plan renamed to "${newName}" successfully.`);
+      const result = await response.json();
+      if (result.Success) {
+          openPlanNotificationSuccess(`Plan renamed to "${newName}" successfully.`);
       } else {
-        openPlanNotificationFailed(renameResult.Failed);
+          openPlanNotificationFailed(result.Failed);
       }
 
-    } catch (error) {
+  } catch (error) {
       console.error('Error renaming plan:', error);
-    }
-  };
+  }
+};
+
 
   const openPlanNotificationSuccess = (title: string) => {
     notification["success"]({

@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import { notification } from "antd";
 import { StyledContainer } from '../common/Container/styles';
 
+
 const URL = `http://127.0.0.1:5000`
 
 interface Course {
@@ -58,13 +59,87 @@ const MakePlan: React.FC = () => {
   const [selectedPlanId, setSelectedPlanId] = useState('');
   const [studentStatus, setStudentStatus] = useState('');
   const [semesterCourses, setSemesterCourses] = useState<CourseData>({});
+  const [isCreatePlanModalVisible, setIsCreatePlanModalVisible] = useState(false);
+  const [customPlanName, setCustomPlanName] = useState('');
+  const [showPreview, setShowPreview] = useState(false);
 
-  const determineStudentStatus = (semesterCount: number) => {
-    if (semesterCount < 2) return 'Freshman';
-    if (semesterCount < 4) return 'Sophomore';
-    if (semesterCount < 6) return 'Junior';
-    return 'Senior';
+
+  const handleConfirmCreatePlan = async () => {
+    setIsCreatePlanModalVisible(false);
+
+    const planName = customPlanName.trim() !== '' ? customPlanName : 'Default Plan Name';
+    setCustomPlanName('');
+
+    const userEmail = user?.emailAddresses[0]?.emailAddress;
+    if (!userEmail) {
+      console.error('User email is not available');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${URL}/user/plan/make-plan/${userEmail}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ plan_name: planName })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('Plan creation result:', result);
+
+      if (result.Success) {
+        // Assuming the result contains the ID of the newly created plan
+        const newPlanId = result.plan_id;
+        await renamePlan(userEmail, newPlanId, "New Custom Name");
+      } else {
+        openPlanNotificationFailed(result.Failed);
+      }
+      await fetchPlans();
+
+    } catch (error) {
+      console.error('There was an error creating the plan:', error);
+    }
   };
+
+  const renamePlan = async (userEmail: string, planId: number, newName: string) => {
+    try {
+      const renameResponse = await fetch(`${URL}/user/plan/rename-plan/${userEmail}/${planId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ new_name: newName })
+      });
+
+      if (!renameResponse.ok) {
+        throw new Error(`HTTP error! status: ${renameResponse.status}`);
+      }
+
+      const renameResult = await renameResponse.json();
+      if (renameResult.Success) {
+        openPlanNotificationSuccess(`Plan renamed to "${newName}" successfully.`);
+      } else {
+        openPlanNotificationFailed(renameResult.Failed);
+      }
+
+    } catch (error) {
+      console.error('Error renaming plan:', error);
+    }
+  };
+
+
+
+  // const determineStudentStatus = (semesterCount: number) => {
+  //   if (semesterCount < 2) return 'Freshman';
+  //   if (semesterCount < 4) return 'Sophomore';
+  //   if (semesterCount < 6) return 'Junior';
+  //   return 'Senior';
+  // };
 
   const openPlanNotificationSuccess = (title: string) => {
     notification["success"]({
@@ -130,46 +205,11 @@ const MakePlan: React.FC = () => {
     }
   };
 
-  const handleCreatePlan = async () => {
-    // Ensure that the user's email is available
-    const userEmail = user?.emailAddresses[0]?.emailAddress;
-    if (!userEmail) {
-      console.error('User email is not available');
-      return;
-    }
-
-    try {
-      const response = await fetch(`${URL}/user/plan/make-plan/${userEmail}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        // You can send additional data in the request body, if necessary
-        // body: JSON.stringify({ additionalData: 'value' })
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const result = await response.json();
-      console.log('Plan creation result:', result);
-
-      if (result.Success) {
-        openPlanNotificationSuccess(result.Success);
-      }
-      else {
-        openPlanNotificationFailed(result.Failed);
-      }
-      await fetchPlans();
-
-      // You can add additional logic here to handle the response,
-      // such as navigating to a different page, updating the state, etc.
-
-    } catch (error) {
-      console.error('There was an error creating the plan:', error);
-    }
+  const handleCreatePlan = () => {
+    setIsCreatePlanModalVisible(true);
   };
+
+
 
   const fetchCourses = async (plan_id: string, sem_id: string) => {
     try {
@@ -207,8 +247,16 @@ const MakePlan: React.FC = () => {
         credits: course.credits,
         subject_code: course.subject_code,
       })));
+
+      if (coursesData && coursesData.length > 0) {
+        setShowPreview(true);
+        // existing logic to set courses...
+      } else {
+        setShowPreview(false);
+      }
     } catch (error) {
       console.error('There has been a problem with your fetch operation:', error);
+      setShowPreview(false);
     }
   };
 
@@ -234,7 +282,6 @@ const MakePlan: React.FC = () => {
     }
   };
 
-
   const viewSemesterCourses = async (plan_id: string, sem_id: string) => {
     try {
       const email = user?.emailAddresses
@@ -250,7 +297,7 @@ const MakePlan: React.FC = () => {
       const data = await response.json();
 
       if (!data.Failed) {
-        console.log("Semester Courses Data:",data);
+        console.log("Semester Courses Data:", data);
         setSemesterCourses(data);
       }
 
@@ -309,9 +356,6 @@ const MakePlan: React.FC = () => {
       else {
         openAddClassNotificationFailed(result.Failed)
       }
-
-      // Update the user's plan state
-      // setUserPlan([...userPlan, { courseId: selectedCourseId, semesterId: parseInt(selectedSemesterId, 10) }]);
 
     } catch (error) {
       console.error('Error adding class to plan:', error);
@@ -390,15 +434,14 @@ const MakePlan: React.FC = () => {
                 </option>
               ))}
             </StyledSelect>
-            <StyledContainer className='button-container-makePlan' style={{ marginTop: '10%', marginLeft: '-12.5%'}}>
+            <StyledContainer className='button-container-makePlan' style={{ marginTop: '10%', marginLeft: '-9%' }}>
               <StyledButton color="#fdb515" onclick={handleAddClass} type="submit">Add Course</StyledButton>
               <StyledButton color="#fdb515" onClick={handleViewPlanClick}>View Plans</StyledButton>
             </StyledContainer>
           </form>
-
-
         </div>
 
+        {showPreview && (
         <div className="terms-section">
           {Object.entries(semesterCourses).map(([year, terms]) => (
             Object.entries(terms).filter(([_, coursesList]) => coursesList.length > 0)
@@ -408,11 +451,8 @@ const MakePlan: React.FC = () => {
                   <ul style={{ listStyleType: 'none', paddingLeft: '5px' }}>
                     {coursesList.map((course, index) => (
                       <li key={index} style={{ display: 'flex', alignItems: 'left', marginBottom: '10px' }}>
-                        <div>
-                          <div style={{ flex: 0.40, marginRight: '10px' }}>
-                            <strong>{course.course_title} - </strong>
-                          </div>
-                          <strong>{course.subject_code} {course.course_num}, {course.credits} credits</strong>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'left' }}>
+                          <strong>{course.course_title} - {course.subject_code} {course.course_num}, {course.credits} credits</strong>
                         </div>
                       </li>
                     ))}
@@ -420,7 +460,27 @@ const MakePlan: React.FC = () => {
                 </div>
               ))
           ))}
-        </div>
+        </div> )}
+
+        {isCreatePlanModalVisible && (
+          <div className="modal-overlay">
+            <div className="modal-container">
+              <div className="modal-content">
+                <p>Enter a name for your new plan:</p>
+                <input
+                  type="text"
+                  placeholder="Plan name"
+                  value={customPlanName}
+                  onChange={(e) => setCustomPlanName(e.target.value)}
+                />
+                <StyledButton color="#fdb515" onClick={handleConfirmCreatePlan}>Create</StyledButton>
+                <StyledButton color="#fdb515" onClick={() => setIsCreatePlanModalVisible(false)}>Cancel</StyledButton>
+              </div>
+            </div>
+          </div>
+        )}
+
+
       </div>
     </StyledContainer>
   );

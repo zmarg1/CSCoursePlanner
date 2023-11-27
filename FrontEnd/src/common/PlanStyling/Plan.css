@@ -1,6 +1,6 @@
 .make-plan {
   text-align: left;
-  padding-left: 175px;
+  padding-left: 20%;
 }
 
 .myPlan {
@@ -80,7 +80,7 @@
 
 .grid-container {
   display: grid;
-  grid-template-columns: 3fr 1fr; /* Two columns of equal width */
+  grid-template-columns: 2fr 1fr; /* Two columns of equal width */
   gap: 1%; /* Space between columns */
 }
 
@@ -88,4 +88,11 @@
   .grid-container {
     grid-template-columns: 1fr; /* Stack columns on top of each other on small screens */
   }
+}
+
+.course-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr; /* Adjust the number of fr's based on how many columns you want */
+  gap: 10px; /* Space between rows and columns */
+  align-items: start;
 }

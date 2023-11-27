@@ -46,7 +46,7 @@ def user_make_plan(user_email):
             result = curr_user.user_make_plan(plan_name)
         else:
             result = curr_user.user_make_plan()
-            
+
         return jsonify(result)
     
     elif not user_email:

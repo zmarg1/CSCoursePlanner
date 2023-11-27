@@ -76,6 +76,7 @@ const MakePlan: React.FC = () => {
     }
 
     try {
+      console.log("Plan Name: ", planName)
       const response = await fetch(`${URL}/user/plan/make-plan/${userEmail}`, {
         method: 'POST',
         headers: {
@@ -92,8 +93,6 @@ const MakePlan: React.FC = () => {
       console.log('Plan creation result:', result);
 
       if (result.Success) {
-        const newPlanId = result.plan_id;
-        await renamePlan(userEmail, newPlanId, planName); // Use planName here
       } else {
         openPlanNotificationFailed(result.Failed);
       }

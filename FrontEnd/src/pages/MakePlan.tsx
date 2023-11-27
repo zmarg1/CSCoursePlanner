@@ -117,9 +117,10 @@ const MakePlan: React.FC = () => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const plansData: PlanFromServer[] = await response.json();
+      const sortedPlans = plansData.sort((a, b) => a.plan_name.localeCompare(b.plan_name));
 
       // Assuming you want to set the plan IDs in a state
-      setPlans(plansData.map(plan => ({
+      setPlans(sortedPlans.map(plan => ({
         id: plan.plan_id,
         name: `${plan.plan_name}`
         // You can add more fields if you have additional data for each plan

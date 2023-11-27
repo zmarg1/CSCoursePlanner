@@ -68,7 +68,6 @@ const MakePlan: React.FC = () => {
     setIsCreatePlanModalVisible(false);
 
     const planName = customPlanName.trim() !== '' ? customPlanName : 'Default Plan Name';
-    setCustomPlanName('');
 
     const userEmail = user?.emailAddresses[0]?.emailAddress;
     if (!userEmail) {
@@ -93,18 +92,20 @@ const MakePlan: React.FC = () => {
       console.log('Plan creation result:', result);
 
       if (result.Success) {
-        // Assuming the result contains the ID of the newly created plan
         const newPlanId = result.plan_id;
-        await renamePlan(userEmail, newPlanId, "New Custom Name");
+        await renamePlan(userEmail, newPlanId, planName); // Use planName here
       } else {
         openPlanNotificationFailed(result.Failed);
       }
+
       await fetchPlans();
+      setCustomPlanName(''); // Reset custom plan name after the operation
 
     } catch (error) {
       console.error('There was an error creating the plan:', error);
     }
-  };
+};
+
 
   const renamePlan = async (userEmail: string, planId: number, newName: string) => {
     try {
@@ -113,8 +114,7 @@ const MakePlan: React.FC = () => {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ new_name: newName })
-      });
+        body: JSON.stringify({ new_name: newName })    });
 
       if (!renameResponse.ok) {
         throw new Error(`HTTP error! status: ${renameResponse.status}`);
@@ -131,15 +131,6 @@ const MakePlan: React.FC = () => {
       console.error('Error renaming plan:', error);
     }
   };
-
-
-
-  // const determineStudentStatus = (semesterCount: number) => {
-  //   if (semesterCount < 2) return 'Freshman';
-  //   if (semesterCount < 4) return 'Sophomore';
-  //   if (semesterCount < 6) return 'Junior';
-  //   return 'Senior';
-  // };
 
   const openPlanNotificationSuccess = (title: string) => {
     notification["success"]({

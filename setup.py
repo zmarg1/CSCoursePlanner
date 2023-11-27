@@ -24,6 +24,7 @@ ma = Marshmallow(app)
 
 FAILED_EMAIL = {"Failed": "Incorrect Email given or missing"}
 FAILED_PLAN_ID = {"Failed": "Plan ID missing"}
+FAILED_SEM_ID = {"Failed": "Semester ID missing"}
 FAILED_PLAN = {"Failed": "User doesn't have plan"}
 FAILED_GET = {"Failed": "Wrong method given expected GET"}
 FAILED_POST = {"Failed": "Wrong method given expected POST"}
@@ -193,7 +194,7 @@ class users():
                 usr_has = True
         return usr_has
 
-    #Gets all the courses for the matching Term
+    #Gets all the Users courses for the matching Term: Fall, Summer, Spring, Winter
     def get_all_terms_courses(self, plan_id, term):
         usr_plan = plan(plan_id)
         taken_courses = usr_plan.get_taken_courses()
@@ -246,7 +247,7 @@ class users():
         else:
             return None
 
-    #Gets all users courses for the matching Semester ID
+    #Gets all users courses for the matching Semester ID to match year and term
     def get_term_courses(self, plan_id, sem_id):
         usr_plan = plan(plan_id)
         taken_courses = usr_plan.get_taken_courses()
@@ -299,31 +300,59 @@ class users():
         else:
             return None
 
-    def view_courses(self, plan_id):
-        all_courses = course.query.all()
+    #Views courses that user hasn't taken and relevant to term
+    def view_courses(self, plan_id, sem_id):
+        term_courses = self.get_offered_courses(sem_id)
         user_plan = self.get_pln_courses(plan_id)
         not_taken = True
         view_courses = []
-        prereq_ = prereq()
 
         if user_plan:
             #Iterates through all available courses
-            for crs in all_courses:
+            for crs in term_courses:
                 not_taken = True
+
                 #Iterates through all users taken courses
                 for taken_crs in user_plan:
                     if crs.course_id == taken_crs.course_id:
                         not_taken = False
                         break
-                if not_taken and prereq_.check_prereqs(crs.course_id, user_plan):
+
+                if not_taken:
                     view_courses.append(crs)
         
         else:
-            for crs in all_courses:
-                if prereq_.check_prereqs(crs.course_id, user_plan):
-                    view_courses.append(crs)
+            view_courses = term_courses
 
         return view_courses
+    
+    #Gets all courses offered for a term given a semester id
+    def get_offered_courses(self, sem_id):
+        sem = semester(sem_id)
+        past = True
+
+        if sem.term == "Fall":
+            sem_objs = sem.get_fall_objs(past)
+        elif sem.term == "Winter":
+            sem_objs = sem.get_winter_objs(past)
+        elif sem.term == "Spring":
+            sem_objs = sem.get_spring_objs(past)
+        else:
+            sem_objs = sem.get_summer_objs(past)
+
+        crs = course()
+        term_course_ids = set()
+
+        for obj in sem_objs:
+            offered = crs.get_courses_offered(obj.semester_id)
+            for offer in offered:
+                term_course_ids.add(offer.course_id)
+        
+        term_crs_objs = []
+        for crs_id in term_course_ids:
+            term_crs_objs.append(crs.get_course(crs_id))
+
+        return term_crs_objs
 
     """
     Adds courses to the users plan dictionary
@@ -797,10 +826,11 @@ class course(db.Model):
         self.prereq = req
         db.session.commit()
 
+    #Get courses offered for a term
     def get_courses_offered(self, sem_id):
         stmt = db.select(self.crs_offered).where(
             db.and_(
-                self.crs_offered.c.course_id != None, self.crs_offered.c.semester_id == sem_id
+                self.crs_offered.c.course_id != None, self.crs_offered.c.frequency != None, self.crs_offered.c.semester_id == sem_id
             )
         )
         result = db.session.execute(stmt).fetchall()
@@ -882,7 +912,7 @@ class semester(db.Model):
             if sem:
                 self.term = sem.term
                 self.year = sem.year
-        elif year and term:
+        elif not sem_id and year and term:
             sem_obj = semester.query.filter(semester.term == term, semester.year == year).first()
             if sem_obj:
                 self.semester_id = sem_obj.semester_id
@@ -928,16 +958,15 @@ class semester(db.Model):
             self.current_term = "Winter"
 
     """
-    Gets all objects for a specific term
+    Gets all semester objects for a specific term
     Fall, Winter, Spring, Summer
     Input: a list of courses in a plan
     Return: if input given 
     """
-    def get_fall_objs(self, curr=True):
-        if not curr:
+    def get_fall_objs(self, past=False):
+        if past:
             fall_objs = []
-            current = True
-            semesters = self.get_year_order_objs(current)
+            semesters = self.get_year_order_objs(past)
             for sem in semesters:
                 if sem.term == "Fall":
                     fall_objs.append(sem)
@@ -950,11 +979,10 @@ class semester(db.Model):
                     fall_objs.append(sem)
             return fall_objs
 
-    def get_winter_objs(self, curr=True):
-        if not curr:
+    def get_winter_objs(self, past=False):
+        if past:
             winter_objs = []
-            current = True
-            semesters = self.get_year_order_objs(current)
+            semesters = self.get_year_order_objs(past)
             for sem in semesters:
                 if sem.term == "Winter":
                     winter_objs.append(sem)
@@ -967,11 +995,10 @@ class semester(db.Model):
                     winter_objs.append(sem)
             return winter_objs
 
-    def get_spring_objs(self, curr=True):
-        if not curr:
+    def get_spring_objs(self, past=False):
+        if past:
             spring_objs = []
-            current = True
-            semesters = self.get_year_order_objs(current)
+            semesters = self.get_year_order_objs(past)
             for sem in semesters:
                 if sem.term == "Spring":
                     spring_objs.append(sem)
@@ -984,11 +1011,10 @@ class semester(db.Model):
                     spring_objs.append(sem)
             return spring_objs
 
-    def get_summer_objs(self, curr=True):
-        if not curr:
+    def get_summer_objs(self, past=False):
+        if past:
             summer_objs = []
-            current = True
-            semesters = self.get_year_order_objs(current)
+            semesters = self.get_year_order_objs(past)
             for sem in semesters:
                 if sem.term == "Summer":
                     summer_objs.append(sem)
@@ -1002,52 +1028,38 @@ class semester(db.Model):
             return summer_objs
 
     """
-    Gets relevant semesters based on current year and approximate term
-    Gets all semesters before current year
-    Used for checking if a course will be offered
+    Gets relevant semesters based on current year and approximate term if 'past' is False
+    Gets all semesters before current year if 'past' is True
     """
-    def get_year_order_objs(self, old = False):
+    def get_year_order_objs(self, past = False):
         self.update_year_term()
         curr_year = self.current_year
         curr_term = self.current_term
         all_semesters = semester.query.all()
         order_objs = []
         
-        if not old:
-            reached_term = False
+        if past:
+            before_curr_term = True
             for obj in all_semesters:
-                if reached_term:
+                if obj.year == curr_year and obj.term == curr_term:
+                    before_curr_term = False
                     order_objs.append(obj)
-                    self.last_year = obj.year
-                elif obj.year == curr_year and obj.term == curr_term and not reached_term:
-                    reached_term = True
+                    break
+                elif before_curr_term:
                     order_objs.append(obj)
-                    self.last_year = obj.year
+
         else:
-            before_term = True
+            reached_curr_term = False
             for obj in all_semesters:
-                if before_term:
+                if reached_curr_term:
                     order_objs.append(obj)
-                elif obj.year == curr_year and obj.term == curr_term and not before_term:
-                    before_term = False
+                    self.last_year = obj.year
+                elif obj.year == curr_year and obj.term == curr_term:
+                    reached_curr_term = True
                     order_objs.append(obj)
+                    self.last_year = obj.year
 
-        return order_objs   
-
-    def get_past_courses_ids(self):
-        all_fall_objs = self.get_fall_objs(False)
-        crs = course()
-        fall_courses = {}
-
-        for sem in all_fall_objs:
-            courses = crs.get_courses_offered(sem.semester_id)
-            if courses:
-                fall_courses[sem.year] = []
-            for offr_id, crs_id, sem_id, freq in courses:
-                if sem_id == sem.semester_id:
-                    fall_courses[sem.year].append(crs_id)
-
-        return fall_courses
+        return order_objs
 
 
 class SemesterSchema(ma.Schema):

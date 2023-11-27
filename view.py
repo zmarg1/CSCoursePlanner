@@ -1,7 +1,7 @@
 from flask import Blueprint
 from setup import course, semester, users, plan
 from setup import jsonify, request, taken_courses_schema, plans_schema, semesters_schema, user_courses_schema
-from setup import FAILED_EMAIL, FAILED_GET, FAILED_PLAN, FAILED_PLAN_ID
+from setup import FAILED_EMAIL, FAILED_GET, FAILED_PLAN, FAILED_PLAN_ID, FAILED_SEM_ID
 
 view_api = Blueprint('view_api', __name__)
 
@@ -9,14 +9,16 @@ view_api = Blueprint('view_api', __name__)
 Returns all the courses in the database for a user to see
 """
 #TODO: make it show only necessary courses and able to update when required course added to plan
-@view_api.route("/user/view-all-courses/<user_email>/<plan_id>", methods=["GET"])
-def view_all_courses(user_email, plan_id):
-    if request.method == "GET" and user_email and plan_id:
+@view_api.route("/user/view-all-courses/<user_email>/<plan_id>/<sem_id>", methods=["GET"])
+def view_term_courses(user_email, plan_id, sem_id):
+    if request.method == "GET" and user_email and plan_id and sem_id:
         user = users(user_email)
         plan_id = int(plan_id)
         has_plan = user.user_has_plan(plan_id)
+        
         if has_plan:
-            all_courses = user.view_courses(plan_id)
+            sem_id = int(sem_id)
+            all_courses = user.view_courses(plan_id, sem_id)
             courses_dump = user_courses_schema.dump(all_courses)
             return jsonify(courses_dump)
         
@@ -33,6 +35,9 @@ def view_all_courses(user_email, plan_id):
     
     elif not plan_id:
         return jsonify(FAILED_PLAN_ID)
+    
+    elif not sem_id:
+        return jsonify(FAILED_SEM_ID)
     
     else:
         return jsonify(FAILED_GET)
@@ -110,22 +115,12 @@ def user_view_all_plans(user_email):
             return jsonify({"Failed": "User has no plans"})
     return jsonify({"Failed": "User not signed in"})
 
-@view_api.route("/user/plan/view-term/<user_email>/<plan_id>/<sem_id>", methods=["GET"])
-def user_view_term(user_email, plan_id, sem_id):
-    if user_email and request.method == "GET":
-        pass
-
-    elif not user_email:
-        return jsonify(FAILED_EMAIL)
-    
-    else:
-        return jsonify(FAILED_GET)
 
 """
 View all the classes in a selected term
 """
 @view_api.route("/user/plan/view-semester-courses/<user_email>/<plan_id>/<sem_id>", methods=["GET"])
-def view_semester(user_email, plan_id, sem_id):
+def view_semester_courses(user_email, plan_id, sem_id):
     if user_email and request.method == "GET" and plan_id and sem_id:
         user = users(user_email)
         plan_id = int(plan_id)

@@ -9,7 +9,6 @@ import { useNavigate } from 'react-router-dom';
 import { notification } from "antd";
 import { StyledContainer } from '../common/Container/styles';
 
-
 const URL = `http://127.0.0.1:5000`
 
 interface Course {
@@ -171,10 +170,10 @@ const MakePlan: React.FC = () => {
     }
   };
 
-  const fetchCourses = async (plan_id: string) => {
+  const fetchCourses = async (plan_id: string, sem_id: string) => {
     try {
       const email = user?.emailAddresses
-      const response = await fetch(`${URL}/user/view-all-courses/${email}/${plan_id}`, {
+      const response = await fetch(`${URL}/user/view-all-courses/${email}/${plan_id}/${sem_id}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json'
@@ -250,7 +249,7 @@ const MakePlan: React.FC = () => {
       const data = await response.json();
 
       if (!data.Failed) {
-        console.log(data);
+        console.log("Semester Courses Data:",data);
         setSemesterCourses(data);
       }
 
@@ -304,7 +303,7 @@ const MakePlan: React.FC = () => {
       if (result.Success) {
         openAddClassNotificationSuccess(result.Success)
         viewSemesterCourses(selectedPlanId, selectedSemesterId);
-        fetchCourses(selectedPlanId)
+        fetchCourses(selectedPlanId, selectedSemesterId)
       }
       else {
         openAddClassNotificationFailed(result.Failed)
@@ -328,16 +327,16 @@ const MakePlan: React.FC = () => {
     setSelectedSemesterId(event.target.value);
     if (selectedPlanId) {
       viewSemesterCourses(selectedPlanId, event.target.value);
+      fetchCourses(selectedPlanId, event.target.value);
     }
-
   };
 
   const handlePlanSelection = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedPlanId(event.target.value);
     if (selectedSemesterId) {
       viewSemesterCourses(event.target.value, selectedSemesterId);
+      fetchCourses(event.target.value, selectedSemesterId);
     }
-    fetchCourses(event.target.value);
   };
 
   return (

@@ -12,6 +12,7 @@ import Config from '../config'; // Import your configuration file
 
 const URL = `${Config.backendURL}`
 
+
 interface Course {
   course_id: number;
   course_num: string;

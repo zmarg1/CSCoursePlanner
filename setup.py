@@ -116,14 +116,15 @@ class users():
             
     def user_make_plan(self, pln_name=None):
         user_plans = self.get_plans()
+
         if len(user_plans) < self.max_plans:
             user_id = self.get_user_id()
             new_plan = plan()
 
             if pln_name:
-                result = new_plan.make_plan(user_id)
-            else:
                 result = new_plan.make_plan(user_id, pln_name)
+            else:
+                result = new_plan.make_plan(user_id)
 
             if result:
                 new_plan.add_commit()

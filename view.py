@@ -1,15 +1,14 @@
 from flask import Blueprint
 from setup import course, semester, users, plan, prereq
 from setup import jsonify, request, taken_courses_schema, plans_schema, semesters_schema, user_courses_schema, user_course_schema, prereqs_schema
-from setup import FAILED_EMAIL, FAILED_GET, FAILED_PLAN, FAILED_PLAN_ID, FAILED_SEM_ID
+from setup import FAILED_EMAIL, FAILED_GET, FAILED_PLAN, FAILED_PLAN_ID, FAILED_SEM_ID, FAILED_CRS_ID
 
 view_api = Blueprint('view_api', __name__)
 
 """
 Returns all the courses in the database for a user to see
 """
-#TODO: make it show only necessary courses and able to update when required course added to plan
-@view_api.route("/user/view-all-courses/<user_email>/<plan_id>/<sem_id>", methods=["GET"])
+@view_api.route("/user/view-term-courses/<user_email>/<plan_id>/<sem_id>", methods=["GET"])
 def view_term_courses(user_email, plan_id, sem_id):
     if request.method == "GET" and user_email and plan_id and sem_id:
         user = users(user_email)
@@ -157,12 +156,11 @@ def view_semester_courses(user_email, plan_id, sem_id):
     
 
 @view_api.route("/user/course/view-prereqs/<crs_id>", methods=["GET"])
-def get_prereqs(crs_id):
+def view_prereqs(crs_id):
     if crs_id and request.method == "GET":
         crs_id = int(crs_id)
         preqs = prereq(crs_id)
         all_prereqs = preqs.get_prereqs()
-        print("ALL PREREQS", all_prereqs)
 
         _course = course()
         preq_crs_dump = {}
@@ -178,7 +176,60 @@ def get_prereqs(crs_id):
         return preq_crs_dump
 
     elif not crs_id:
-        return jsonify({"Failed": "Course ID missing"})
+        return jsonify(FAILED_CRS_ID)
+    
+    else:
+        return jsonify(FAILED_GET)
+    
+
+@view_api.route("/user/course/view-description/<crs_id>", methods=["GET"])
+def view_description(crs_id):
+    if request.method == "GET" and crs_id:
+        crs_id = int(crs_id)
+        crs = course(crs_id)
+        desc = crs.get_description()
+        if desc:
+            return jsonify(desc)
+        else:
+            return jsonify({"Failed": "Course has no description"})
+
+    elif not crs_id:
+        return jsonify(FAILED_CRS_ID)
+    
+    else:
+        return jsonify(FAILED_GET)
+    
+@view_api.route("/user/course/view-description-and-prereqs/<crs_id>", methods=["GET"])
+def view_desc_prereqs(crs_id):
+    if crs_id and request.method == "GET":
+        crs_id = int(crs_id)
+        crs = course(crs_id)
+        desc = crs.get_description()
+
+        if not desc:
+            return jsonify({"Failed": "Course has no description"})
+        
+        preqs = prereq(crs_id)
+        all_prereqs = preqs.get_prereqs()
+
+        _course = course()
+        crs_info_dump = {}
+        crs_info_dump["desc"] = desc
+
+        i = 0
+        for preq in all_prereqs:
+            key = f"req{i}"
+            crs_info_dump[key] = []
+            for crs in preq:
+                crs_obj = _course.get_course(crs)
+                crs_info_dump[key].append(user_course_schema.dump(crs_obj))
+            i += 1
+
+        return jsonify(crs_info_dump)
+        
+
+    elif not crs_id:
+        return jsonify(FAILED_CRS_ID)
     
     else:
         return jsonify(FAILED_GET)

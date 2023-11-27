@@ -6,7 +6,6 @@ from flask_marshmallow import Marshmallow
 from supabase import Client #import supabase.py not supabase
 import datetime
 from datetime import timedelta, datetime
-import time
 
 client_key ="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF3eWRrbHp3dmJyZ3Zkb21oeGpiIiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTU0MDcxNjcsImV4cCI6MjAxMDk4MzE2N30.UNZJCMI1NxpSyFr8bBooIIGPqTbDe3N-_YV9ZHbE_1g"
 secret_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF3eWRrbHp3dmJyZ3Zkb21oeGpiIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTY5NTQwNzE2NywiZXhwIjoyMDEwOTgzMTY3fQ.5IP6Kh6jI3mL_3poMSKcjE_cANIjhqvGHJVjK5RNVMw"
@@ -25,6 +24,7 @@ ma = Marshmallow(app)
 FAILED_EMAIL = {"Failed": "Incorrect Email given or missing"}
 FAILED_PLAN_ID = {"Failed": "Plan ID missing"}
 FAILED_SEM_ID = {"Failed": "Semester ID missing"}
+FAILED_CRS_ID = {"Failed": "Course ID missing"}
 FAILED_PLAN = {"Failed": "User doesn't have plan"}
 FAILED_GET = {"Failed": "Wrong method given expected GET"}
 FAILED_POST = {"Failed": "Wrong method given expected POST"}
@@ -33,7 +33,10 @@ FAILED_PUT = {"Failed": "Wrong method given expected PUT"}
 BLACKLIST = [";", "&", "\\", "$", ">", "<", "`", "!", "|", ",", "#", ".", "'"]
 FAILED_BLACKLIST = {"Failed": "A Blacklisted charachter was input"}
 
-def check_input(usr_input):
+"""
+Check user input to make sure its valid
+"""
+def check_user_input(usr_input):
     valid = True
     for char in usr_input:
         if char in BLACKLIST:
@@ -414,14 +417,6 @@ class public_user_info(db.Model):
         user = public_user_info.query.filter(public_user_info.email == email).first()
         user_id = user.user_id
         return user_id
-    
-    def get_all_users():
-        all_users = public_user_info.query.all()
-        users_list = []
-        for obj in all_users:
-            users_list.append(obj)
-        
-        return users_list
 
     def update_campus_id(self, new_c_id, email):
         user = public_user_info.query.filter(public_user_info.email == email).first()
@@ -516,7 +511,7 @@ class plan(db.Model):
             if name == "default plan 0":
                 self.plan_name = f"default plan {last_num.plan_num+1}"
             else:
-                valid = check_input(name)
+                valid = check_user_input(name)
 
                 if valid:
                     self.plan_name = name
@@ -535,7 +530,7 @@ class plan(db.Model):
         return plan_name.plan_name
 
     def rename_plan(self, usr_id, new_name):
-        valid = check_input(new_name)
+        valid = check_user_input(new_name)
         
         if not valid:
             return FAILED_BLACKLIST
@@ -547,7 +542,6 @@ class plan(db.Model):
             return {"Success": f"Plan nam changed to {new_name}"}
         else:
             return {"Failed": "User doesn't have that plan"}
-
 
     """"
     Views current plan
@@ -588,6 +582,7 @@ class plan(db.Model):
             return courses
         return None
 
+    #Gets the years a user is taking a course
     def get_years(self, term=None):
         plan_years = set()
         taken_plan_objs = taken.query.filter(self.plan_id == taken.plan_id)
@@ -796,7 +791,6 @@ Sub tables:
 crs_offered - Tracks when a course is offered
 crs_required - Tracks what a course needs to be taken
 """
-#TODO: add definitions to modify, get, and check the course table and its child tables
 class course(db.Model):
     course_id = db.Column(db.Integer, primary_key=True)
     subject_id = db.Column(db.Integer, db.ForeignKey('subject.subject_id'))
@@ -805,6 +799,7 @@ class course(db.Model):
     course_title = db.Column(db.String(100))
     course_num = db.Column(db.Integer)
     credits = db.Column(db.Integer)
+    description = db.Column(db.String(300))
 
 
     crs_offered = db.Table('course_offered',
@@ -818,7 +813,7 @@ class course(db.Model):
     db.Column('course_id', db.Integer, db.ForeignKey('course.course_id')),
     db.Column('course_options', db.ARRAY(db.Integer)))
 
-    def __init__(self, title=None, subject_id=None, crs_num=None, credits=None):
+    def __init__(self,crs_id=None, title=None, subject_id=None, crs_num=None, credits=None):
         
         if title and crs_num and credits and subject_id:
             self.course_title = title
@@ -832,8 +827,8 @@ class course(db.Model):
                 self.course_id = last_id.course_id + 1
             else:
                 self.course_id = 1
-
-
+        elif crs_id:
+            self.course_id = crs_id
 
     def add_course(self, id, subject_id, title, num, credits):
         self.course_id = id
@@ -850,13 +845,22 @@ class course(db.Model):
         db.session.delete(self)
         db.session.commit()
 
-    def get_course(self, crs_id):
-        crs = course.query.get(crs_id)
+    #Returns a course object based on ID
+    def get_course(self, crs_id=None):
+        if crs_id:
+            crs = course.query.get(crs_id)
+        else:
+            crs = course.query.get(self.course_id)
         return crs
 
-    def add_prereq(self, req):
-        self.prereq = req
-        db.session.commit()
+    def get_description(self, crs_id=None):
+        if crs_id:
+            crs_obj = self.query.get(crs_id)
+        else:
+            crs_obj = self.query.get(self.course_id)
+        
+        crs_desc = crs_obj.description
+        return crs_desc
 
     #Get courses offered for a term
     def get_courses_offered(self, sem_id):
@@ -1062,6 +1066,7 @@ class semester(db.Model):
     """
     Gets relevant semesters based on current year and approximate term if 'past' is False
     Gets all semesters before current year if 'past' is True
+    Return: list of semester objs
     """
     def get_year_order_objs(self, past = False):
         self.update_year_term()
@@ -1161,20 +1166,6 @@ class taken(db.Model):
     def delete_commit(self):
         db.session.delete(self)
         db.session.commit()
-
-    """
-    Takes a plan id and searches for all courses in that plan
-    Returns: all courses in year order of that plan
-    """
-    def get_courses_ordered(self, find_plan_id):
-        pass
-
-    def get_semester_courses(self, find_sem_id):
-        pass
-
-    #to check if course can be take
-    def requirement_choice():
-        pass
 
 class TakenSchema(ma.Schema):
     subject_code = fields.Function(lambda obj: obj.subject.sub_code if obj.subject else None)

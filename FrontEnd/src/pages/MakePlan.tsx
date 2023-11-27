@@ -209,7 +209,7 @@ const renamePlan = async (userEmail: string, planId: number, newName: string) =>
   const fetchCourses = async (plan_id: string, sem_id: string) => {
     try {
       const email = user?.emailAddresses
-      const response = await fetch(`${URL}/user/view-all-courses/${email}/${plan_id}/${sem_id}`, {
+      const response = await fetch(`${URL}/user/view-term-courses/${email}/${plan_id}/${sem_id}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json'
@@ -243,15 +243,8 @@ const renamePlan = async (userEmail: string, planId: number, newName: string) =>
         subject_code: course.subject_code,
       })));
 
-      if (coursesData && coursesData.length > 0) {
-        setShowPreview(true);
-        // existing logic to set courses...
-      } else {
-        setShowPreview(false);
-      }
     } catch (error) {
       console.error('There has been a problem with your fetch operation:', error);
-      setShowPreview(false);
     }
   };
 
@@ -266,6 +259,7 @@ const renamePlan = async (userEmail: string, planId: number, newName: string) =>
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
+      
       const semestersData: SemesterFromServer[] = await response.json();
 
       setSemesters(semestersData.map(semester => ({
@@ -369,6 +363,7 @@ const renamePlan = async (userEmail: string, planId: number, newName: string) =>
       viewSemesterCourses(selectedPlanId, event.target.value);
       fetchCourses(selectedPlanId, event.target.value);
     }
+    setShowPreview(true)
   };
 
   const handlePlanSelection = (event: React.ChangeEvent<HTMLSelectElement>) => {

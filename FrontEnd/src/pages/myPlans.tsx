@@ -10,8 +10,9 @@ import { useNavigate } from 'react-router-dom';
 import '../common/PlanStyling/Plan.css';
 import { notification } from "antd";
 import { StyledContainer } from '../common/Container/styles';
+import Config from '../config'; // Import your configuration file  
 
-const URL = `http://127.0.0.1:5000`
+const URL = `${Config.backendURL}`
 
 interface PlanFromServer {
   plan_id: number;

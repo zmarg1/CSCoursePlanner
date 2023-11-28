@@ -173,7 +173,10 @@ def view_prereqs(crs_id):
                 preq_crs_dump[key].append(user_course_schema.dump(crs_obj))
             i += 1
 
-        return preq_crs_dump
+        if preq_crs_dump:
+            return preq_crs_dump
+        else:
+            return jsonify({"Failed": "Course has no prereqs"})
 
     elif not crs_id:
         return jsonify(FAILED_CRS_ID)

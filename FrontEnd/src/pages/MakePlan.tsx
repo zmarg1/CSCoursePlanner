@@ -47,21 +47,28 @@ interface CourseData {
   [year: string]: { [term: string]: Course[]; };
 }
 
+interface Prereq{
+  [req: string]: Course[];
+}
+
 const MakePlan: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useUser();
+
   const [courses, setCourses] = useState<Course[]>([]);
   const [selectedCourseId, setSelectedCourseId] = useState('');
   const [selectedCourseTitle, setSelectedCourseTitle] = useState('');
+
   const [semesters, setSemesters] = useState<Semester[]>([]);
-  const [plans, setPlans] = useState<Plan[]>([]);
   const [selectedSemesterId, setSelectedSemesterId] = useState('');
+
+  const [plans, setPlans] = useState<Plan[]>([]);
   const [selectedPlanId, setSelectedPlanId] = useState('');
-  const [studentStatus, setStudentStatus] = useState('');
-  const [semesterCourses, setSemesterCourses] = useState<CourseData>({});
+  
   const [isCreatePlanModalVisible, setIsCreatePlanModalVisible] = useState(false);
   const [customPlanName, setCustomPlanName] = useState('');
-  const [showPreview, setShowPreview] = useState(false);
+  const [studentStatus, setStudentStatus] = useState('');
+  
 
 
   const handleConfirmCreatePlan = async () => {
@@ -271,6 +278,9 @@ const renamePlan = async (userEmail: string, planId: number, newName: string) =>
     }
   };
 
+  const [showPreview, setShowPreview] = useState(false);
+  const [semesterCourses, setSemesterCourses] = useState<CourseData>({});
+
   const viewSemesterCourses = async (plan_id: string, sem_id: string) => {
     try {
       const email = user?.emailAddresses
@@ -288,6 +298,10 @@ const renamePlan = async (userEmail: string, planId: number, newName: string) =>
       if (!data.Failed) {
         console.log("Semester Courses Data:", data);
         setSemesterCourses(data);
+        setShowPreview(true)
+      }
+      else{
+        setShowPreview(false)
       }
 
     }
@@ -295,6 +309,41 @@ const renamePlan = async (userEmail: string, planId: number, newName: string) =>
       console.error('Error viewing semester:', error);
     }
   };
+
+  const [prereqCourses, setPrereqCourses] = useState<Prereq>({});
+  const [showPrereqs, setShowPrereqs] = useState(false);
+
+  const viewPrereqs = async (crs_id: string) => {
+    try{
+      const response = await fetch(`${URL}/user/course/view-prereqs/${crs_id}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok){
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (data.Failed){
+        console.log("No prereqs")
+        setShowPrereqs(false)
+      }
+      else{
+        console.log(`Course Prereqs`, data);
+        setPrereqCourses(data)
+        setShowPrereqs(true)
+      }
+
+    }
+    catch (error){
+      console.error('Error viewing semester:', error);
+    }
+    
+  }
 
   const fetchUserDataFromSupabase = async () => {
     if (user) {
@@ -355,6 +404,7 @@ const renamePlan = async (userEmail: string, planId: number, newName: string) =>
     const selectedTitle = event.target.options[event.target.selectedIndex].text;
     setSelectedCourseTitle(selectedTitle);
     setSelectedCourseId(event.target.value);
+    viewPrereqs(event.target.value);
   };
 
   const handleSemesterSelection = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -363,7 +413,6 @@ const renamePlan = async (userEmail: string, planId: number, newName: string) =>
       viewSemesterCourses(selectedPlanId, event.target.value);
       fetchCourses(selectedPlanId, event.target.value);
     }
-    setShowPreview(true)
   };
 
   const handlePlanSelection = (event: React.ChangeEvent<HTMLSelectElement>) => {

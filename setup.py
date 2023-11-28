@@ -364,6 +364,14 @@ class users():
             offered = crs.get_courses_offered(obj.semester_id)
             for offer in offered:
                 term_course_ids.add(offer.course_id)
+
+        #Get Non CMSC subject course ids
+        ignore_cmsc = 1
+        courses = course.query.all()
+
+        for crs in courses:
+            if crs.subject_id != ignore_cmsc:
+                term_course_ids.add(crs.course_id)
         
         term_crs_objs = []
         for crs_id in term_course_ids:
@@ -916,6 +924,7 @@ class subject(db.Model):
     def delete_commit(self):
         db.session.delete(self)
         db.session.commit()
+
 
 # Defines your subject output
 class SubjectSchema(ma.Schema):

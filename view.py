@@ -166,7 +166,7 @@ def view_prereqs(crs_id):
         preq_crs_dump = {}
         i = 0
         for preq in all_prereqs:
-            key = f"req{i}"
+            key = f"Req{i}"
             preq_crs_dump[key] = []
             for crs in preq:
                 crs_obj = _course.get_course(crs)
@@ -221,7 +221,7 @@ def view_desc_prereqs(crs_id):
 
         i = 0
         for preq in all_prereqs:
-            key = f"req{i}"
+            key = f"Req{i}"
             crs_info_dump[key] = []
             for crs in preq:
                 crs_obj = _course.get_course(crs)

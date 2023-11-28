@@ -58,6 +58,7 @@ const MakePlan: React.FC = () => {
   const [courses, setCourses] = useState<Course[]>([]);
   const [selectedCourseId, setSelectedCourseId] = useState('');
   const [selectedCourseTitle, setSelectedCourseTitle] = useState('');
+  const [selectedCurseCode, setSelectedCouresCode] = useState('')
 
   const [semesters, setSemesters] = useState<Semester[]>([]);
   const [selectedSemesterId, setSelectedSemesterId] = useState('');
@@ -162,7 +163,7 @@ const renamePlan = async (userEmail: string, planId: number, newName: string) =>
   const openAddClassNotificationSuccess = (courseTitle: string) => {
     notification["success"]({
       message: "Class Added Successfully",
-      description: `The class "${courseTitle}" has been added to your plan.`,
+      description: `${courseTitle}`,
       duration: 10,
     });
   };
@@ -329,7 +330,7 @@ const renamePlan = async (userEmail: string, planId: number, newName: string) =>
       const data = await response.json();
 
       if (data.Failed){
-        console.log("No prereqs")
+        console.log(data.Failed)
         setShowPrereqs(false)
       }
       else{
@@ -342,7 +343,6 @@ const renamePlan = async (userEmail: string, planId: number, newName: string) =>
     catch (error){
       console.error('Error viewing semester:', error);
     }
-    
   }
 
   const fetchUserDataFromSupabase = async () => {
@@ -401,8 +401,11 @@ const renamePlan = async (userEmail: string, planId: number, newName: string) =>
   };
 
   const handleCourseSelection = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedTitle = event.target.options[event.target.selectedIndex].text;
+    const selectedOption = event.target.options[event.target.selectedIndex];
+    const selectedTitle = selectedOption.text;
+    const selectedCode = selectedOption?.dataset.subjCode || "";
     setSelectedCourseTitle(selectedTitle);
+    setSelectedCouresCode(selectedCode);
     setSelectedCourseId(event.target.value);
     viewPrereqs(event.target.value);
   };
@@ -468,7 +471,10 @@ const renamePlan = async (userEmail: string, planId: number, newName: string) =>
               color="#fdb515">
               <option key="" value="" title="">Select a class</option>
               {courses.map((course) => (
-                <option key={course.course_id} value={course.course_id} title={course.course_title}>
+                <option 
+                key={course.course_id} value={course.course_id} title={course.course_title} 
+                data-subj-code={`${course.subject_code} ${course.course_num}`}
+                >
                   {course.subject_code} {course.course_num}: {course.course_title} {course.credits}cr
                 </option>
               ))}
@@ -480,26 +486,48 @@ const renamePlan = async (userEmail: string, planId: number, newName: string) =>
           </form>
         </div>
 
-        {showPreview && (
-        <div className="terms-section">
-          {Object.entries(semesterCourses).map(([year, terms]) => (
-            Object.entries(terms).filter(([_, coursesList]) => coursesList.length > 0)
-              .map(([term, coursesList]) => (
-                <div key={term} className="term">
-                  <h6 style={{ color: '#333' }}>{term} {year}</h6>
-                  <ul style={{ listStyleType: 'none', paddingLeft: '5px' }}>
-                    {coursesList.map((course, index) => (
-                      <li key={index} style={{ display: 'flex', alignItems: 'left', marginBottom: '10px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'left' }}>
-                          <strong>{course.course_title} - {course.subject_code} {course.course_num}, {course.credits} credits</strong>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))
-          ))}
-        </div> )}
+        <div>
+          {showPreview && (
+          <div className="terms-section">
+            {Object.entries(semesterCourses).map(([year, terms]) => (
+              Object.entries(terms).filter(([_, coursesList]) => coursesList.length > 0)
+                .map(([term, coursesList]) => (
+                  <div key={term} className="term">
+                    <h6 style={{ color: '#333' }}>{term} {year}</h6>
+                    <ul style={{ listStyleType: 'none', paddingLeft: '5px' }}>
+                      {coursesList.map((course, index) => (
+                        <li key={index} style={{ display: 'flex', alignItems: 'left', marginBottom: '10px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'left' }}>
+                            <strong>{course.course_title} - {course.subject_code} {course.course_num}, {course.credits} credits</strong>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))
+            ))}
+          </div> )}
+
+          {showPrereqs && (
+          <div className="prereqs-section">
+            <p style={{ fontWeight: 'bold' }}>{selectedCurseCode} Requirements</p>
+            {Object.entries(prereqCourses).map(([req, courses], index) => (
+              <div key={req} className="term">
+                {index > 0 && <p style={{ color: '#333' }}> And</p>}
+                <ul style={{ listStyleType: 'none', paddingLeft: '5px' }}>
+                  {courses.map((course) => (
+                    <li key={course.course_id} style={{ display: 'flex', alignItems: 'left', marginBottom: '10px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'left' }}>
+                        <strong>{course.course_title} - {course.subject_code} {course.course_num}</strong>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+          )}
+        </div>
 
         {isCreatePlanModalVisible && (
           <div className="modal-overlay">

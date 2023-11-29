@@ -254,7 +254,8 @@ const ViewUserPlan: React.FC = () => {
       }
 
       const plansData: PlanFromServer[] = await response.json();
-      setPlans(plansData.map(plan => ({
+      const sortedPlans = plansData.sort((a, b) => a.plan_name.localeCompare(b.plan_name));
+      setPlans(sortedPlans.map(plan => ({
         id: plan.plan_id,
         name: plan.plan_name
       })));

@@ -47,7 +47,7 @@ interface CourseData {
   [year: string]: { [term: string]: Course[]; };
 }
 
-interface Prereq{
+interface Prereq {
   [req: string]: Course[];
 }
 
@@ -65,11 +65,11 @@ const MakePlan: React.FC = () => {
 
   const [plans, setPlans] = useState<Plan[]>([]);
   const [selectedPlanId, setSelectedPlanId] = useState('');
-  
+
   const [isCreatePlanModalVisible, setIsCreatePlanModalVisible] = useState(false);
   const [customPlanName, setCustomPlanName] = useState('');
   const [studentStatus, setStudentStatus] = useState('');
-  
+
 
 
   const handleConfirmCreatePlan = async () => {
@@ -111,37 +111,37 @@ const MakePlan: React.FC = () => {
     } catch (error) {
       console.error('There was an error creating the plan:', error);
     }
-};
+  };
 
 
-const renamePlan = async (userEmail: string, planId: number, newName: string) => {
-  try {
+  const renamePlan = async (userEmail: string, planId: number, newName: string) => {
+    try {
       // Construct the correct URL with path parameters
       const url = `${URL}/user/plan/rename-plan/${userEmail}/${planId}`;
 
       const response = await fetch(url, {
-          method: 'POST',
-          headers: {
-              'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ new_name: newName }) // Include new_name in the request body
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ new_name: newName }) // Include new_name in the request body
       });
 
       if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const result = await response.json();
       if (result.Success) {
-          openPlanNotificationSuccess(`Plan renamed to "${newName}" successfully.`);
+        openPlanNotificationSuccess(`Plan renamed to "${newName}" successfully.`);
       } else {
-          openPlanNotificationFailed(result.Failed);
+        openPlanNotificationFailed(result.Failed);
       }
 
-  } catch (error) {
+    } catch (error) {
       console.error('Error renaming plan:', error);
-  }
-};
+    }
+  };
 
 
   const openPlanNotificationSuccess = (title: string) => {
@@ -267,7 +267,7 @@ const renamePlan = async (userEmail: string, planId: number, newName: string) =>
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const semestersData: SemesterFromServer[] = await response.json();
 
       setSemesters(semestersData.map(semester => ({
@@ -301,7 +301,7 @@ const renamePlan = async (userEmail: string, planId: number, newName: string) =>
         setSemesterCourses(data);
         setShowPreview(true)
       }
-      else{
+      else {
         setShowPreview(false)
       }
 
@@ -315,7 +315,7 @@ const renamePlan = async (userEmail: string, planId: number, newName: string) =>
   const [showPrereqs, setShowPrereqs] = useState(false);
 
   const viewPrereqs = async (crs_id: string) => {
-    try{
+    try {
       const response = await fetch(`${URL}/user/course/view-prereqs/${crs_id}`, {
         method: 'GET',
         headers: {
@@ -323,24 +323,24 @@ const renamePlan = async (userEmail: string, planId: number, newName: string) =>
         }
       });
 
-      if (!response.ok){
+      if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const data = await response.json();
 
-      if (data.Failed){
+      if (data.Failed) {
         console.log(data.Failed)
         setShowPrereqs(false)
       }
-      else{
+      else {
         console.log(`Course Prereqs`, data);
         setPrereqCourses(data)
         setShowPrereqs(true)
       }
 
     }
-    catch (error){
+    catch (error) {
       console.error('Error viewing semester:', error);
     }
   }
@@ -471,9 +471,9 @@ const renamePlan = async (userEmail: string, planId: number, newName: string) =>
               color="#fdb515">
               <option key="" value="" title="">Select a class</option>
               {courses.map((course) => (
-                <option 
-                key={course.course_id} value={course.course_id} title={course.course_title} 
-                data-subj-code={`${course.subject_code} ${course.course_num}`}
+                <option
+                  key={course.course_id} value={course.course_id} title={course.course_title}
+                  data-subj-code={`${course.subject_code} ${course.course_num}`}
                 >
                   {course.subject_code} {course.course_num}: {course.course_title} {course.credits}cr
                 </option>
@@ -486,47 +486,52 @@ const renamePlan = async (userEmail: string, planId: number, newName: string) =>
           </form>
         </div>
 
-        <div>
+        <div style= {{textAlign: 'center'}}>
           {showPreview && (
-          <div className="terms-section">
-            {Object.entries(semesterCourses).map(([year, terms]) => (
-              Object.entries(terms).filter(([_, coursesList]) => coursesList.length > 0)
-                .map(([term, coursesList]) => (
-                  <div key={term} className="term">
-                    <h6 style={{ color: '#333' }}>{term} {year}</h6>
-                    <ul style={{ listStyleType: 'none', paddingLeft: '5px' }}>
-                      {coursesList.map((course, index) => (
-                        <li key={index} style={{ display: 'flex', alignItems: 'left', marginBottom: '10px' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'left' }}>
-                            <strong>{course.course_title} - {course.subject_code} {course.course_num}, {course.credits} credits</strong>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))
-            ))}
-          </div> )}
+            <div className="terms-section">
+              {Object.entries(semesterCourses).map(([year, terms]) => (
+                Object.entries(terms).filter(([_, coursesList]) => coursesList.length > 0)
+                  .map(([term, coursesList]) => (
+                    <div key={term} className="term">
+                      <h6 style={{ color: '#333', textAlign: 'center' }}>{term} {year}</h6>
+                      <ul style={{ listStyleType: 'none', paddingLeft: '5px' }}>
+                        {coursesList.map((course, index) => (
+                          <li key={index} style={{ display: 'flex', alignItems: 'left', marginBottom: '10px' }}>
+                            <div style={{  textAlign: 'center' }}>
+                              <strong>{course.course_title} - {course.subject_code} {course.course_num}, {course.credits} credits</strong>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))
+              ))}
+            </div>)}
 
           {showPrereqs && (
-          <div className="prereqs-section">
-            <p style={{ fontWeight: 'bold' }}>{selectedCurseCode} Requirements</p>
-            {Object.entries(prereqCourses).map(([req, courses], index) => (
-              <div key={req} className="term">
-                {index > 0 && <p style={{ color: '#333' }}> And</p>}
-                <ul style={{ listStyleType: 'none', paddingLeft: '5px' }}>
-                  {courses.map((course) => (
-                    <li key={course.course_id} style={{ display: 'flex', alignItems: 'left', marginBottom: '10px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'left' }}>
-                        <strong>{course.course_title} - {course.subject_code} {course.course_num}</strong>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
+  <div className="prereqs-section">
+    <p style={{ fontWeight: 'bold', textAlign: 'center'}}>{selectedCurseCode} Requirements</p>
+    {Object.entries(prereqCourses).map(([req, courses], index) => (
+      <div key={req} className="term">
+        {index > 0 && <p style={{ color: '#333' }}> ===========================</p>}
+        <ul style={{ listStyleType: 'none', paddingLeft: '5px' }}>
+          {courses.map((course, courseIndex) => (
+            <li key={course.course_id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '10px' }}>
+              <div style={{ textAlign: 'center' }}>
+                <strong>{course.course_title} - {course.subject_code} {course.course_num}</strong>
               </div>
-            ))}
-          </div>
-          )}
+              {courseIndex < courses.length - 1 && (
+                <div style={{ fontWeight: 'bold', textAlign: 'center', width: '100%' }}> or </div>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
+    ))}
+  </div>
+)
+
+          }
         </div>
 
         {isCreatePlanModalVisible && (

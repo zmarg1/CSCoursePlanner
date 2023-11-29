@@ -500,7 +500,7 @@ class plan(db.Model):
     """
     Makes a plan for the user
     """
-    def make_plan(self, user_id ,name="default plan 0", num=0):
+    def make_plan(self, user_id ,name="Default Plan 0", num=0):
         self.user_id = user_id
 
         #Get last id in list if any
@@ -516,19 +516,20 @@ class plan(db.Model):
         if last_num:
             self.plan_num = last_num.plan_num + 1
 
-            if name == "default plan 0":
-                self.plan_name = f"default plan {last_num.plan_num+1}"
+            if name == "Default Plan 0":
+                self.plan_name = f"Default Plan {last_num.plan_num+1}"
             else:
-                valid = check_user_input(name)
+                trimed_name = name[:25]
+                valid = check_user_input(trimed_name)
 
                 if valid:
-                    self.plan_name = name
+                    self.plan_name = trimed_name
                 else:
-                    self.plan_name = f"default plan {last_num.plan_num+1}"
+                    self.plan_name = f"Default plan {last_num.plan_num+1}"
 
         else:
             self.plan_num = num
-            self.plan_name = name
+            self.plan_name = "My First Plan"
 
         self.created_at = datetime.now()
         return self.plan_name

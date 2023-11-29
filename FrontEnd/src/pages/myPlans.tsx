@@ -149,7 +149,7 @@ const ViewUserPlan: React.FC = () => {
   };
 
   const isPlanEmpty = () => {
-    return Object.values(courses).every(term => Object.values(term).every(courseList => courseList.length === 0));
+      return Object.values(courses).every(terms => Object.values(terms).flat().length === 0);
   };
 
   const handleAddMoreClick = () => {
@@ -379,7 +379,6 @@ const ViewUserPlan: React.FC = () => {
           <option key={plan.id} value={plan.id}>{plan.name}</option>
         ))}
       </StyledSelect>
-
 
       {isPlanEmpty() ? (
         <div style={{ textAlign: 'center', marginTop: '3%' }}>

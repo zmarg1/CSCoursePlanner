@@ -75,7 +75,7 @@ const MakePlan: React.FC = () => {
   const handleConfirmCreatePlan = async () => {
     setIsCreatePlanModalVisible(false);
 
-    const planName = customPlanName.trim() !== '' ? customPlanName : 'Default Plan Name';
+    const planName = customPlanName.trim();
 
     const userEmail = user?.emailAddresses[0]?.emailAddress;
     if (!userEmail) {

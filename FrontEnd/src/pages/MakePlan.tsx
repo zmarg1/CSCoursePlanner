@@ -486,7 +486,7 @@ const MakePlan: React.FC = () => {
           </form>
         </div>
 
-        <div style= {{textAlign: 'center'}}>
+        <div style={{ textAlign: 'center' }}>
           {showPreview && (
             <div className="terms-section">
               {Object.entries(semesterCourses).map(([year, terms]) => (
@@ -496,8 +496,8 @@ const MakePlan: React.FC = () => {
                       <h6 style={{ color: '#333', textAlign: 'center' }}>{term} {year}</h6>
                       <ul style={{ listStyleType: 'none', paddingLeft: '5px' }}>
                         {coursesList.map((course, index) => (
-                          <li key={index} style={{ display: 'flex', alignItems: 'left', marginBottom: '10px' }}>
-                            <div style={{  textAlign: 'center' }}>
+                          <li key={index} style={{marginBottom: '10px' }}>
+                            <div style={{ textAlign: 'center' }}>
                               <strong>{course.course_title} - {course.subject_code} {course.course_num}, {course.credits} credits</strong>
                             </div>
                           </li>
@@ -509,27 +509,27 @@ const MakePlan: React.FC = () => {
             </div>)}
 
           {showPrereqs && (
-  <div className="prereqs-section">
-    <p style={{ fontWeight: 'bold', textAlign: 'center'}}>{selectedCurseCode} Requirements</p>
-    {Object.entries(prereqCourses).map(([req, courses], index) => (
-      <div key={req} className="term">
-        {index > 0 && <p style={{ color: '#333' }}> ===========================</p>}
-        <ul style={{ listStyleType: 'none', paddingLeft: '5px' }}>
-          {courses.map((course, courseIndex) => (
-            <li key={course.course_id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '10px' }}>
-              <div style={{ textAlign: 'center' }}>
-                <strong>{course.course_title} - {course.subject_code} {course.course_num}</strong>
-              </div>
-              {courseIndex < courses.length - 1 && (
-                <div style={{ fontWeight: 'bold', textAlign: 'center', width: '100%' }}> or </div>
-              )}
-            </li>
-          ))}
-        </ul>
-      </div>
-    ))}
-  </div>
-)
+            <div className="prereqs-section">
+              <p style={{ fontWeight: 'bold', textAlign: 'center' }}>{selectedCurseCode} Requirements</p>
+              {Object.entries(prereqCourses).map(([req, courses], index) => (
+                <div key={req} className="term">
+                  {index > 0 && <p style={{ color: '#333' }}> ===========================</p>}
+                  <ul style={{ listStyleType: 'none', paddingLeft: '5px' }}>
+                    {courses.map((course, courseIndex) => (
+                      <li key={course.course_id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '10px' }}>
+                        <div style={{ textAlign: 'center' }}>
+                          <strong>{course.course_title} - {course.subject_code} {course.course_num}</strong>
+                        </div>
+                        {courseIndex < courses.length - 1 && (
+                          <div style={{ fontWeight: 'bold', textAlign: 'center', width: '100%' }}> or </div>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          )
 
           }
         </div>

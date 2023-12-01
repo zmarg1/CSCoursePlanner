@@ -50,7 +50,6 @@ user_obj - Stores the created supabase 'user' object
 admin - The users permission level
 campus_id - The campus id of the given user
 """
-#TODO: Make def for adding plan_id and deg_id to the class variables from user obj in database
 class users():
     """
     How to interact with user metadata
@@ -63,7 +62,7 @@ class users():
     zach_limit = 32 #max semesters
     brandon_limit = 7 #max courses
     soft_cap_credits = 18
-    hard_cap_credits = 24
+    hard_cap_credits = 24 #to be implemented if we take this furthur
 
     #Makes a user if user given
     def __init__(self, new_email=None, admin=False):
@@ -75,9 +74,24 @@ class users():
         db.session.add(self)
         db.session.commit()
 
-    def delete_commit(self):
-        db.session.delete(self)
-        db.session.commit()
+    def delete_user_data(self):
+        try:
+            plans = self.get_plans()
+            
+            if plans:
+                for usr_plan in plans:
+                    pln = plan.query.get(usr_plan.plan_id)
+                    pln.delete_commit()
+
+            usr_id = self.get_user_id()
+            
+            pub_usr = public_user_info.query.filter(public_user_info.user_id == usr_id).first()
+            pub_usr.delete_commit()
+
+            return {"Success": "User deleted"}
+    
+        except Exception as e:
+            return {"Error": e}
 
     def delete_term(self, plan_id, sem_id):
         usr_plan = plan(plan_id)
@@ -189,14 +203,14 @@ class users():
         usr_courses = usr_plan.get_courses()
         return usr_courses
 
-    #User views all of their plans
+    #Gets a list of plan objects
     def get_plans(self):
         user_id = self.get_user_id()
         plan_objs = plan.query.filter(plan.user_id == user_id)
         usr_plans = []
         
         if plan_objs:
-            #gets the list of plan objects <plan id>
+            #Transfers query into a list
             for obj in plan_objs:
                 usr_plans.append(obj)
             return usr_plans
@@ -423,7 +437,14 @@ class public_user_info(db.Model):
     
     def get_user_id(self, email):
         user = public_user_info.query.filter(public_user_info.email == email).first()
-        user_id = user.user_id
+        try:
+            user_id = user.user_id
+
+        except Exception as e:
+            print("ERROR getting user ID: ", e)
+            err = {"Failed": e}
+            return err
+        
         return user_id
 
     def update_campus_id(self, new_c_id, email):
@@ -494,6 +515,11 @@ class plan(db.Model):
         db.session.commit()
 
     def delete_commit(self):
+        taken_courses = self.get_taken_courses()
+        if taken_courses:
+            for tkn_crs in taken_courses:
+                tkn_crs.delete_commit()
+
         db.session.delete(self)
         db.session.commit()
 
@@ -854,6 +880,7 @@ class course(db.Model):
         db.session.delete(self)
         db.session.commit()
 
+
     #Returns a course object based on ID
     def get_course(self, crs_id=None):
         if crs_id:
@@ -1127,7 +1154,6 @@ requirement_id (ForeignKey) - Unique id of the requirement in database
 semester_id (ForeignKey) - Unique id of the semester in database
 grade - A courses grade is used to check if a course is taken or not
 """
-#TODO: Finish definitions
 class taken(db.Model):
     taken_id = db.Column(db.Integer, primary_key=True)
 

@@ -2,8 +2,6 @@
 Authors: Amir Hawkins-Stewart & Zach Margulies
 
 Description: Makes objects of the databse tables, sends and recieves data from the supabase databse.
-
-TODO: Finish the classes, app.routes to send and receive from site 
 """
 
 from setup import session, app, jsonify, request, db
@@ -16,8 +14,23 @@ from admin import admin_api
 app.register_blueprint(view_api)
 app.register_blueprint(admin_api)
 
+@app.route("/user/delete-user/<user_email>", methods=["DELETE"])
+def delete_user(user_email):
+    if request.method == "DELETE" and user_email:
+        user = users(user_email)
+        result = user.delete_user_data()
+        if "Error" not in result:
+            return jsonify({"Success": f"Successfully deleted user {user_email}"})
+        
+        return jsonify({"Failed": "User not in database"})
 
-#TODO: Test it
+    elif not user_email:
+        return jsonify(FAILED_EMAIL)
+    
+    else:
+        return jsonify(FAILED_DELETE)
+
+
 @app.route("/user/update-campus-id/<user_email>", methods=["POST"])
 def update_campus_id(user_email):
     if user_email and request.method == "POST":
@@ -59,7 +72,6 @@ def user_make_plan(user_email):
         return jsonify(FAILED_POST)
 
 
-#TODO: Implement
 @app.route("/user/plan/rename-plan/<user_email>/<plan_id>", methods=["POST"])
 def rename_plan(user_email, plan_id):
     if user_email and request.method == "POST" and "new_name" in request.json and plan_id:
@@ -105,10 +117,6 @@ def user_delete_plan(user_email, plan_id):
 
         if to_delete:
             plan_name = to_delete.plan_name
-            chosen_plan = plan(to_delete.plan_id)
-            plan_courses = chosen_plan.get_taken_courses()
-            for taken_crs in plan_courses:
-                user_delete_planned_course(user_email, taken_crs.course_id, taken_crs.plan_id)
             to_delete.delete_commit()
             return jsonify({"Success": f"Successfully deleted {plan_name}"})
             
@@ -165,7 +173,9 @@ def user_delete_planned_course(user_email, crs_id, plan_id):
     if request.method == "DELETE" and crs_id and plan_id:
         user = users(user_email)
         plan_id = int(plan_id)
-        if user.user_has_plan(plan_id):
+        user_has = user.user_has_plan(plan_id)
+
+        if user_has:
             in_taken = taken.query.filter(taken.course_id == crs_id, taken.plan_id == plan_id).first()
             if in_taken:
                 usr_plan = plan(plan_id)

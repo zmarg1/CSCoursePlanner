@@ -349,14 +349,13 @@ const MakePlan: React.FC = () => {
     if (user) {
       try {
         const { data, error } = await supabase
-          .from('public_user_info') // Replace with your table name
+          .from('public_user_info') 
           .select('*')
-          .eq('user_id', user.id); // Adjust as per your Supabase table's user ID column
+          .eq('user_id', user.id); 
 
         if (error) throw error;
 
         console.log('Fetched user-specific data:', data);
-        // Handle the fetched data (e.g., set it to a state)
       } catch (error) {
         console.error('Error fetching data:', error);
       }
@@ -479,7 +478,7 @@ const MakePlan: React.FC = () => {
                 </option>
               ))}
             </StyledSelect>
-            <StyledContainer className='button-container-makePlan' style={{ marginTop: '10%', marginLeft: '-9%' }}>
+            <StyledContainer className='button-container-makePlan'>
               <StyledButton color="#fdb515" onclick={handleAddClass} type="submit">Add Course</StyledButton>
               <StyledButton color="#fdb515" onClick={handleViewPlanClick}>View Plans</StyledButton>
             </StyledContainer>

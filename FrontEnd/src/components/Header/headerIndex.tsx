@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Row, Col, Drawer } from "antd";
 import { useNavigate } from 'react-router-dom';
 import { withTranslation } from "react-i18next";
-import Container from "../../common/Container";
+import Container from "../../common/Container/containerIndex";
 import { SvgIcon } from "../../common/SvgIcon";
 import { SignedIn, SignedOut, useClerk, UserButton } from '@clerk/clerk-react';
 import { useUser } from '@clerk/clerk-react';

@@ -8,7 +8,7 @@ import { useLocation } from "react-router-dom";
 
 const Contact = lazy(() => import("../../components/ContactForm/contactFormIndex"));
 const MiddleBlock = lazy(() => import("../../components/MiddleBlock/middleIndex"));
-const Container = lazy(() => import("../../common/Container"));
+const Container = lazy(() => import("../../common/Container/containerIndex"));
 const ScrollToTop = lazy(() => import("../../common/ScrollToTop"));
 const ContentBlock = lazy(() => import("../../components/ContentBlock"));
 

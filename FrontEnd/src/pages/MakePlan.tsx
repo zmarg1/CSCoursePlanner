@@ -7,7 +7,7 @@ import { useUser } from '@clerk/clerk-react';
 import '../common/PlanStyling/Plan.css';
 import { useNavigate } from 'react-router-dom';
 import { notification } from "antd";
-import { StyledContainer } from '../common/Container/styles';
+import { StyledContainer, ButtonContainerMakePlan } from '../common/Container/containerStyles';
 import Config from '../config'; // Import your configuration file  
 
 const URL = `${Config.backendURL}`
@@ -478,10 +478,10 @@ const MakePlan: React.FC = () => {
                 </option>
               ))}
             </StyledSelect>
-            <StyledContainer className='button-container-makePlan'>
+            <ButtonContainerMakePlan>
               <StyledButton color="#fdb515" onclick={handleAddClass} type="submit">Add Course</StyledButton>
               <StyledButton color="#fdb515" onClick={handleViewPlanClick}>View Plans</StyledButton>
-            </StyledContainer>
+            </ButtonContainerMakePlan>
           </form>
         </div>
 
@@ -512,7 +512,7 @@ const MakePlan: React.FC = () => {
               <p style={{ fontWeight: 'bold', textAlign: 'center' }}>{selectedCurseCode} Requirements</p>
               {Object.entries(prereqCourses).map(([req, courses], index) => (
                 <div key={req} className="term">
-                  {index > 0 && <p style={{ color: '#333' }}> ===========================</p>}
+                  {index > 0 && <p style={{ color: '#333' }}> and </p>}
                   <ul style={{ listStyleType: 'none', paddingLeft: '5px' }}>
                     {courses.map((course, courseIndex) => (
                       <li key={course.course_id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '10px' }}>

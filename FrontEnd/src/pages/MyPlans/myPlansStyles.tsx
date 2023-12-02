@@ -1,38 +1,35 @@
-/* styles.css */
-
-.grid-container {
+import styled from "styled-components";
+import { Styles } from "../../styles/styles";
+ 
+export const GridContainer = styled("div")`
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between; /* Adjust as needed */
-  }
+  `;
   
-  .grid-item {
+export const GridItem = styled("div")`
     flex: 0 1 48%; /* Adjust as needed for the number of items in a row */
     margin-bottom: 20px; /* Adjust as needed */
-  }
+  `;
   
-  .course-item {
+export const CourseItem = styled("li")`
     display: flex;
     align-items: center;
     margin-bottom: 2%;
     margin-right: 3%;
     width: 100%; /* Ensure full width by default */
-  }
+  `;
   
- .course-item {
-      width: 85%; /* Four items in a row with 3% margin between them */
-    }
-  
-  .course-details {
+export const CourseDetails = styled("div")`
     flex: 0.9;
     margin-right: 2%;
-  }
+  `;
   
-  .button-container {
+export const ButtonContainer = styled("div")`
     margin-left: 20%;
-  }
+  `;
   
-  .year-term-heading {
+export const YearTermHeading = styled("div")`
     display: flex;
     align-items: center;
-  }
+  `;

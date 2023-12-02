@@ -9,9 +9,9 @@ import '../../common/PlanStyling/Plan.css'
 import { useNavigate } from 'react-router-dom';
 import '../../common/PlanStyling/Plan.css';
 import { notification } from "antd";
-import { StyledContainer } from '../../common/Container/styles';
+import { StyledContainer } from '../../common/Container/containerStyles';
 import Config from '../../config'; // Import your configuration file  
-import './styles.css'
+import { GridContainer, GridItem, CourseItem, CourseDetails, ButtonContainer, YearTermHeading } from './myPlansStyles';
 
 const URL = `${Config.backendURL}`
 
@@ -393,34 +393,34 @@ const ViewUserPlan: React.FC = () => {
       ) : (
       <div style={{ margin: '1%' }}>
       {Object.entries(courses).map(([year, terms]) => (
-        <div key={year} className="grid-container">
+        <GridContainer key={year}>
           {Object.entries(terms).filter(([_, coursesList]) => coursesList.length > 0)
             .map(([term, coursesList]) => (
-              <div key={term} className="grid-item">
-                <div className="year-term-heading">
+              <GridItem key={term}>
+                <YearTermHeading>
                   <h6 style={{ color: '#333' }}>{year} - {term}</h6>
-                </div>
+                </YearTermHeading>
                 <ul style={{ listStyleType: 'none', paddingLeft: '1%' }}>
                   {coursesList.map((course, index) => (
-                    <li key={index} className="course-item">
-                      <div className="course-details">
+                    <CourseItem key={index}>
+                      <CourseDetails>
                         <strong>{course.course_title}:</strong>
                         <div>
                           <strong>{course.subject_code} {course.course_num}, {course.credits} credits</strong>
                         </div>
-                      </div>
-                      <div className="button-container">
+                      </CourseDetails>
+                      <ButtonContainer>
                         <SmallerStyledButton
                           color="#fdb515"
                           onClick={() => confirmDelete(course.course_id, selectedPlanId, year, term)}>Remove
                         </SmallerStyledButton>
-                      </div>
-                    </li>
+                      </ButtonContainer>
+                    </CourseItem>
                   ))}
                 </ul>
-              </div>
+              </GridItem>
             ))}
-        </div>
+        </GridContainer>
       ))}
       </div>
       )}

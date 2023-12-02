@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useUser } from '@clerk/clerk-react';
-import { StyledButton } from '../common/Button/styles';
-import { StyledSelect } from '../common/select/styles';
+import { StyledButton } from '../../common/Button/styles';
+import { StyledSelect } from '../../common/select/styles';
 import jsPDF from 'jspdf';
-import '../common/Modal/modal.css';
-import { SmallerStyledButton } from '../common/Button/styles';
-import '../common/PlanStyling/Plan.css'
+import '../../common/Modal/modal.css';
+import { SmallerStyledButton } from '../../common/Button/styles';
+import '../../common/PlanStyling/Plan.css'
 import { useNavigate } from 'react-router-dom';
-import '../common/PlanStyling/Plan.css';
+import '../../common/PlanStyling/Plan.css';
 import { notification } from "antd";
-import { StyledContainer } from '../common/Container/styles';
-import Config from '../config'; // Import your configuration file  
+import { StyledContainer } from '../../common/Container/styles';
+import Config from '../../config'; // Import your configuration file  
+import './styles.css'
 
 const URL = `${Config.backendURL}`
 
@@ -93,10 +94,10 @@ const ViewUserPlan: React.FC = () => {
       document.body.classList.remove('no-scroll');
     }
   }, [isCourseModalOpen || isPlanModalOpen]);
-  
+
 
   const openDeletionNotification = (title: string) => {
-      notification["success"]({
+    notification["success"]({
       message: "Plan Deleted Successfully",
       description: `Your plan "${title}" has been successfully deleted.`,
       duration: 10,
@@ -137,11 +138,11 @@ const ViewUserPlan: React.FC = () => {
         setPlans(prevPlans => prevPlans.filter(plan => plan.id !== planId));
         const deletedPlanName = plans.find(plan => plan.id === planId)?.name || "Unknown Plan";
         openDeletionNotification(deletedPlanName);
-      } 
+      }
       else {
         throw new Error(responseData.Failed || 'Failed to delete the plan');
       }
-      
+
     } catch (error: any) {
       setError(error.message);
       console.error('Error removing plan:', error);
@@ -149,7 +150,7 @@ const ViewUserPlan: React.FC = () => {
   };
 
   const isPlanEmpty = () => {
-      return Object.values(courses).every(terms => Object.values(terms).flat().length === 0);
+    return Object.values(courses).every(terms => Object.values(terms).flat().length === 0);
   };
 
   const handleAddMoreClick = () => {
@@ -298,70 +299,73 @@ const ViewUserPlan: React.FC = () => {
   const generatePDF = () => {
     const doc = new jsPDF();
     let y = 20; // Starting vertical position
-
+  
     const headers = ["Course Title", "Subject Code", "Course Num", "Credits"];
     const columnWidths = [90, 30, 40, 30]; // Adjust as needed
-
+  
     doc.setFont("helvetica", "bold");
-
-    const splitText = (text: string, maxWidth: number): string[] => {
-      // This function will split the text into lines based on the maxWidth
+  
+    const splitText = (text: string, maxWidth: number) => {
       return doc.splitTextToSize(text, maxWidth);
     };
-
+  
     Object.entries(courses).forEach(([year, terms]) => {
       Object.entries(terms).forEach(([term, coursesList]) => {
         let termTotalCredits = 0;
-
-        doc.setTextColor(0, 0, 255); // Blue color for headers
+  
+        // Check if there is enough space for the header and content on the current page
+        if (y + 40 > doc.internal.pageSize.height) {
+          doc.addPage(); // Add a new page
+          y = 20; // Reset vertical position
+        }
+  
+        doc.setTextColor(0, 0, 255);
         doc.setFontSize(14);
         doc.text(`${year} - ${term}`, 10, y);
         y += 10;
-
-        doc.setTextColor(0, 0, 0); // Black color for text
+  
+        doc.setTextColor(0, 0, 0);
         doc.setFontSize(10);
-        let x = 10; // Starting horizontal position
+        let x = 10;
         headers.forEach((header, index) => {
           doc.text(header, x, y);
           x += columnWidths[index];
         });
         y += 10;
-
+  
         coursesList.forEach((course) => {
-          let x = 10; // Reset horizontal position
+          let x = 10;
           const courseCredits = course.credits || 0;
           const splitCourseTitle = splitText(course.course_title, columnWidths[0]);
-          const lineHeight = 7; // Adjust line height as needed
+          const lineHeight = 7;
           let maxY = y;
-
-          // Print Course Title (potentially multiple lines)
+  
           splitCourseTitle.forEach((line: string) => {
             doc.text(line, x, maxY);
             maxY += lineHeight;
           });
-
-          // Print other course details (aligned with the first line of the title)
+  
           doc.text(course.subject_code, x + columnWidths[0], y);
           doc.text(course.course_num, x + columnWidths[0] + columnWidths[1], y);
           doc.text(courseCredits.toString(), x + columnWidths[0] + columnWidths[1] + columnWidths[2], y);
-
-          y = Math.max(maxY, y + lineHeight); // Move to next row, considering multi-line titles
-
-          // Add to term total credits
+  
+          y = Math.max(maxY, y + lineHeight);
+  
           if (course.credits != null) {
             termTotalCredits += course.credits;
           }
         });
-
+  
         doc.setFontSize(12);
-        doc.setTextColor(255, 0, 0); // Red color for total credits
+        doc.setTextColor(255, 0, 0);
         doc.text(`Total Credits for ${term}: ${termTotalCredits}`, 10, y);
-        y += 15; // Space after each term's total credits
+        y += 15;
       });
     });
-
+  
     doc.save(`${selectedPlanName}.pdf`);
   };
+  
 
   return (
     <StyledContainer className='myPlan'>
@@ -380,44 +384,39 @@ const ViewUserPlan: React.FC = () => {
         ))}
       </StyledSelect>
 
-      {isPlanEmpty() ? (
-        <div style={{ textAlign: 'center', marginTop: '3%' }}>
-          <p className='Empty-Plan'>Your plan is currently empty. Chip is sad.</p>
-          <p className='Empty-Plan'>Select a plan to view or add more classes!!!</p>
-          <img className='Empty-Picture' src="/img/Retriever_sad.png" alt="Empty Plan" />
+      {Object.entries(courses).map(([year, terms]) => (
+        <div key={year} className="grid-container">
+          {Object.entries(terms).filter(([_, coursesList]) => coursesList.length > 0)
+            .map(([term, coursesList]) => (
+              <div key={term} className="grid-item">
+                <div className="year-term-heading">
+                  <h6 style={{ color: '#333' }}>{year} - {term}</h6>
+                </div>
+                <ul style={{ listStyleType: 'none', paddingLeft: '1%' }}>
+                  {coursesList.map((course, index) => (
+                    <li key={index} className="course-item">
+                      <div className="course-details">
+                        <strong>{course.course_title}:</strong>
+                        <div>
+                          <strong>{course.subject_code} {course.course_num}, {course.credits} credits</strong>
+                        </div>
+                      </div>
+                      <div className="button-container">
+                        <SmallerStyledButton
+                          color="#fdb515"
+                          onClick={() => confirmDelete(course.course_id, selectedPlanId, year, term)}>Remove
+                        </SmallerStyledButton>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
         </div>
-      ) : (
-        <div style={{ margin: '1%' }}>
-          {Object.entries(courses).map(([year, terms]) => (
-            <div key={year} className="terms-container">
-              {Object.entries(terms).filter(([_, coursesList]) => coursesList.length > 0)
-                .map(([term, coursesList]) => (
-                  <div key={term} className="term">
-                    <h6 style={{ color: '#333' }}>{year} - {term}</h6>
-                    <ul style={{ listStyleType: 'none', paddingLeft: '1%' }}>
-                      {coursesList.map((course, index) => (
-                        <li key={index} style={{ display: 'flex', alignItems: 'center', marginBottom: '2%', marginRight:'3%' }}>
-                          <div style={{ flex: 0.9, marginRight: '2%' }}>
-                            <strong>{course.course_title}:</strong>
-                            <div style={{ flex: 1, marginRight: '2%' }}>
-                              <strong>{course.subject_code} {course.course_num}, {course.credits} credits</strong>
-                            </div>
-                          </div>
-                          <div style={{ marginLeft: '20%' }}> {/* Padding between description and button */}
-                            <SmallerStyledButton
-                              color="#fdb515"
-                              onClick={() => confirmDelete(course.course_id, selectedPlanId, year, term)}>Remove
-                            </SmallerStyledButton>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-            </div>
-          ))}
-        </div>
-      )}
+      ))}
+
+
+
       <div className='button-container-myPlan' style={{ marginTop: '5%' }}>
         <StyledButton color="#fdb515" onClick={generatePDF}>Download PDF</StyledButton>
         <StyledButton color="#fdb515" onClick={handleAddMoreClick}>Add More Classes</StyledButton>

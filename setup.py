@@ -161,6 +161,8 @@ class users():
         crs_in_taken = taken.query.filter(taken.plan_id == plan_id, taken.course_id == crs_id).order_by(taken.course_id.desc()).first()
 
         if in_plan and in_course and in_req and in_sem:
+            crs = course()
+            geps = crs.get_gep_ids()
             
             usr_plan = plan(plan_id)
             pln_courses = usr_plan.get_taken_courses()
@@ -173,7 +175,7 @@ class users():
                     num_sem_courses += 1
             num_sem = len(pln_semesters)
 
-            if num_sem_courses < self.brandon_limit and num_sem <= self.zach_limit and not crs_in_taken:
+            if num_sem_courses < self.brandon_limit and num_sem <= self.zach_limit and (not crs_in_taken or crs_id in geps):
                 add_to_plan = taken()
                 add_to_plan.add_course(plan_id, crs_id, req_id, sem_id, grade)
                 add_to_plan.add_commit()
@@ -339,13 +341,16 @@ class users():
         view_courses = []
 
         if user_plan:
+            crs = course()
+            geps = crs.get_gep_ids()
+
             #Iterates through all available courses
             for crs in term_courses:
                 not_taken = True
 
                 #Iterates through all users taken courses
                 for taken_crs in user_plan:
-                    if crs.course_id == taken_crs.course_id:
+                    if crs.course_id == taken_crs.course_id and crs.course_id not in geps:
                         not_taken = False
                         break
 
@@ -907,6 +912,15 @@ class course(db.Model):
         )
         result = db.session.execute(stmt).fetchall()
         return result
+
+    def get_gep_ids(self):
+        geps = course.query.filter(course.subject_id == 11)
+        gep_ids = []
+
+        for obj in geps:
+            gep_ids.append(obj.course_id)
+
+        return gep_ids
 
 """
 Defines course output for Admins

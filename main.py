@@ -141,6 +141,7 @@ def user_add_course_to_plan(user_email, plan_id, crs_id, sem_id):
         user = users(user_email)
         plan_id = int(plan_id)
         sem_id = int(sem_id)
+        crs_id = int(crs_id)
         usr_has = user.user_has_plan(plan_id)
 
         if usr_has:

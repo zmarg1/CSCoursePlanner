@@ -1,0 +1,38 @@
+/* styles.css */
+
+.grid-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between; /* Adjust as needed */
+  }
+  
+  .grid-item {
+    flex: 0 1 48%; /* Adjust as needed for the number of items in a row */
+    margin-bottom: 20px; /* Adjust as needed */
+  }
+  
+  .course-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 2%;
+    margin-right: 3%;
+    width: 100%; /* Ensure full width by default */
+  }
+  
+ .course-item {
+      width: 85%; /* Four items in a row with 3% margin between them */
+    }
+  
+  .course-details {
+    flex: 0.9;
+    margin-right: 2%;
+  }
+  
+  .button-container {
+    margin-left: 20%;
+  }
+  
+  .year-term-heading {
+    display: flex;
+    align-items: center;
+  }

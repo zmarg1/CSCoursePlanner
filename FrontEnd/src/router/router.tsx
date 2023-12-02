@@ -5,7 +5,7 @@ import Header from "../components/Header/headerIndex";
 import routes from "./config";
 import { Styles } from "../styles/styles";
 import MakePlan from "../pages/MakePlan";
-import ViewUserPlan from "../pages/MyPlan/myPlans";
+import ViewUserPlan from "../pages/MyPlans/myPlans";
 
 const Router = () => {
   return (

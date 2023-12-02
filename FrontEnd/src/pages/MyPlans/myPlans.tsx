@@ -384,6 +384,14 @@ const ViewUserPlan: React.FC = () => {
         ))}
       </StyledSelect>
 
+      {isPlanEmpty() ? (
+        <div style={{ textAlign: 'center', marginTop: '3%' }}>
+          <p className='Empty-Plan'>Your plan is currently empty. Chip is sad.</p>
+          <p className='Empty-Plan'>Select a plan to view or add more classes!!!</p>
+          <img className='Empty-Picture' src="/img/Retriever_sad.png" alt="Empty Plan" />
+        </div>
+      ) : (
+      <div style={{ margin: '1%' }}>
       {Object.entries(courses).map(([year, terms]) => (
         <div key={year} className="grid-container">
           {Object.entries(terms).filter(([_, coursesList]) => coursesList.length > 0)
@@ -414,6 +422,8 @@ const ViewUserPlan: React.FC = () => {
             ))}
         </div>
       ))}
+      </div>
+      )}
 
 
 

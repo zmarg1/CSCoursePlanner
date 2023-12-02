@@ -4,10 +4,10 @@ import { Slide, Zoom } from "react-awesome-reveal";
 import { ContactProps, ValidationTypeProps } from "./types";
 import { useForm } from "../../common/utils/useForm";
 import validate from "../../common/utils/validationRules";
-import { Button } from "../../common/Button";
+import { Button } from "../../common/Button/customButton";
 import Block from "../Block/blockIndex";
-import Input from "../../common/Input";
-import TextArea from "../../common/TextArea";
+import Input from "../../common/Input/customInput";
+import TextArea from "../../common/TextArea/customTextArea";
 import { ContactContainer, FormGroup, Span, ButtonContainer } from "./styles";
 
 

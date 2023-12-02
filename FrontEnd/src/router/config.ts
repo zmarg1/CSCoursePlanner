@@ -2,8 +2,8 @@ const routes = [
   {
     path: "/",
     exact: true,
-    component: "Home",
-    key: 'Home'
+    component: "Home/home",
+    key: 'home'
   },
 ];
 

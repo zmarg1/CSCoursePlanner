@@ -1,4 +1,4 @@
-import { StyledContainer } from "./containerStyles";
+import { StyledContainer } from "./custContainerStyles";
 import { ContainerProps } from "../types";
 
 const Container = ({ border, children }: ContainerProps) => (

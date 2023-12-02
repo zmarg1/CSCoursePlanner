@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useUser } from '@clerk/clerk-react';
-import { StyledButton } from '../../common/Button/styles';
-import { StyledSelect } from '../../common/select/styles';
+import { StyledButton } from '../../common/Button/custButtonStyles';
+import { StyledSelect } from '../../common/select/selectStyles';
 import jsPDF from 'jspdf';
 import '../../common/Modal/modal.css';
-import { SmallerStyledButton } from '../../common/Button/styles';
+import { SmallerStyledButton } from '../../common/Button/custButtonStyles';
 import '../../common/PlanStyling/Plan.css'
 import { useNavigate } from 'react-router-dom';
 import '../../common/PlanStyling/Plan.css';
 import { notification } from "antd";
-import { StyledContainer } from '../../common/Container/containerStyles';
+import { StyledContainer } from '../../common/Container/custContainerStyles';
 import Config from '../../config'; // Import your configuration file  
 import { GridContainer, GridItem, CourseItem, CourseDetails, ButtonContainer, YearTermHeading } from './myPlansStyles';
 

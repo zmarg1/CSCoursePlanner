@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { SmallerStyledButton } from '../Button/styles';
+import { SmallerStyledButton } from '../Button/custButtonStyles';
 
 // Define a type for the props
 type RenamePlanModalProps = {

@@ -7,7 +7,7 @@ import Router from "./router/router";
 import i18n from "./translation";
 import { I18nextProvider } from 'react-i18next';
 import { dark } from '@clerk/themes';
-import UserHandler from './utils/UserHandler'; // Import UserHandler
+import UserHandler from './UserUtils/UserHandler'; // Import UserHandler
 
 const clerkPubKey = process.env.REACT_APP_CLERK_PUBLISHABLE_KEY;
 

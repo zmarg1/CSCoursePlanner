@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { StyledSelect } from '../common/select/styles';
-import { StyledButton } from '../common/Button/styles';
-import { StyledLabel } from '../common/Label';
-import { supabase } from '../utils/supabaseClient';
+import { StyledSelect } from '../common/select/selectStyles';
+import { StyledButton } from '../common/Button/custButtonStyles';
+import { StyledLabel } from '../common/Label/customLabel';
+import { supabase } from '../UserUtils/supabaseClient';
 import { useUser } from '@clerk/clerk-react';
 import '../common/PlanStyling/Plan.css';
 import { useNavigate } from 'react-router-dom';
 import { notification } from "antd";
-import { StyledContainer, ButtonContainerMakePlan } from '../common/Container/containerStyles';
+import { StyledContainer, ButtonContainerMakePlan } from '../common/Container/custContainerStyles';
 import Config from '../config'; // Import your configuration file  
 
 const URL = `${Config.backendURL}`

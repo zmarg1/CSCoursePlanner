@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import { Row, Col, Drawer } from "antd";
 import { useNavigate } from 'react-router-dom';
 import { withTranslation } from "react-i18next";
-import Container from "../../common/Container/containerIndex";
-import { SvgIcon } from "../../common/SvgIcon";
+import Container from "../../common/Container/customContainer";
+import { SvgIcon } from "../../common/SvgIcon/svgIcon";
 import { SignedIn, SignedOut, useClerk, UserButton } from '@clerk/clerk-react';
 import { useUser } from '@clerk/clerk-react';
 
@@ -55,9 +55,6 @@ const Header = ({ t }: any) => {
   const MenuItem = () => {
     return (
       <>
-        <CustomNavLinkSmall onClick={() => handleNavigationClick('/', 'home')}>
-          <Span>{t("Home")}</Span>
-        </CustomNavLinkSmall>
         <CustomNavLinkSmall onClick={handlePlanClick}>
           <Span>{t("Build Plan")}</Span>
         </CustomNavLinkSmall>

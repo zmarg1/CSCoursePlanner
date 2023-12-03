@@ -29,7 +29,11 @@ export const ButtonContainer = styled("div")`
     margin-left: 20%;
   `;
   
-export const YearTermHeading = styled("div")`
+export const TermHeading = styled("div")`
     display: flex;
     align-items: center;
   `;
+
+export const YearHeading = styled("h6")`
+  align-items: center;
+`;

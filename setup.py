@@ -13,6 +13,8 @@ secret_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZ
 url = "https://qwydklzwvbrgvdomhxjb.supabase.co"
 client = Client(url, client_key)
 
+clerk_api_key = 'sk_test_8Fvp5UH4vZplPHK24IdPQXnFqMipUQGYN7WmkomiHG'
+
 app = Flask(__name__)
 CORS(app)
 app.secret_key = secret_key #Secret key needed for sessions to get the encrypted data

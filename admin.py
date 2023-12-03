@@ -41,12 +41,12 @@ def admin_pg():
 """
 Endpoint for getting one courses
 """
-@admin_api.route('/admin/courses/<admin>/<course_id>', methods = ['GET'])
-def admin_get_course(admin, course_id):
-    if admin:
+@admin_api.route('/admin/courses/<course_id>', methods = ['GET'])
+def admin_get_course(course_id):
+    #if true:
         my_course = course.query.get(course_id)
         return admin_course_schema.jsonify(my_course)
-    return jsonify(FAILED_ADMIN)
+    #return jsonify(FAILED_ADMIN)
 
 
 """

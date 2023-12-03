@@ -1,0 +1,48 @@
+import React, { useState  } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+ 
+export default function UpdateDelete(){
+    
+    const navigate = useNavigate();
+
+    const [csvFile, setCsvFile] = useState(null);
+
+    const handleFileChange = (event) => {
+        const file = event.target.files[0];
+        setCsvFile(file);
+    };
+
+    const uploadCSV = async () => {
+        if (csvFile) {
+            try {
+                const formData = new FormData();
+                formData.append('file', csvFile);
+
+                const response = await fetch('/upload_csv', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    alert(result.message);
+                } else {
+                    alert('Error uploading CSV file.');
+                }
+            } catch (error) {
+                console.error(error);
+                alert('Error uploading CSV file.');
+            }
+        } else {
+            alert('Please select a CSV file.');
+        }
+    }
+
+    return (
+        <div>
+            <input type="file" accept=".csv" onChange={handleFileChange} />
+            <button onClick={uploadCSV}>Upload CSV</button>
+        </div>
+    );
+}

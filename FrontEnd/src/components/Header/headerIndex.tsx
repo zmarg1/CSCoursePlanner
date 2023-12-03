@@ -52,6 +52,10 @@ const Header = ({ t }: any) => {
     navigate(`/user/plan/view-plan/${userEmail}`);
   };
 
+  const handleAdminClick = () => {
+    navigate('/admin-page');
+  };
+
   const MenuItem = () => {
     return (
       <>
@@ -66,6 +70,9 @@ const Header = ({ t }: any) => {
         </CustomNavLinkSmall>
         <CustomNavLinkSmall onClick={() => handleNavigationClick('/', 'contact')}>
           <Span>{t("Contact")}</Span>
+        </CustomNavLinkSmall>
+        <CustomNavLinkSmall onClick={handleAdminClick}>
+          <Span>{t("Admin Page")}</Span>
         </CustomNavLinkSmall>
       </>
     );

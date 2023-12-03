@@ -13,6 +13,7 @@ import { StyledContainer } from '../../common/Container/custContainerStyles';
 import Config from '../../config'; // Import your configuration file  
 import { GridContainer, GridItem, CourseItem, CourseDetails, ButtonContainer, TermHeading, YearHeading } from './myPlansStyles';
 
+
 const URL = `${Config.backendURL}`
 
 interface PlanFromServer {

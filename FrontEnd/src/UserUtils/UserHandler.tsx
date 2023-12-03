@@ -18,5 +18,3 @@ const UserHandler: React.FC = () => {
 };
 
 export default UserHandler;
-
-

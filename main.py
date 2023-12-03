@@ -14,21 +14,59 @@ from admin import admin_api
 app.register_blueprint(view_api)
 app.register_blueprint(admin_api)
 
-@app.route("/user/delete-user/<user_email>", methods=["DELETE"])
-def delete_user(user_email):
-    if request.method == "DELETE" and user_email:
-        user = users(user_email)
-        result = user.delete_user_data()
-        if "Error" not in result:
-            return jsonify({"Success": f"Successfully deleted user {user_email}"})
-        
-        return jsonify({"Failed": "User not in database"})
+@app.route("/delete-user", methods=["POST"])
+def delete_webhook():
+    try:
+        event = request.json
+        event_type = event.get('eventType')
 
-    elif not user_email:
-        return jsonify(FAILED_EMAIL)
+        if event_type == 'USER_DELETED':
+            user_id = event['data']['id']
+            user = users(user_id)
+            result = user.delete_user_data()
+            if "Error" not in result:
+                print(f"User deleted: {user.email}, {user_id}")
+                return jsonify({"Success": f"Successfully deleted user {user.email}"})
+        
+            return jsonify({"Failed": "User not in database"})
+        
+        else:
+            return jsonify({'status': 'ignored', 'reason': 'Event not USER_DELETED'}), 200
+        
+    except Exception as e:
+        print(f"Error processing webhook: {e}")
+        return jsonify({'status': 'error'}), 500
     
-    else:
-        return jsonify(FAILED_DELETE)
+@app.route("/update-user-metadata", methods=["POST"])
+def update_user_metadata_webhook():
+    try:
+        event = request.json
+        event_type = event.get('eventType')
+
+        if event_type == 'USER_CREATED':
+            user_id = event['data']['id']
+
+            # Fetch the user data from Clerk using the user_id
+            clerk_api_url = f'https://api.clerk.dev/v1/users/{user_id}'
+            clerk_api_key = 'pk_test_YWxlcnQtc3dhbi02MC5jbGVyay5hY2NvdW50cy5kZXYk'  # Replace with your Clerk API key
+            headers = {'Authorization': f'Bearer {clerk_api_key}'}
+            
+            response = request.get(clerk_api_url, headers=headers)
+            user_data = response.json()
+
+            # Update the user metadata
+            user_data['private_metadata']['admin'] = False
+
+            # Save the updated user data back to Clerk
+            response = request.put(clerk_api_url, json=user_data, headers=headers)
+
+            return jsonify({'status': 'success'}), 200
+        else:
+            return jsonify({'status': 'ignored', 'reason': 'Event not USER_CREATED'}), 200
+        
+    except Exception as e:
+        print(f"Error processing webhook: {e}")
+        return jsonify({'status': 'error'}), 500
 
 
 @app.route("/user/update-campus-id/<user_email>", methods=["POST"])

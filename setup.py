@@ -51,11 +51,6 @@ admin - The users permission level
 campus_id - The campus id of the given user
 """
 class users():
-    """
-    How to interact with user metadata
-    admin = user.user.user_metadata.get('admin')
-    user.user.app_metadata['campus_id'] = 'KD89'
-    """
     email = None
     admin = False
     max_plans = 10
@@ -65,10 +60,16 @@ class users():
     hard_cap_credits = 24 #to be implemented if we take this furthur
 
     #Makes a user if user given
-    def __init__(self, new_email=None, admin=False):
+    def __init__(self, new_email=None, admin=False, user_id=None):
         if new_email:
             self.email = new_email
             self.admin = admin
+        if user_id:
+            pub_user = public_user_info()
+            usr_email = pub_user.get_user_email(user_id)
+            self.email = usr_email
+            self.admin = admin
+
 
     def add_commit(self):
         db.session.add(self)
@@ -451,6 +452,19 @@ class public_user_info(db.Model):
             return err
         
         return user_id
+    
+    def get_user_email(self, user_id):
+        user = public_user_info.query.filter(public_user_info.user_id == user_id).first()
+        try:
+            user_email = user.email
+
+        except Exception as e:
+            print("ERROR getting user ID: ", e)
+            err = {"Failed": e}
+            return err
+        
+        return user_email
+
 
     def update_campus_id(self, new_c_id, email):
         user = public_user_info.query.filter(public_user_info.email == email).first()

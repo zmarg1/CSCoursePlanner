@@ -52,13 +52,13 @@ def admin_get_course(course_id):
 """
 Endpoint for getting all course
 """
-@admin_api.route('/admin/view-courses/<admin>', methods = ['GET'])
-def admin_get_all_courses(admin):
-    if admin:
+@admin_api.route('/admin/view-courses', methods = ['GET'])
+def admin_get_all_courses():
+    #if admin:
         all_courses = course.query.order_by(course.course_id.asc()).all()
         courses_dump = admin_courses_schema.dump(all_courses)
         return jsonify(courses_dump)
-    return jsonify(FAILED_ADMIN)
+    #return jsonify(FAILED_ADMIN)
 
 
 """

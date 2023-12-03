@@ -1,15 +1,19 @@
 import React, {useEffect, useState } from 'react';
 import axios from "axios"
 import {Link} from 'react-router-dom';
+import { useUser } from '@clerk/clerk-react';
 
 export default function ListCoursePage(){
+    const { user } = useUser();
     const [courses, setCourses] = useState([]);
     useEffect(() => {
         getCourses();
     }, []);
 
     function getCourses() {
-        axios.get('http://127.0.0.1:5000/admin/courses').then(function(response) {
+        const admin = user.publicMetadata.admin
+        console.log("Admin:", admin);
+        axios.get('http://127.0.0.1:5000/admin/view-courses').then(function(response) {
             console.log(response.data);
             setCourses(response.data);
         });

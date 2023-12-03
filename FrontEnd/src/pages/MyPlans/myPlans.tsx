@@ -86,17 +86,17 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ isOpen, onClose, 
 
 const CourseDescriptionModal: React.FC<CourseDescriptionModalProps> = ({ isOpen, onClose, description }) => {
   if (!isOpen) return null;
-  
+
   return (
     <div className="modal-overlay">
       <div className="modal-container">
-      <img src="/img/SmartDog.png" alt="Left Side" className="modal-side-image" />
+        <img src="/img/SmartDog.png" alt="Left Side" className="modal-side-image" />
         <div className="modal-content">
           <h4> Course Description</h4>
           <p>{description}</p>
-          <SmallerStyledButton 
-          color="#fdb515" 
-          onClick={onClose}>Close
+          <SmallerStyledButton
+            color="#fdb515"
+            onClick={onClose}>Close
           </SmallerStyledButton>
         </div>
         <img src="/img/SmartDog.png" alt="Right Side" className="modal-side-image" />
@@ -451,13 +451,18 @@ const ViewUserPlan: React.FC = () => {
             <div key={year} style={{ textAlign: 'center' }}>
               {/* Year heading at the center */}
               <YearHeading>
-              {index > 0 && (
-                <p>-----------------------------------------------</p>
-              )}
-              <h6 style={{ color: '#333' }}>{year}</h6>
+                {index > 0 && (
+                  <p>-----------------------------------------------</p>
+                )}
+                <h6 style={{ color: '#333' }}>{year}</h6>
               </YearHeading>
               <GridContainer>
-                {Object.entries(terms).filter(([_, coursesList]) => coursesList.length > 0)
+                {Object.entries(terms)
+                  .sort(([term1], [term2]) => {
+                    const order = ['Spring', 'Summer', 'Fall', 'Winter'];
+                    return order.indexOf(term1) - order.indexOf(term2);
+                  })
+                  .filter(([_, coursesList]) => coursesList.length > 0)
                   .map(([term, coursesList]) => (
                     <GridItem key={term}>
                       {/* Term heading for each list of courses */}
@@ -479,9 +484,9 @@ const ViewUserPlan: React.FC = () => {
                                 onClick={() => confirmDelete(course.course_id, selectedPlanId, year, term)}>Remove
                               </SmallerStyledButton>
                               <SmallerStyledButton
-                              color="#fdb515" // You can choose a different color
-                              onClick={() => viewCourseDescription(course.course_id)}>Details
-                            </SmallerStyledButton>
+                                color="#fdb515" // You can choose a different color
+                                onClick={() => viewCourseDescription(course.course_id)}>Details
+                              </SmallerStyledButton>
                             </ButtonContainer>
                           </CourseItem>
                         ))}

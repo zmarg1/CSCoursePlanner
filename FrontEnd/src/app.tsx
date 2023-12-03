@@ -7,7 +7,6 @@ import Router from "./router/router";
 import i18n from "./translation";
 import { I18nextProvider } from 'react-i18next';
 import { dark } from '@clerk/themes';
-import UserHandler from './UserUtils/UserHandler'; // Import UserHandler
 
 const clerkPubKey = process.env.REACT_APP_CLERK_PUBLISHABLE_KEY;
 
@@ -20,7 +19,6 @@ const App: React.FC = () => {
     <ClerkProvider appearance={{ baseTheme: dark }} publishableKey={clerkPubKey}>
       <BrowserRouter>
         <I18nextProvider i18n={i18n}>
-          <UserHandler/>
           <SignedIn>
             <Router />
           </SignedIn>

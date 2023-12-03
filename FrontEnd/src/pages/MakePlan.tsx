@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { StyledSelect } from '../common/select/selectStyles';
 import { StyledButton } from '../common/Button/custButtonStyles';
 import { StyledLabel } from '../common/Label/customLabel';
-import { supabase } from '../UserUtils/supabaseClient';
 import { useUser } from '@clerk/clerk-react';
 import '../common/PlanStyling/Plan.css';
 import { useNavigate } from 'react-router-dom';
@@ -345,27 +344,9 @@ const MakePlan: React.FC = () => {
     }
   }
 
-  const fetchUserDataFromSupabase = async () => {
-    if (user) {
-      try {
-        const { data, error } = await supabase
-          .from('public_user_info') 
-          .select('*')
-          .eq('user_id', user.id); 
-
-        if (error) throw error;
-
-        console.log('Fetched user-specific data:', data);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-    }
-  };
-
   useEffect(() => {
     fetchPlans();
     fetchSemesters();
-    fetchUserDataFromSupabase();
   }, [user]);
 
   const handleAddClass = async (event: React.FormEvent<HTMLFormElement>) => {

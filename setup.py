@@ -1,6 +1,7 @@
 from flask import Flask, request, session, jsonify
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
+import requests
 from marshmallow import fields
 from flask_marshmallow import Marshmallow
 from supabase import Client #import supabase.py not supabase
@@ -66,8 +67,9 @@ class users():
             self.admin = admin
         if user_id:
             pub_user = public_user_info()
-            usr_email = pub_user.get_user_email(user_id)
-            self.email = usr_email
+            response = pub_user.get_user_email(user_id)
+            if response['status'] == 'Success':
+                self.email = response['user_email']
             self.admin = admin
 
 
@@ -115,8 +117,12 @@ class users():
 
     def get_user_id(self):
         pub_usr = public_user_info()
-        usr_id = pub_usr.get_user_id(self.email)
-        return usr_id
+        response = pub_usr.get_user_id(self.email)
+
+        if response['status'] == 'Success':
+            return response['user_id']
+        else:
+            return None
     
     def update_campus_id(self, new_c_id):
         pub_user = public_user_info()
@@ -433,6 +439,19 @@ class public_user_info(db.Model):
     first_name = db.Column(db.String)
     last_name = db.Column(db.String)
 
+    def __init__(self, n_user_id=None, n_email=None):
+        if n_user_id and n_email:
+            self.user_id = n_user_id
+            self.email = n_email
+
+    def check_user(user_id):
+        user = public_user_info.query.filter(public_user_info.user_id == user_id).first()
+
+        if user:
+            return {'status': 'Success'}
+        else:
+            return {'status': 'Failed'}
+
     def add_commit(self):
         db.session.add(self)
         db.session.commit()
@@ -441,17 +460,21 @@ class public_user_info(db.Model):
         db.session.delete(self)
         db.session.commit()
     
-    def get_user_id(self, email):
-        user = public_user_info.query.filter(public_user_info.email == email).first()
+    def get_user_id(self, email=None):
+        if email:
+            user = public_user_info.query.filter(public_user_info.email == email).first()
+        else:
+            user = public_user_info.query.filter(public_user_info.email == self.email).first()
+
         try:
             user_id = user.user_id
 
         except Exception as e:
             print("ERROR getting user ID: ", e)
-            err = {"Failed": e}
+            err = {'status': "Failed", 'message': e}
             return err
         
-        return user_id
+        return {'status': 'Success', 'user_id': user_id}
     
     def get_user_email(self, user_id):
         user = public_user_info.query.filter(public_user_info.user_id == user_id).first()
@@ -459,11 +482,11 @@ class public_user_info(db.Model):
             user_email = user.email
 
         except Exception as e:
-            print("ERROR getting user ID: ", e)
-            err = {"Failed": e}
+            print("ERROR getting user Email: ", e)
+            err = {'status': "Failed", 'message': e}
             return err
         
-        return user_email
+        return {'status': 'Success', 'user_email': user_email}
 
 
     def update_campus_id(self, new_c_id, email):

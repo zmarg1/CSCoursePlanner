@@ -4,7 +4,7 @@ Authors: Amir Hawkins-Stewart & Zach Margulies
 Description: Makes objects of the databse tables, sends and recieves data from the supabase databse.
 """
 
-from setup import session, app, jsonify, request, db
+from setup import session, app, jsonify, request, db, requests
 from setup import admin_course_schema, admin_courses_schema, plan_schema, user_courses_schema, user_course_schema , plans_schema, taken_courses_schema
 from setup import course, subject, users, public_user_info, plan, taken, semester, requirement
 from setup import FAILED_EMAIL, FAILED_DELETE, FAILED_GET, FAILED_POST, FAILED_PLAN, FAILED_PLAN_ID
@@ -14,55 +14,79 @@ from admin import admin_api
 app.register_blueprint(view_api)
 app.register_blueprint(admin_api)
 
+"""
+Deletes the Clerk user from the database
+"""
 @app.route("/delete-user", methods=["POST"])
 def delete_webhook():
     try:
         event = request.json
-        event_type = event.get('eventType')
+        event_type = event.get('type')
 
-        if event_type == 'USER_DELETED':
+        if event_type == 'user.deleted':
             user_id = event['data']['id']
-            user = users(user_id)
+            user = users(None, False, user_id)
             result = user.delete_user_data()
             if "Error" not in result:
-                print(f"User deleted: {user.email}, {user_id}")
+                print(f"Deleted user with email: {user.email} and user_id: {user_id}")
                 return jsonify({"Success": f"Successfully deleted user {user.email}"})
-        
-            return jsonify({"Failed": "User not in database"})
+            
+            print("Failed not in database")
+            return jsonify({"Success": f"User not in database"})
         
         else:
-            return jsonify({'status': 'ignored', 'reason': 'Event not USER_DELETED'}), 200
+            print("Ignored: Event not user.deleted")
+            return jsonify({'status': 'ignored', 'reason': 'Event not user.deleted'}), 200
         
     except Exception as e:
         print(f"Error processing webhook: {e}")
         return jsonify({'status': 'error'}), 500
-    
-@app.route("/update-user-metadata", methods=["POST"])
-def update_user_metadata_webhook():
+
+
+"""
+When a new clerk user is made it updates there private metadata
+if they have none
+"""
+@app.route("/update-user", methods=["POST"])
+def update_user_webhook():
     try:
         event = request.json
-        event_type = event.get('eventType')
+        event_type = event.get('type')
 
-        if event_type == 'USER_CREATED':
-            user_id = event['data']['id']
+        if event_type == 'user.created':
+            event_data = event.get('data')
+            priv_meta = event_data.get('private_metadata')
+            user_id = event_data.get('id')
+            user_email = event_data.get('email_addresses', [{}])[0].get('email_address')
 
-            # Fetch the user data from Clerk using the user_id
-            clerk_api_url = f'https://api.clerk.dev/v1/users/{user_id}'
-            clerk_api_key = 'pk_test_YWxlcnQtc3dhbi02MC5jbGVyay5hY2NvdW50cy5kZXYk'  # Replace with your Clerk API key
-            headers = {'Authorization': f'Bearer {clerk_api_key}'}
-            
-            response = request.get(clerk_api_url, headers=headers)
-            user_data = response.json()
+            if 'admin' not in priv_meta and public_user_info.check_user(user_id):
 
-            # Update the user metadata
-            user_data['private_metadata']['admin'] = False
+                # Fetch the user data from Clerk using the user_id
+                clerk_api_url = f'https://api.clerk.dev/v1/users/{user_id}'
+                clerk_api_key = 'sk_test_8Fvp5UH4vZplPHK24IdPQXnFqMipUQGYN7WmkomiHG'  # Replace with your Clerk API key
+                headers = {'Authorization': f'Bearer {clerk_api_key}'}
 
-            # Save the updated user data back to Clerk
-            response = request.put(clerk_api_url, json=user_data, headers=headers)
+                # Update the private_metadata making a new admin bool
+                admin = {"private_metadata": {"admin": False}}
 
-            return jsonify({'status': 'success'}), 200
+                # Updates user with new metadata
+                response = requests.patch(clerk_api_url, json=admin, headers=headers)
+
+                pub_user = public_user_info(user_id, user_email)
+                pub_user.add_commit()
+
+                if response.status_code == 200:
+                    print("User updated")
+                    return jsonify({'status': 'success', 'user_id': user_id, 'user_email': user_email})
+                else:
+                    print(f"Failed to update user. Clerk API returned status code: {response.status_code}")
+                    return jsonify({'status': 'error', 'reason': 'Failed to update user'}), response.status_code
+            else:
+                print("User has admin")
+                return jsonify({'status': 'success', 'reason': 'User has admin'})
         else:
-            return jsonify({'status': 'ignored', 'reason': 'Event not USER_CREATED'}), 200
+            print("Ignored")
+            return jsonify({'status': 'ignored', 'reason': 'Event not user.created'})
         
     except Exception as e:
         print(f"Error processing webhook: {e}")

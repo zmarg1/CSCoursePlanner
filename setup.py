@@ -30,7 +30,7 @@ FAILED_GET = {"Failed": "Wrong method given expected GET"}
 FAILED_POST = {"Failed": "Wrong method given expected POST"}
 FAILED_DELETE = {"Failed": "Wrong method given expected DELETE"}
 FAILED_PUT = {"Failed": "Wrong method given expected PUT"}
-BLACKLIST = [";", "&", "\\", "$", ">", "<", "`", "!", "|", ",", "#", ".", "'"]
+BLACKLIST = [";", "&", "\\", "$", ">", "<", "`", "!", "|", ",", "#", ".", "'", "/", "+", "\""]
 FAILED_BLACKLIST = {"Failed": "A Blacklisted charachter was input"}
 
 """

@@ -12,7 +12,11 @@ import { ContactContainer, FormGroup, Span, ButtonContainer } from "./styles";
 
 
 // Other imports remain the same
-
+interface FormValues {
+  name?: string;
+  email?: string;
+  message?: string;
+}
 
 const Contact = ({ title, content, id, t }: ContactProps) => {
   const { values, errors, handleChange, handleSubmit } = useForm(

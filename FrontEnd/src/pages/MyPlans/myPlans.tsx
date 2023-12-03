@@ -91,7 +91,7 @@ const CourseDescriptionModal: React.FC<CourseDescriptionModalProps> = ({ isOpen,
       <div className="modal-container">
       <img src="/img/SmartDog.png" alt="Left Side" className="modal-side-image" />
         <div className="modal-content">
-          <h4>Course Description</h4>
+          <h4> Course Description</h4>
           <p>{description}</p>
           <SmallerStyledButton 
           color="#fdb515" 
@@ -447,38 +447,45 @@ const ViewUserPlan: React.FC = () => {
       ) : (
         <div style={{ margin: '1%' }}>
           {Object.entries(courses).map(([year, terms]) => (
-            <GridContainer key={year}>
-              {Object.entries(terms).filter(([_, coursesList]) => coursesList.length > 0)
-                .map(([term, coursesList]) => (
-                  <GridItem key={term}>
-                    <YearTermHeading>
-                      <h6 style={{ color: '#333' }}>{year} - {term}</h6>
-                    </YearTermHeading>
-                    <ul style={{ listStyleType: 'none', paddingLeft: '1%' }}>
-                      {coursesList.map((course, index) => (
-                        <CourseItem key={index}>
-                          <CourseDetails>
-                            <strong>{course.course_title}:</strong>
-                            <div>
-                              <strong>{course.subject_code} {course.course_num}, {course.credits} credits</strong>
-                            </div>
-                          </CourseDetails>
-                          <ButtonContainer className="ViewPlan-Buttons">
-                            <SmallerStyledButton
-                              color="#fdb515"
-                              onClick={() => confirmDelete(course.course_id, selectedPlanId, year, term)}>Remove
-                            </SmallerStyledButton>
-                            <SmallerStyledButton
+            <div key={year} style={{ textAlign: 'center' }}>
+              {/* Year heading at the center */}
+              <YearHeading>
+                <h6 style={{ color: '#333' }}>{year}</h6>
+              </YearHeading>
+              <GridContainer>
+                {Object.entries(terms).filter(([_, coursesList]) => coursesList.length > 0)
+                  .map(([term, coursesList]) => (
+                    <GridItem key={term}>
+                      {/* Term heading for each list of courses */}
+                      <TermHeading>
+                        <h6 style={{ color: '#333' }}>{term}</h6>
+                      </TermHeading>
+                      <ul style={{ listStyleType: 'none', paddingLeft: '1%' }}>
+                        {coursesList.map((course, index) => (
+                          <CourseItem key={index}>
+                            <CourseDetails>
+                              <strong>{course.course_title}:</strong>
+                              <div>
+                                <strong>{course.subject_code} {course.course_num}, {course.credits} credits</strong>
+                              </div>
+                            </CourseDetails>
+                            <ButtonContainer>
+                              <SmallerStyledButton
+                                color="#fdb515"
+                                onClick={() => confirmDelete(course.course_id, selectedPlanId, year, term)}>Remove
+                              </SmallerStyledButton>
+                              <SmallerStyledButton
                               color="#fdb515" // You can choose a different color
                               onClick={() => viewCourseDescription(course.course_id)}>Details
                             </SmallerStyledButton>
-                          </ButtonContainer>
-                        </CourseItem>
-                      ))}
-                    </ul>
-                  </GridItem>
-                ))}
-            </GridContainer>
+                            </ButtonContainer>
+                          </CourseItem>
+                        ))}
+                      </ul>
+                    </GridItem>
+                  ))}
+              </GridContainer>
+            </div>
           ))}
         </div>
       )}

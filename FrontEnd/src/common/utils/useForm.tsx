@@ -1,15 +1,24 @@
 import { useState, useEffect } from "react";
 import { notification } from "antd";
 import emailjs from 'emailjs-com';
+import { useUser } from "@clerk/clerk-react";
 
 export const useForm = (validate: any) => {
   const [values, setValues] = useState({});
   const [errors, setErrors] = useState({});
   const [shouldSubmit, setShouldSubmit] = useState(false);
 
-  const reset = () => {
-    setValues({}); // Reset to empty or initial state
+  const resetForm = () => {
+    setValues((prevValues) =>({
+      ...prevValues,
+      name: "",
+      email: "",
+      message: ""
+    }));
+    setShouldSubmit(false);
+    setErrors({});
   };
+
 
   const openNotificationWithIcon = () => {
     notification["success"]({
@@ -32,7 +41,7 @@ export const useForm = (validate: any) => {
         .then((result) => {
           console.log(result.text);
           setShouldSubmit(true);
-          reset(); // Call the reset function after successful submission
+          resetForm();
           openNotificationWithIcon(); // Notify the user
         }, (error) => {
           console.log(error.text);
@@ -40,23 +49,6 @@ export const useForm = (validate: any) => {
     }
   };
 
-  const resetForm = () => {
-    setValues({
-      name: '',
-      email: '',
-      message: ''
-    });
-    setShouldSubmit(false);
-    setErrors({});
-  };
-  
-
-  useEffect(() => {
-    if (shouldSubmit) {
-      resetForm();
-      setShouldSubmit(false);
-    }
-  }, [shouldSubmit]);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     event.persist();
@@ -71,7 +63,6 @@ export const useForm = (validate: any) => {
     handleChange,
     handleSubmit,
     values,
-    errors,
-    reset,
+    errors
   };
 };

@@ -66,7 +66,7 @@ def update_user_webhook():
                 headers = {'Authorization': f'Bearer {clerk_api_key}'}
 
                 # Update the private_metadata making a new admin bool
-                admin = {"private_metadata": {"admin": False}}
+                admin = {"public_metadata": {"admin": False}}
 
                 # Updates user with new metadata
                 response = requests.patch(clerk_api_url, json=admin, headers=headers)

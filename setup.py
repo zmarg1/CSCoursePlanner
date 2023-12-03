@@ -172,6 +172,7 @@ class users():
         if in_plan and in_course and in_req and in_sem:
             crs = course()
             geps = crs.get_gep_ids()
+            exception_titles = ["CMSC Elective", "Spec Topics In Comp Sci"]
             
             usr_plan = plan(plan_id)
             pln_courses = usr_plan.get_taken_courses()
@@ -184,7 +185,7 @@ class users():
                     num_sem_courses += 1
             num_sem = len(pln_semesters)
 
-            if num_sem_courses < self.brandon_limit and num_sem <= self.zach_limit and (not crs_in_taken or crs_id in geps):
+            if num_sem_courses < self.brandon_limit and num_sem <= self.zach_limit and (not crs_in_taken or crs_id in geps or in_course.course_title in exception_titles):
                 add_to_plan = taken()
                 add_to_plan.add_course(plan_id, crs_id, req_id, sem_id, grade)
                 add_to_plan.add_commit()
@@ -352,6 +353,7 @@ class users():
         if user_plan:
             crs = course()
             geps = crs.get_gep_ids()
+            exception_titles = ["CMSC Elective", "Spec Topics In Comp Sci"]
 
             #Iterates through all available courses
             for crs in term_courses:
@@ -359,7 +361,7 @@ class users():
 
                 #Iterates through all users taken courses
                 for taken_crs in user_plan:
-                    if crs.course_id == taken_crs.course_id and crs.course_id not in geps:
+                    if crs.course_id == taken_crs.course_id and crs.course_id not in geps and crs.course_title not in exception_titles:
                         not_taken = False
                         break
 

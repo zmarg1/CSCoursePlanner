@@ -490,7 +490,7 @@ const MakePlan: React.FC = () => {
 
           {showPrereqs && (
             <div className="prereqs-section">
-              <p style={{ fontWeight: 'bold', textAlign: 'center' }}>{selectedCurseCode} Requirements</p>
+              <p style={{ fontWeight: 'bold', textAlign: 'center' }}>{selectedCurseCode} Prerequisites</p>
               {Object.entries(prereqCourses).map(([req, courses], index) => (
                 <div key={req} className="term">
                   {index > 0 && <p style={{ color: '#333' }}> and </p>}

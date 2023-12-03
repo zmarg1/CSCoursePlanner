@@ -11,7 +11,7 @@ import '../../common/PlanStyling/Plan.css';
 import { notification } from "antd";
 import { StyledContainer } from '../../common/Container/custContainerStyles';
 import Config from '../../config'; // Import your configuration file  
-import { GridContainer, GridItem, CourseItem, CourseDetails, ButtonContainer, YearTermHeading } from './myPlansStyles';
+import { GridContainer, GridItem, CourseItem, CourseDetails, ButtonContainer, TermHeading, YearHeading } from './myPlansStyles';
 
 const URL = `${Config.backendURL}`
 
@@ -353,6 +353,7 @@ const ViewUserPlan: React.FC = () => {
     const doc = new jsPDF();
     let y = 20; // Starting vertical position
 
+
     const headers = ["Course Title", "Subject Code", "Course Num", "Credits"];
     const columnWidths = [90, 30, 40, 30]; // Adjust as needed
 
@@ -481,6 +482,8 @@ const ViewUserPlan: React.FC = () => {
           ))}
         </div>
       )}
+
+
 
 
 

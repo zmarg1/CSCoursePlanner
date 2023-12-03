@@ -30,7 +30,11 @@ export const ButtonContainer = styled("div")`
     width: 40%; 
   `;
   
-export const YearTermHeading = styled("div")`
+export const TermHeading = styled("div")`
     display: flex;
     align-items: center;
   `;
+
+export const YearHeading = styled("h6")`
+  align-items: center;
+`;

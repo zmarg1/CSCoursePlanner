@@ -86,17 +86,17 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ isOpen, onClose, 
 
 const CourseDescriptionModal: React.FC<CourseDescriptionModalProps> = ({ isOpen, onClose, description }) => {
   if (!isOpen) return null;
-  
+
   return (
     <div className="modal-overlay">
       <div className="modal-container">
-      <img src="/img/SmartDog.png" alt="Left Side" className="modal-side-image" />
+        <img src="/img/SmartDog.png" alt="Left Side" className="modal-side-image" />
         <div className="modal-content">
           <h4> Course Description</h4>
           <p>{description}</p>
-          <SmallerStyledButton 
-          color="#fdb515" 
-          onClick={onClose}>Close
+          <SmallerStyledButton
+            color="#fdb515"
+            onClick={onClose}>Close
           </SmallerStyledButton>
         </div>
         <img src="/img/SmartDog.png" alt="Right Side" className="modal-side-image" />
@@ -353,32 +353,37 @@ const ViewUserPlan: React.FC = () => {
   const generatePDF = () => {
     const doc = new jsPDF();
     let y = 20; // Starting vertical position
-
-
+  
     const headers = ["Course Title", "Subject Code", "Course Num", "Credits"];
     const columnWidths = [90, 30, 40, 30]; // Adjust as needed
-
+  
     doc.setFont("helvetica", "bold");
-
+  
     const splitText = (text: string, maxWidth: number) => {
       return doc.splitTextToSize(text, maxWidth);
     };
-
+  
     Object.entries(courses).forEach(([year, terms]) => {
-      Object.entries(terms).forEach(([term, coursesList]) => {
+      // Sorting terms in the desired order
+      const sortedTerms = Object.entries(terms).sort(([term1], [term2]) => {
+        const order = ['Spring', 'Summer', 'Fall', 'Winter'];
+        return order.indexOf(term1) - order.indexOf(term2);
+      });
+  
+      sortedTerms.forEach(([term, coursesList]) => {
         let termTotalCredits = 0;
-
+  
         // Check if there is enough space for the header and content on the current page
         if (y + 40 > doc.internal.pageSize.height) {
           doc.addPage(); // Add a new page
           y = 20; // Reset vertical position
         }
-
+  
         doc.setTextColor(0, 0, 255);
         doc.setFontSize(14);
         doc.text(`${year} - ${term}`, 10, y);
         y += 10;
-
+  
         doc.setTextColor(0, 0, 0);
         doc.setFontSize(10);
         let x = 10;
@@ -387,39 +392,40 @@ const ViewUserPlan: React.FC = () => {
           x += columnWidths[index];
         });
         y += 10;
-
-        coursesList.forEach((course) => {
+  
+        coursesList.forEach(course => {
           let x = 10;
           const courseCredits = course.credits || 0;
           const splitCourseTitle = splitText(course.course_title, columnWidths[0]);
           const lineHeight = 7;
           let maxY = y;
-
+  
           splitCourseTitle.forEach((line: string) => {
             doc.text(line, x, maxY);
             maxY += lineHeight;
           });
-
+  
           doc.text(course.subject_code, x + columnWidths[0], y);
           doc.text(course.course_num, x + columnWidths[0] + columnWidths[1], y);
           doc.text(courseCredits.toString(), x + columnWidths[0] + columnWidths[1] + columnWidths[2], y);
-
+  
           y = Math.max(maxY, y + lineHeight);
-
+  
           if (course.credits != null) {
             termTotalCredits += course.credits;
           }
         });
-
+  
         doc.setFontSize(12);
         doc.setTextColor(255, 0, 0);
         doc.text(`Total Credits for ${term}: ${termTotalCredits}`, 10, y);
         y += 15;
       });
     });
-
+  
     doc.save(`${selectedPlanName}.pdf`);
   };
+  
 
 
   return (
@@ -451,13 +457,18 @@ const ViewUserPlan: React.FC = () => {
             <div key={year} style={{ textAlign: 'center' }}>
               {/* Year heading at the center */}
               <YearHeading>
-              {index > 0 && (
-                <p>-----------------------------------------------</p>
-              )}
-              <h6 style={{ color: '#333' }}>{year}</h6>
+                {index > 0 && (
+                  <p>-----------------------------------------------</p>
+                )}
+                <h6 style={{ color: '#333' }}>{year}</h6>
               </YearHeading>
               <GridContainer>
-                {Object.entries(terms).filter(([_, coursesList]) => coursesList.length > 0)
+                {Object.entries(terms)
+                  .sort(([term1], [term2]) => {
+                    const order = ['Spring', 'Summer', 'Fall', 'Winter'];
+                    return order.indexOf(term1) - order.indexOf(term2);
+                  })
+                  .filter(([_, coursesList]) => coursesList.length > 0)
                   .map(([term, coursesList]) => (
                     <GridItem key={term}>
                       {/* Term heading for each list of courses */}
@@ -479,9 +490,9 @@ const ViewUserPlan: React.FC = () => {
                                 onClick={() => confirmDelete(course.course_id, selectedPlanId, year, term)}>Remove
                               </SmallerStyledButton>
                               <SmallerStyledButton
-                              color="#fdb515" // You can choose a different color
-                              onClick={() => viewCourseDescription(course.course_id)}>Details
-                            </SmallerStyledButton>
+                                color="#fdb515" // You can choose a different color
+                                onClick={() => viewCourseDescription(course.course_id)}>Details
+                              </SmallerStyledButton>
                             </ButtonContainer>
                           </CourseItem>
                         ))}

@@ -36,4 +36,5 @@ align-items: center;
 
 export const YearHeading = styled("h6")`
   align-items: center;
+  margin-top: 1%;
 `;

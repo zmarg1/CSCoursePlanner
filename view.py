@@ -168,8 +168,8 @@ def view_prereqs(crs_id):
         for preq in all_prereqs:
             key = f"Req{i}"
             preq_crs_dump[key] = []
-            for crs in preq:
-                crs_obj = _course.get_course(crs)
+            for crs_id in preq:
+                crs_obj = _course.get_course(crs_id)
                 preq_crs_dump[key].append(user_course_schema.dump(crs_obj))
             i += 1
 

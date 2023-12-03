@@ -451,7 +451,8 @@ const ViewUserPlan: React.FC = () => {
             <div key={year} style={{ textAlign: 'center' }}>
               {/* Year heading at the center */}
               <YearHeading>
-                <h6 style={{ color: '#333' }}>{year}</h6>
+              <h6 style={{ color: '#333' }}>============================</h6>
+              <h6 style={{ color: '#333' }}>{year}</h6>
               </YearHeading>
               <GridContainer>
                 {Object.entries(terms).filter(([_, coursesList]) => coursesList.length > 0)

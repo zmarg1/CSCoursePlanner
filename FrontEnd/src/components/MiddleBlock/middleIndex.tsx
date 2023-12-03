@@ -11,9 +11,11 @@ interface MiddleBlockProps {
   button: string;
   id: string;
   t: any;
+  image?: string;
 }
 
-const MiddleBlock = ({ title, content, button, id, t }: MiddleBlockProps) => {
+
+const MiddleBlock = ({ title, content, button, id, t, image }: MiddleBlockProps) => {
   const scrollTo = (id: string) => {
     const element = document.getElementById(id) as HTMLDivElement;
     element.scrollIntoView({
@@ -24,7 +26,7 @@ const MiddleBlock = ({ title, content, button, id, t }: MiddleBlockProps) => {
   const navigate = useNavigate();
   const handleNavigate = (buttonLabel: string) => {
     console.log(`Button clicked: ${buttonLabel}`); // For debugging
-  
+
     if (buttonLabel === '+') {
       console.log('Navigating to /user/plan/make-plan'); // For debugging
       navigate('/user/plan/make-plan');
@@ -33,7 +35,7 @@ const MiddleBlock = ({ title, content, button, id, t }: MiddleBlockProps) => {
       scrollTo("about");
     }
   };
-  
+
 
   return (
     <MiddleBlockSection>
@@ -43,6 +45,7 @@ const MiddleBlock = ({ title, content, button, id, t }: MiddleBlockProps) => {
             <Col lg={24} md={24} sm={24} xs={24}>
               <h6>{t(title)}</h6>
               <Content>{t(content)}</Content>
+              {image && <img src={image} alt={title} />} {/* Render image if provided */}
               {button && (
                 <Button
                   name="submit"

@@ -43,6 +43,7 @@ const Home = () => {
         content={MiddleBlockContent.text}
         button={MiddleBlockContent.button}
         id="plan"
+        image="/img/PlanDog.png"
       />
       <ContentBlock
         type="left"

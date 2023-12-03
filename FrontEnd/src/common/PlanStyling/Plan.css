@@ -28,6 +28,12 @@
   gap: 5%;
 }
 
+.ViewPlan-Buttons{
+  display: flex;        /* Aligns children (buttons) in a row */
+  justify-content: start; /* Aligns children to the start of the container */
+  gap: 10px;            /* Adds some space between the buttons */
+}
+
 .button-container-makePlan {
   margin-top: 20%;
   display: flex;

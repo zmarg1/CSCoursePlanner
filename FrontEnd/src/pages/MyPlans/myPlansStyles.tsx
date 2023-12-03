@@ -27,6 +27,7 @@ export const CourseDetails = styled("div")`
   
 export const ButtonContainer = styled("div")`
     margin-left: 20%;
+    width: 40%; 
   `;
   
 export const YearTermHeading = styled("div")`

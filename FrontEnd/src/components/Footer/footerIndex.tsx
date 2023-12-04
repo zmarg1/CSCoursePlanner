@@ -130,7 +130,7 @@ const Footer = ({ t }: any) => {
                 href="https://www.linkedin.com/"
                 src="linkedin.svg"
               />
-              <a href="https://www.buymeacoffee.com/planumbc">
+              <a href="https://www.buymeacoffee.com/planumbc.vercel.app">
                 <img
                   src="https://img.buymeacoffee.com/button-api/?text=Buy us some coffee!&emoji=☕&slug=planUMBC&button_colour=fdb515&font_colour=ffffff&font_family=Lato&outline_colour=000000&coffee_colour=FFDD00"
                   alt="Buy us some coffee"

@@ -14,7 +14,7 @@ export default function ListSubjectPage(){
 
     function getSubjects() {
         axios.get(`http://127.0.0.1:5000/admin/subjects/${admin}`).then(function(response) {
-            console.log(response.data);
+            console.log("Subjects Response",response.data);
             setSubjects(response.data);
         });
     }
@@ -46,8 +46,8 @@ export default function ListSubjectPage(){
                             {subjects.map((subject,key) =>
                                 <tr key = {key}>
                                     <td>{subject.subject_id}</td>
-                                    <td>{subject.subject_code}</td>
-                                    <td>{subject.subject_name}</td>
+                                    <td>{subject.sub_code}</td>
+                                    <td>{subject.sub_name}</td>
                                 <td>
                                     <Link to={`/admin-subjects/subject/${subject.subject_id}/edit`} className="btn btn-success" style={{marginRight: "10px"}}>Edit</Link>
                                     <button onClick={() => deleteSubject(subject.subject_id)} className="btn btn-danger">Delete</button>

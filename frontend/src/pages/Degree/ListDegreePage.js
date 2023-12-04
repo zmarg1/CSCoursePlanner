@@ -33,7 +33,7 @@ export default function ListDegreePage() {
             <div className="container h-100">
                 <div className="row h-100">
                     <div className="col-12">
-                        <p><Link to="/degrees/addnewdegree" className="btn btn-success">Add New Degree</Link> </p>
+                        <p><Link to="/admin-degrees/addnewdegree" className="btn btn-success">Add New Degree</Link> </p>
                         <h1>List Degrees</h1>
                         <table class="table table-bordered table-striped">
                             <thead>

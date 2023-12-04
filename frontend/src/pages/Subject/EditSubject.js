@@ -49,11 +49,11 @@ export default function EditSubject() {
                         <form onSubmit={handleSubmit}>
                             <div className="mb-3">
                                 <label>Subject Code</label>
-                                <input type="text" value={inputs.subject_code} className="form-control" name="subject_code" onChange={handleChange} />
+                                <input type="text" value={inputs.subject_code} className="form-control" name="subject_code" onChange={handleChange} required/>
                             </div>
                             <div className="mb-3">
                                 <label>Subject Name</label>
-                                <input type="text" value={inputs.subject_name} className="form-control" name="subject_name" onChange={handleChange} />
+                                <input type="text" value={inputs.subject_name} className="form-control" name="subject_name" onChange={handleChange} required/>
                             </div>
                             <button type="submit" name="update" className="btn btn-primary">Save</button>
                         </form>

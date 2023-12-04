@@ -1010,8 +1010,7 @@ class subject(db.Model):
 # Defines your subject output
 class SubjectSchema(ma.Schema):
     class Meta:
-        # Fields to expose
-        fields = ("subject_id", "subject_code", "subject_name")
+        fields = ("subject_id", "sub_code", "sub_name")
 
 subject_schema = SubjectSchema()
 subjects_schema = SubjectSchema(many=True)

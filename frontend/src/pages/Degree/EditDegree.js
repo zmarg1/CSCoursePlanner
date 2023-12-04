@@ -34,7 +34,7 @@ export default function EditDegree() {
 
         axios.put(`http://127.0.0.1:5000/admin/degrees/update_degree/${admin}/${id}`, inputs).then(function (response) {
             console.log(response.data);
-            navigate('/degrees');
+            navigate('/admin-degrees');
         });
 
     }
@@ -49,11 +49,11 @@ export default function EditDegree() {
                         <form onSubmit={handleSubmit}>
                             <div className="mb-3">
                                 <label>Degree Name</label>
-                                <input type="text" value={inputs.term} className="form-control" name="deg_name" onChange={handleChange} />
+                                <input type="text" value={inputs.term} className="form-control" name="deg_name" onChange={handleChange} required/>
                             </div>
                             <div className="mb-3">
                                 <label>Degree Type</label>
-                                <input type="text" value={inputs.year} className="form-control" name="deg_type" onChange={handleChange} />
+                                <input type="text" value={inputs.year} className="form-control" name="deg_type" onChange={handleChange} required/>
                             </div>
                             <button type="submit" name="update" className="btn btn-primary">Save</button>
                         </form>

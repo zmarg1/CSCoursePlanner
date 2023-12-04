@@ -35,12 +35,8 @@ export default function CreateUser() {
             <h1>Create User</h1>
             <form onSubmit={handleSubmit}>
               <div className="mb-3">
-                <label>User_ID</label>
-                <input type="number" className="form-control" name="user_id" onChange={handleChange} />
-              </div>
-              <div className="mb-3">
                 <label>Email</label>
-                <input type="text" className="form-control" name="email" onChange={handleChange} />
+                <input type="text" className="form-control" name="email" onChange={handleChange} required/>
               </div>
               <div className="mb-3">
                 <label>Campus_ID</label>

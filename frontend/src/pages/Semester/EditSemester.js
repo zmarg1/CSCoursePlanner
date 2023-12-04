@@ -49,11 +49,11 @@ export default function EditSemester() {
                         <form onSubmit={handleSubmit}>
                             <div className="mb-3">
                                 <label>Term</label>
-                                <input type="text" value={inputs.term} className="form-control" name="term" onChange={handleChange} />
+                                <input type="text" value={inputs.term} className="form-control" name="term" onChange={handleChange} required/>
                             </div>
                             <div className="mb-3">
                                 <label>Year</label>
-                                <input type="number" value={inputs.year} className="form-control" name="year" onChange={handleChange} />
+                                <input type="number" value={inputs.year} className="form-control" name="year" onChange={handleChange} required/>
                             </div>
                             <button type="submit" name="update" className="btn btn-primary">Save</button>
                         </form>

@@ -33,7 +33,7 @@ export default function CreatePrereq(){
   
         axios.post(`http://127.0.0.1:5000/admin/prereqs/create_prereq/${admin}`, inputs).then(function(response){
             console.log(response.data);
-            navigate('/prereqs');
+            navigate('/admin-prereqs');
         });
           
     }
@@ -47,20 +47,16 @@ export default function CreatePrereq(){
                 <h1>Create Prerequisite</h1>
                 <form onSubmit={handleSubmit}>
                     <div className="mb-3">
-                      <label>Prereq_ID</label>
-                      <input type="number" className="form-control" name="prereq_id" onChange={handleChange} />
-                    </div>
-                    <div className="mb-3">
                       <label>Course_ID</label>
-                      <input type="number" className="form-control" name="crs_id" onChange={handleChange} />
+                      <input type="number" className="form-control" name="crs_id" onChange={handleChange} required/>
                     </div>
                     <div className="mb-3">
-                      <label>Prereq Course (comma separated)</label>
-                      <input type="text" className="form-control" name="prereq_courses" onChange={handleChange} />
+                      <label>Prereq Courses (comma separated)</label>
+                      <input type="text" className="form-control" name="prereq_courses" onChange={handleChange} required/>
                     </div>
                     <div className="mb-3">
                       <label>Grade Required</label>
-                      <input type="number" className="form-control" name="grade_required" onChange={handleChange} />
+                      <input type="number" className="form-control" name="grade_required" onChange={handleChange} required/>
                     </div>
                     <button type="submit" name="add" className="btn btn-primary">Save</button>
                 </form>

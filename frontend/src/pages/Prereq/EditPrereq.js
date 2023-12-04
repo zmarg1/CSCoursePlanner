@@ -79,6 +79,7 @@ export default function EditPrereq() {
                   className="form-control"
                   name="crs_id"
                   onChange={handleChange}
+                  required
                 />
               </div>
               <div className="mb-3">
@@ -90,6 +91,7 @@ export default function EditPrereq() {
                   name="prereq_courses"
                   onChange={handleChange}
                   onKeyDown={handleKeyDown}
+                  required
                 />
               </div>
               <div className="mb-3">
@@ -100,6 +102,7 @@ export default function EditPrereq() {
                   className="form-control"
                   name="grade_required"
                   onChange={handleChange}
+                  required
                 />
               </div>
               <button type="submit" name="update" className="btn btn-primary">

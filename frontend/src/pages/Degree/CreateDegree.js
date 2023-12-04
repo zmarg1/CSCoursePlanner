@@ -21,7 +21,7 @@ export default function CreateDegree() {
 
     axios.post(`http://127.0.0.1:5000/admin/degrees/create_degree/${admin}`, inputs).then(function (response) {
       console.log(response.data);
-      navigate('/degrees');
+      navigate('/admin-degrees');
     });
 
   }
@@ -35,16 +35,12 @@ export default function CreateDegree() {
             <h1>Create Degree</h1>
             <form onSubmit={handleSubmit}>
               <div className="mb-3">
-                <label>Degree_ID</label>
-                <input type="number" className="form-control" name="degree_id" onChange={handleChange} />
-              </div>
-              <div className="mb-3">
                 <label>Degree Name</label>
-                <input type="text" className="form-control" name="deg_name" onChange={handleChange} />
+                <input type="text" className="form-control" name="deg_name" onChange={handleChange} required/>
               </div>
               <div className="mb-3">
                 <label>Degree Type</label>
-                <input type="text" className="form-control" name="deg_type" onChange={handleChange} />
+                <input type="text" className="form-control" name="deg_type" onChange={handleChange} required/>
               </div>
               <button type="submit" name="add" className="btn btn-primary">Save</button>
             </form>

@@ -35,16 +35,12 @@ export default function CreateSemester() {
             <h1>Create Semester</h1>
             <form onSubmit={handleSubmit}>
               <div className="mb-3">
-                <label>Semester_ID</label>
-                <input type="number" className="form-control" name="semester_id" onChange={handleChange} />
-              </div>
-              <div className="mb-3">
                 <label>Term</label>
-                <input type="text" className="form-control" name="term" onChange={handleChange} />
+                <input type="text" className="form-control" name="term" onChange={handleChange} required/>
               </div>
               <div className="mb-3">
                 <label>Year</label>
-                <input type="number" className="form-control" name="year" onChange={handleChange} />
+                <input type="number" className="form-control" name="year" onChange={handleChange} required/>
               </div>
               <button type="submit" name="add" className="btn btn-primary">Save</button>
             </form>

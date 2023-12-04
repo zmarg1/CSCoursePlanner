@@ -35,16 +35,12 @@ export default function CreateSubject(){
                 <h1>Create Subject</h1>
                 <form onSubmit={handleSubmit}>
                     <div className="mb-3">
-                      <label>Subject_ID</label>
-                      <input type="number" className="form-control" name="subject_id" onChange={handleChange} />
-                    </div>
-                    <div className="mb-3">
                       <label>Subject Code</label>
-                      <input type="text" className="form-control" name="subject_code" onChange={handleChange} />
+                      <input type="text" className="form-control" name="subject_code" onChange={handleChange} required/>
                     </div>
                     <div className="mb-3">
                       <label>Subject Name</label>
-                      <input type="text" className="form-control" name="subject_name" onChange={handleChange} />
+                      <input type="text" className="form-control" name="subject_name" onChange={handleChange} required/>
                     </div>
                     <button type="submit" name="add" className="btn btn-primary">Save</button>
                 </form>

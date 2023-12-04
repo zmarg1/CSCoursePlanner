@@ -34,20 +34,16 @@ export default function CreateCourse(){
                 <h1>Create Course</h1>
                 <form onSubmit={handleSubmit}>
                     <div className="mb-3">
-                      <label>Course_ID</label>
-                      <input type="number" className="form-control" name="course_id" onChange={handleChange} />
-                    </div>
-                    <div className="mb-3">
                       <label>Subject_ID</label>
-                      <input type="number" className="form-control" name="subject_id" onChange={handleChange} />
+                      <input type="number" className="form-control" name="subject_id" onChange={handleChange} required/>
                     </div>
                     <div className="mb-3">
                       <label>Course Title</label>
-                      <input type="text" className="form-control" name="crs_title" onChange={handleChange} />
+                      <input type="text" className="form-control" name="crs_title" onChange={handleChange} required/>
                     </div>
                     <div className="mb-3">
                       <label>Course Number</label>
-                      <input type="text" className="form-control" name="crs_num" onChange={handleChange} />
+                      <input type="text" className="form-control" name="crs_num" onChange={handleChange} required/>
                     </div>
                     <div className="mb-3">
                       <label>Credits</label>

@@ -54,11 +54,11 @@ export default function EditCourse(){
                 </div>
                 <div className="mb-3">
                   <label>Course Title</label>
-                  <input type="text" value={inputs.crs_title} className="form-control" name="crs_title" onChange={handleChange} />
+                  <input type="text" value={inputs.crs_title} className="form-control" name="crs_title" onChange={handleChange} required/>
                 </div>
                 <div className="mb-3">
                   <label>Course Number</label>
-                  <input type="text" value={inputs.crs_num} className="form-control" name="crs_num" onChange={handleChange} />
+                  <input type="text" value={inputs.crs_num} className="form-control" name="crs_num" onChange={handleChange} required/>
                 </div>
                 <div className="mb-3">
                   <label>Credits</label>

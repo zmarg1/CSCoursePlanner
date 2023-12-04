@@ -49,7 +49,7 @@ export default function EditUser() {
             <form onSubmit={handleSubmit}>
               <div className="mb-3">
                 <label>Email</label>
-                <input type="text" value={inputs.term} className="form-control" name="email" onChange={handleChange} />
+                <input type="text" value={inputs.term} className="form-control" name="email" onChange={handleChange} required/>
               </div>
               <div className="mb-3">
                 <label>Campus_ID</label>

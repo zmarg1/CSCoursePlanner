@@ -42,13 +42,12 @@ def delete_webhook():
         print(f"Error processing webhook: {e}")
         return jsonify({'status': 'error'}), 500
 
-
 """
 When a new clerk user is made it updates there private metadata
 if they have none
 """
-@app.route("/update-user", methods=["POST"])
-def update_user_webhook():
+@app.route("/user-created", methods=["POST"])
+def user_created_webhook():
     try:
         event = request.json
         event_type = event.get('type')
@@ -87,6 +86,32 @@ def update_user_webhook():
             print("Ignored")
             return jsonify({'status': 'ignored', 'reason': 'Event not user.created'})
         
+    except Exception as e:
+        print(f"Error processing webhook: {e}")
+        return jsonify({'status': 'error'}), 500
+
+@app.route("/user-updated", methods=["POST"])
+def user_updated_webhook():
+    try:
+        event = request.json
+        event_type = event.get('type')
+
+        if event_type == 'user.updated':
+            event_data = event.get('data')
+
+            user_email = event_data.get('email_addresses', [{}])[0].get('email_address')
+            user_first_name = event_data.get('first_name')
+            user_last_name = event_data.get('last_name')
+
+            pub_user = public_user_info()
+            result = pub_user.update_name(user_email, user_first_name, user_last_name)
+
+            if result['status'] == 'Success':
+                return jsonify(result)
+            else:
+                return jsonify(result)
+
+
     except Exception as e:
         print(f"Error processing webhook: {e}")
         return jsonify({'status': 'error'}), 500

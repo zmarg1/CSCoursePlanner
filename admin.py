@@ -48,7 +48,7 @@ Endpoint for getting all course
 """
 @admin_api.route('/admin/view-courses/<admin>', methods = ['GET'])
 def admin_get_all_courses(admin):
-    if admin:
+    if admin and request.method == "GET":
         all_courses = course.query.order_by(course.course_id.asc()).all()
         courses_dump = admin_courses_schema.dump(all_courses)
         return jsonify(courses_dump)

@@ -1,26 +1,30 @@
-import React, {useEffect, useState } from 'react';
+import {useEffect, useState } from 'react';
 import axios from "axios"
 import {Link} from 'react-router-dom';
 import { useUser } from '@clerk/clerk-react';
+import Config from '../../config';
 
 export default function ListCoursePage(){
+    const URL = `${Config.backendURL}`
     const { user } = useUser();
-    const [courses, setCourses] = useState([]);
     const admin = user.publicMetadata.admin;
+
+    const [courses, setCourses] = useState([]);
+    
 
     useEffect(() => {
         getCourses();
     }, []);
 
     function getCourses() {
-        axios.get(`http://127.0.0.1:5000/admin/view-courses/${admin}`).then(function(response) {
+        axios.get(`${URL}/admin/view-courses/${admin}`).then(function(response) {
             console.log("Course Response: ",response.data);
             setCourses(response.data);
         });
     }
 
     const deleteCourse = (id) => {
-        axios.delete(`http://127.0.0.1:5000/admin/courses/delete/${admin}/${id}`).then(function(response){
+        axios.delete(`${URL}/admin/courses/delete/${admin}/${id}`).then(function(response){
             console.log(response.data);
             getCourses();
         });
@@ -55,7 +59,6 @@ export default function ListCoursePage(){
                                 <td>
                                     <Link to={`/admin-courses/course/${course.course_id}/edit`} className="btn btn-success" style={{marginRight: "10px"}}>Edit</Link>
                                     <button onClick={() => deleteCourse(course.course_id)} className="btn btn-danger">Delete</button>
-
                                 </td>
                                 </tr>
                             )}

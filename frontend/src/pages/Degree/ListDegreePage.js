@@ -2,8 +2,10 @@ import React, { useEffect, useState } from 'react';
 import axios from "axios"
 import { Link } from 'react-router-dom';
 import { useUser } from '@clerk/clerk-react';
+import Config from '../../config';
 
 export default function ListDegreePage() {
+    const URL = `${Config.backendURL}`
     const { user } = useUser();
     const admin = user.publicMetadata.admin;
 
@@ -14,14 +16,14 @@ export default function ListDegreePage() {
     }, []);
 
     function getDegrees() {
-        axios.get(`http://127.0.0.1:5000/admin/degrees/${admin}`).then(function (response) {
+        axios.get(`${URL}/admin/degrees/${admin}`).then(function (response) {
             console.log(response.data);
             setDegrees(response.data);
         });
     }
 
     const deleteDegree = (id) => {
-        axios.delete(`http://127.0.0.1:5000/admin/degrees/delete/${admin}/${id}`).then(function (response) {
+        axios.delete(`${URL}/admin/degrees/delete/${admin}/${id}`).then(function (response) {
             console.log(response.data);
             getDegrees();
         });

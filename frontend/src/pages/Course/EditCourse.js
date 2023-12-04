@@ -2,8 +2,12 @@ import React, { useState, useEffect  } from "react";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import { useUser } from "@clerk/clerk-react";
+import Config from "../../config";
  
 export default function EditCourse(){
+  const URL = `${Config.backendURL}`
+  const {user} = useUser();
+    const admin = user.publicMetadata.admin;
   
     const navigate = useNavigate();
   
@@ -11,15 +15,14 @@ export default function EditCourse(){
   
     const {id} = useParams();
 
-    const {user} = useUser();
-    const admin = user.publicMetadata.admin;
+    
   
     useEffect(() => {
         getCourse();
     }, []);
   
     function getCourse() {
-        axios.get(`http://127.0.0.1:5000/admin/courses/${admin}/${id}`).then(function(response) {
+        axios.get(`${URL}/admin/courses/${admin}/${id}`).then(function(response) {
             console.log(response.data);
             setInputs(response.data);
         });
@@ -33,7 +36,7 @@ export default function EditCourse(){
     const handleSubmit = (event) => {
         event.preventDefault();
   
-        axios.put(`http://127.0.0.1:5000/admin/courses/update_course/${admin}/${id}`, inputs).then(function(response){
+        axios.put(`${URL}/admin/courses/update_course/${admin}/${id}`, inputs).then(function(response){
             console.log(response.data);
             navigate('/admin-courses');
         });

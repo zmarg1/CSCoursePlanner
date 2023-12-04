@@ -2,8 +2,10 @@ import React, { useEffect, useState } from 'react';
 import axios from "axios"
 import { Link } from 'react-router-dom';
 import { useUser } from '@clerk/clerk-react';
+import Config from '../../config';
 
 export default function ListPrereqPage() {
+    const URL = `${Config.backendURL}`
     const { user } = useUser();
     const admin = user.publicMetadata.admin;
 
@@ -13,14 +15,14 @@ export default function ListPrereqPage() {
     }, []);
 
     function getPrereqs() {
-        axios.get(`http://127.0.0.1:5000/admin/prereqs/${admin}`).then(function (response) {
+        axios.get(`${URL}/admin/prereqs/${admin}`).then(function (response) {
             console.log(response.data);
             setPrereqs(response.data);
         });
     }
 
     const deletePrereq = (id) => {
-        axios.delete(`http://127.0.0.1:5000/admin/prereqs/delete/${admin}/${id}`).then(function (response) {
+        axios.delete(`${URL}/admin/prereqs/delete/${admin}/${id}`).then(function (response) {
             console.log(response.data);
             getPrereqs();
         });

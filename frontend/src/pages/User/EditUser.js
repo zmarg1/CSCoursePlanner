@@ -2,8 +2,10 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import { useUser } from "@clerk/clerk-react";
+import Config from "../../config";
 
 export default function EditUser() {
+  const URL = `${Config.backendURL}`
   const { user } = useUser();
   const admin = user.publicMetadata.admin;
 
@@ -18,7 +20,7 @@ export default function EditUser() {
   }, []);
 
   function getUser() {
-    axios.get(`http://127.0.0.1:5000/admin/users/${admin}/${id}`).then(function (response) {
+    axios.get(`${URL}/admin/users/${admin}/${id}`).then(function (response) {
       console.log(response.data);
       setInputs(response.data);
     });
@@ -32,7 +34,7 @@ export default function EditUser() {
   const handleSubmit = (event) => {
     event.preventDefault();
 
-    axios.put(`http://127.0.0.1:5000/admin/users/update_user/${admin}/${id}`, inputs).then(function (response) {
+    axios.put(`${URL}/admin/users/update_user/${admin}/${id}`, inputs).then(function (response) {
       console.log(response.data);
       navigate('/admin-users');
     });

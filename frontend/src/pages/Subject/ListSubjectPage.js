@@ -2,8 +2,10 @@ import React, {useEffect, useState } from 'react';
 import axios from "axios"
 import {Link} from 'react-router-dom';
 import { useUser } from '@clerk/clerk-react';
+import Config from '../../config';
 
 export default function ListSubjectPage(){
+    const URL = `${Config.backendURL}`
     const {user} = useUser();
     const admin = user.publicMetadata.admin;
 
@@ -13,14 +15,14 @@ export default function ListSubjectPage(){
     }, []);
 
     function getSubjects() {
-        axios.get(`http://127.0.0.1:5000/admin/subjects/${admin}`).then(function(response) {
+        axios.get(`${URL}/admin/subjects/${admin}`).then(function(response) {
             console.log("Subjects Response",response.data);
             setSubjects(response.data);
         });
     }
 
     const deleteSubject = (id) => {
-        axios.delete(`http://127.0.0.1:5000/admin/subjects/delete/${admin}/${id}`).then(function(response){
+        axios.delete(`${URL}/admin/subjects/delete/${admin}/${id}`).then(function(response){
             console.log(response.data);
             getSubjects();
         });

@@ -2,8 +2,10 @@ import React, { useEffect, useState } from 'react';
 import axios from "axios"
 import { Link } from 'react-router-dom';
 import { useUser } from '@clerk/clerk-react';
+import Config from '../../config';
 
 export default function ListSemesterPage() {
+    const URL = `${Config.backendURL}`
     const { user } = useUser();
     const admin = user.publicMetadata.admin;
 
@@ -13,14 +15,14 @@ export default function ListSemesterPage() {
     }, []);
 
     function getSemesters() {
-        axios.get(`http://127.0.0.1:5000/admin/semesters/${admin}`).then(function (response) {
+        axios.get(`${URL}/admin/semesters/${admin}`).then(function (response) {
             console.log(response.data);
             setSemesters(response.data);
         });
     }
 
     const deleteSemester = (id) => {
-        axios.delete(`http://127.0.0.1:5000/admin/semesters/delete/${admin}/${id}`).then(function (response) {
+        axios.delete(`${URL}/admin/semesters/delete/${admin}/${id}`).then(function (response) {
             console.log(response.data);
             getSemesters();
         });

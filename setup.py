@@ -706,8 +706,8 @@ deg_type - shorter acronym of degree name
 """
 class degree(db.Model):
     degree_id = db.Column(db.Integer, primary_key=True)
-    deg_name = db.Column(db.String(100))
-    deg_type = db.Column(db.String(100))
+    deg_name = db.Column('degree_name',db.String(100))
+    deg_type = db.Column('degree_type',db.String(100))
 
     def __init__(self, name, type):
         last_id = degree.query.order_by(degree.degree_id.desc()).first()
@@ -1012,8 +1012,7 @@ class subject(db.Model):
 # Defines your subject output
 class SubjectSchema(ma.Schema):
     class Meta:
-        # Fields to expose
-        fields = ("subject_id", "subject_code", "subject_name")
+        fields = ("subject_id", "sub_code", "sub_name")
 
 subject_schema = SubjectSchema()
 subjects_schema = SubjectSchema(many=True)

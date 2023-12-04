@@ -54,11 +54,13 @@ def user_created_webhook():
 
         if event_type == 'user.created':
             event_data = event.get('data')
-            priv_meta = event_data.get('private_metadata')
+            pub_meta = event_data.get('public_metadata')
             user_id = event_data.get('id')
             user_email = event_data.get('email_addresses', [{}])[0].get('email_address')
+            user_first_name = event_data.get('first_name')
+            user_last_name = event_data.get('last_name')
 
-            if 'admin' not in priv_meta and public_user_info.check_user(user_id):
+            if 'admin' not in pub_meta and public_user_info.check_user(user_id):
 
                 # Fetch the user data from Clerk using the user_id
                 clerk_api_url = f'https://api.clerk.dev/v1/users/{user_id}'
@@ -66,12 +68,15 @@ def user_created_webhook():
 
                 # Update the private_metadata making a new admin bool
                 admin = {"public_metadata": {"admin": False}}
+                
 
                 # Updates user with new metadata
                 response = requests.patch(clerk_api_url, json=admin, headers=headers)
 
                 pub_user = public_user_info(user_id, user_email)
                 pub_user.add_commit()
+                if user_first_name or user_first_name:
+                    pub_user.update_name(user_email, user_first_name, user_last_name)
 
                 if response.status_code == 200:
                     print("User updated")

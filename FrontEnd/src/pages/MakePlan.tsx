@@ -353,7 +353,7 @@ const MakePlan: React.FC = () => {
     event.preventDefault();  // Prevent the form from causing a page reload
     try {
       const email = user?.emailAddresses
-      const response = await fetch(`http://127.0.0.1:5000/user/plan/add-course-to-plan/${email}/${selectedPlanId}/${selectedCourseId}/${selectedSemesterId}`, {
+      const response = await fetch(`${URL}/user/plan/add-course-to-plan/${email}/${selectedPlanId}/${selectedCourseId}/${selectedSemesterId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
+import { useUser } from "@clerk/clerk-react";
 
 export default function EditPrereq() {
+  const { user } = useUser();
+  const admin = user.publicMetadata.admin;
+
   const navigate = useNavigate();
   const [inputs, setInputs] = useState({
     prereq_id: "",
@@ -18,7 +22,7 @@ export default function EditPrereq() {
   }, []);
 
   function getPrereq() {
-    axios.get(`http://127.0.0.1:5000/admin/prereqs/${id}`).then(function (response) {
+    axios.get(`http://127.0.0.1:5000/admin/prereqs/${admin}/${id}`).then(function (response) {
       console.log(response.data);
       setInputs(response.data);
     });
@@ -27,14 +31,14 @@ export default function EditPrereq() {
   const handleChange = (event) => {
     const name = event.target.name;
     let value = event.target.value;
-  
+
     console.log(value); // Debugging line
-  
+
     // Convert the comma-separated string to an array of integers
     if (name === "prereq_courses") {
       value = value.split(",").map((item) => item.trim()).filter(Boolean); // Remove empty strings
     }
-  
+
     setInputs((values) => ({ ...values, [name]: value }));
   };
 
@@ -47,15 +51,15 @@ export default function EditPrereq() {
       }));
     }
   };
-  
+
   const handleSubmit = (event) => {
     event.preventDefault();
 
     axios
-      .put(`http://127.0.0.1:5000/admin/prereqs/update_prereq/${id}`, inputs)
+      .put(`http://127.0.0.1:5000/admin/prereqs/update_prereq/${admin}/${id}`, inputs)
       .then(function (response) {
         console.log(response.data);
-        navigate('/prereqs');
+        navigate('/admin-prereqs');
       });
   };
 
@@ -86,7 +90,7 @@ export default function EditPrereq() {
                   name="prereq_courses"
                   onChange={handleChange}
                   onKeyDown={handleKeyDown}
-                  />
+                />
               </div>
               <div className="mb-3">
                 <label>Grade Required</label>

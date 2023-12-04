@@ -57,6 +57,8 @@ const Header = ({ t }: any) => {
   };
 
   const MenuItem = () => {
+    const [isAdmin] = useState(user?.publicMetadata.admin);
+    
     return (
       <>
         <CustomNavLinkSmall onClick={handlePlanClick}>
@@ -71,9 +73,12 @@ const Header = ({ t }: any) => {
         <CustomNavLinkSmall onClick={() => handleNavigationClick('/', 'contact')}>
           <Span>{t("Contact")}</Span>
         </CustomNavLinkSmall>
-        <CustomNavLinkSmall onClick={handleAdminClick}>
-          <Span>{t("Admin Page")}</Span>
-        </CustomNavLinkSmall>
+
+        {isAdmin && (
+          <CustomNavLinkSmall onClick={handleAdminClick}>
+            <Span>{t("Admin Page")}</Span>
+          </CustomNavLinkSmall>
+        )}
       </>
     );
   };
@@ -88,7 +93,7 @@ const Header = ({ t }: any) => {
             </LogoContainer>
           </Col>
 
-          <Col style={{ display: 'flex', justifyContent: 'center'}}>
+          <Col style={{ display: 'flex', justifyContent: 'center' }}>
             <NotHidden>
               <MenuItem />
             </NotHidden>
@@ -109,9 +114,9 @@ const Header = ({ t }: any) => {
         <Burger onClick={showDrawer}>
           <Outline />
         </Burger>
-      {/* </Container> */}
+        {/* </Container> */}
 
-      <Drawer closable={false} open={visible} onClose={onClose}>
+        <Drawer closable={false} open={visible} onClose={onClose}>
           <Col style={{ marginBottom: "2.5rem" }}>
             <Label onClick={onClose}>
               <Col span={12}>

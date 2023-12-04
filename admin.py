@@ -20,13 +20,6 @@ def route_reponse(admin, method):
     else:
         return jsonify(FAILED_POST)
 
-"""
-Flask Routes
-"""
-@admin_api.route('/')
-def hello():
-    return "Hello"
-
 
 """
 Enters main admin page for admin functionality
@@ -41,24 +34,26 @@ def admin_pg():
 """
 Endpoint for getting one courses
 """
-@admin_api.route('/admin/courses/<course_id>', methods = ['GET'])
-def admin_get_course(course_id):
-    #if true:
+@admin_api.route('/admin/courses/<admin>/<course_id>', methods = ['GET'])
+def admin_get_course(admin, course_id):
+    if admin:
         my_course = course.query.get(course_id)
         return admin_course_schema.jsonify(my_course)
-    #return jsonify(FAILED_ADMIN)
+    
+    return route_reponse(admin, request.method)
 
 
 """
 Endpoint for getting all course
 """
-@admin_api.route('/admin/view-courses', methods = ['GET'])
-def admin_get_all_courses():
-    #if admin:
+@admin_api.route('/admin/view-courses/<admin>', methods = ['GET'])
+def admin_get_all_courses(admin):
+    if admin:
         all_courses = course.query.order_by(course.course_id.asc()).all()
         courses_dump = admin_courses_schema.dump(all_courses)
         return jsonify(courses_dump)
-    #return jsonify(FAILED_ADMIN)
+    
+    return route_reponse(admin, request.method)
 
 
 """
@@ -401,7 +396,7 @@ def admin_delete_prereq(admin, prereq_id):
 
 # Degree
 # endpoint for getting all degrees
-@admin_api.route('/admin/degrees.<admin>', methods = ['GET'])
+@admin_api.route('/admin/degrees/<admin>', methods = ['GET'])
 def admin_get_all_degrees(admin):
     if admin and request.method == "GET":
         all_degrees = degree.query.order_by(degree.degree_id.asc()).all()

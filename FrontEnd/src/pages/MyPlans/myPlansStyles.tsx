@@ -1,5 +1,4 @@
 import styled from "styled-components";
-import { Styles } from "../../styles/styles";
  
 export const GridContainer = styled("div")`
     display: flex;

@@ -1,8 +1,11 @@
 import React, { useState  } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useUser } from "@clerk/clerk-react";
  
 export default function CreateCourse(){
+    const {user} = useUser();
+    const admin = user.publicMetadata.admin;
   
     const navigate = useNavigate();
   
@@ -15,10 +18,9 @@ export default function CreateCourse(){
     }
     const handleSubmit = (event) => {
         event.preventDefault();
-  
-        axios.post('http://127.0.0.1:5000/admin/courses/create_course', inputs).then(function(response){
+        axios.post(`http://127.0.0.1:5000/admin/courses/create_course/${admin}`, inputs).then(function(response){
             console.log(response.data);
-            navigate('/courses/');
+            navigate('/admin-courses/');
         });
           
     }

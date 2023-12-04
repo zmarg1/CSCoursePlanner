@@ -502,27 +502,27 @@ class public_user_info(db.Model):
         else:  
             return {"Failed": "Failed to Update Campus ID"}
 
-    def update_name(self,email, new_f_name=None, new_l_name=None):
+    def update_name(self, email, new_f_name=None, new_l_name=None):
         user = public_user_info.query.filter(public_user_info.email == email).first()
 
         if user and new_f_name and new_l_name:
             user.first_name = new_f_name
             user.last_name = new_l_name
             db.session.commit()
-            return True
+            return {'status': 'Success', 'reason': 'Updated user\'s First and Last name'}
         
         elif user and new_f_name and not new_l_name:
             user.first_name = new_f_name
             db.session.commit()
-            return True
+            return {'status': 'Success', 'reason': 'Updated user\'s First name'}  
         
         elif user and not new_f_name and new_l_name:
             user.last_name = new_l_name
             db.session.commit()
-            return True
+            return {'status': 'Success', 'reason': 'Updated user\'s Last name'}
         
         else:
-            return False
+            return {'status': 'Failed', 'reason': 'Failed to update user information'}
 
 # Defines your user output
 class PublicUserSchema(ma.Schema):

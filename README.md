@@ -1,6 +1,6 @@
 # planUMBC
 
-Foobar is a Python library for dealing with word pluralization.
+Use this website to help make a readme file https://www.makeareadme.com/
 
 ## Installation
 

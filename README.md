@@ -1,10 +1,15 @@
 # planUMBC
 
-Use this website to help make a readme file https://www.makeareadme.com/
+planUMBC is a webapp to help students map out a multiyear undergraduate plan. 
 
 ## Overview
 
-planUMBC is a web application designed to [brief description of what the program does]. It is hosted at [https://planumbc.vercel.app](https://planumbc.vercel.app).
+This webapp was developed as main project for CMSC 447 during the Fall 2023 semester. 
+It was designed with the intent to help students quickly and intuitively design a class plan for UMBC before registering for classes.
+
+The app will takes into account UMBC course data, course prerequisites, and past course frequencies.
+
+It is hosted at [https://planumbc.vercel.app](https://planumbc.vercel.app).
 
 
 ## Installation
@@ -20,7 +25,7 @@ To install and run planUMBC locally, follow these steps:
 2. Navigate to the project directory:
 
     ```bash
-    cd planUMBC
+    cd CSCoursePlanner
     ```
 
 3. Install the required dependencies using [pip](https://pip.pypa.io/en/stable/):
@@ -31,36 +36,39 @@ To install and run planUMBC locally, follow these steps:
 
 ## Usage
 
-This app is hosted at 'https://planumbc.vercel.app'
+You can visit the app here: planUMBC[https://planumbc.vercel.app]
 
-You can run it locally following the steps below.
+To run planUMBC locally:
 
-Step 1) Two terminals will be needed to run it locally
-Step 2) First terminal will run the backend with command 'python3 main.py'
-Step 3) Second terminal will run the React app, first move into the FrontEnd folder using 'cd FrontEnd'
-Step 4) Install the necessary packages using 'npm install'
-Step 5) Run the React app using 'npm start' and the app will automatically open in your web browser
+1. Open two terminals:
 
-```python
-import foobar
+2. In the first terminal, run the backend:
 
-# returns 'words'
-foobar.pluralize('word')
+    ```bash
+    python3 main.py
+    ```
 
-# returns 'geese'
-foobar.pluralize('goose')
+3. In the second terminal, navigate to the FrontEnd folder:
 
-# returns 'phenomenon'
-foobar.singularize('phenomena')
-```
+    ```bash
+    cd FrontEnd
+    ```
 
-## Contributing
+4. Install necessary packages for the React app:
 
-Pull requests are welcome. For major changes, please open an issue first
-to discuss what you would like to change.
+    ```bash
+    npm install
+    ```
 
-Please make sure to update tests as appropriate.
+5. Start the React app:
 
-## License
+    ```bash
+    npm start
+    ```
 
-[MIT](https://choosealicense.com/licenses/mit/)
+    The app will automatically open in your web browser.
+
+
+## Contributors
+
+![GitHub contributors](https://img.shields.io/github/contributors/zmarg1/CSCoursePlanner)(https://github.com/zmarg1/example-CSCoursePlanner/graphs/contributors)

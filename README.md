@@ -36,10 +36,22 @@ This app is hosted at 'https://planumbc.vercel.app'
 You can run it locally following the steps below.
 
 1. Two terminals will be needed to run it locally
-2. First terminal will run the backend with command 'python3 main.py'
-3. Second terminal will run the React app, first move into the FrontEnd folder using 'cd FrontEnd'
-4. Install the necessary packages using 'npm install'
-5. Run the React app using 'npm start' and the app will automatically open in your web browser
+2. First terminal will run the backend:
+   ```bash
+   'python3 main.py'
+   ```
+5. Second terminal will run the React app, navigate to the FrontEnd folder:
+    ```bash
+   'cd FrontEnd'
+    ```
+7. Install the necessary packages:
+   ```bash
+   'npm install'
+   ```
+9. Run the React app and the app will automatically open in your web browser:
+    ```bash
+    'npm start'
+    ``` 
 
 ## Contributing
 

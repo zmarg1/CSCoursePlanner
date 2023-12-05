@@ -71,4 +71,4 @@ To run planUMBC locally:
 
 ## Contributors
 
-![GitHub contributors](https://img.shields.io/github/contributors/zmarg1/CSCoursePlanner)(https://github.com/zmarg1/example-CSCoursePlanner/graphs/contributors)
+![GitHub contributors](https://img.shields.io/github/contributors/zmarg1/CSCoursePlanner)

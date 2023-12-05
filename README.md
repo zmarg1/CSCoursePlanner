@@ -38,19 +38,19 @@ You can run it locally following the steps below.
 1. Two terminals will be needed to run it locally
 2. First terminal will run the backend:
    ```bash
-   'python3 main.py'
+   python3 main.py
    ```
 5. Second terminal will run the React app, navigate to the FrontEnd folder:
     ```bash
-   'cd FrontEnd'
+   cd FrontEnd
     ```
 7. Install the necessary packages:
    ```bash
-   'npm install'
+   npm install
    ```
 9. Run the React app and the app will automatically open in your web browser:
     ```bash
-    'npm start'
+    npm start
     ``` 
 
 ## Contributing

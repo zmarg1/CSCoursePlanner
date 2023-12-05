@@ -224,31 +224,6 @@ const ViewUserPlan: React.FC = () => {
     setIsCourseModalOpen(false);
   };
 
-  const removeCourse = (year: string, term: string, courseId: number) => {
-    setCourses(prevCourses => {
-      // Filter out the removed course
-      const updatedCourses = prevCourses[year][term].filter(course => course.course_id !== courseId);
-
-      // Check if the term is empty after removing the course
-      if (updatedCourses.length === 0) {
-        // If empty, remove the term
-        const { [term]: removedTerm, ...remainingTerms } = prevCourses[year];
-        return {
-          ...prevCourses,
-          [year]: remainingTerms
-        };
-      } else {
-        // If not empty, update the term with the remaining courses
-        return {
-          ...prevCourses,
-          [year]: {
-            ...prevCourses[year],
-            [term]: updatedCourses
-          }
-        };
-      }
-    });
-  };
 
   const removeCourseFromPlan = async (courseId: number, planId: number, year: string, term: string) => {
     const email = user?.emailAddresses[0]?.emailAddress;
@@ -271,7 +246,7 @@ const ViewUserPlan: React.FC = () => {
       console.log(responseData);
 
       // Update local state to reflect the change
-      removeCourse(year, term, courseId);
+      fetchUserPlan(selectedPlanId);
 
     } catch (error: any) {
       setError(error.message);

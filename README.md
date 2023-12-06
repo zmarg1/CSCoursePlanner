@@ -68,7 +68,11 @@ To run planUMBC locally:
 
 ## Contributors
 
-![GitHub contributors](https://img.shields.io/github/contributors/zmarg1/CSCoursePlanner)
+- [Rodolfo Argueta-Rios](https://github.com/rarguet1)
+- [Zach Margulies](https://github.com/zmarg1)
+- [Brandon Price](https://github.com/branprice)
+- [Amir Stewart](https://github.com/AmirStew101)
+- [Alan Valdez](https://github.com/avaldez92)
 
 ## License
 

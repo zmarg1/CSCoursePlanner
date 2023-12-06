@@ -4,7 +4,7 @@
 
 ## Overview
 
-planUMBC is a web application designed to [brief description of what the program does]. It is hosted at [https://planumbc.vercel.app](https://planumbc.vercel.app).
+PlanUMBC is a web application designed to help students plan their courses for UMBC by showing relevant courses based on the year, term, and what has already been added to their plan. The user can then view and download their plan as a pdf. It is hosted at [https://planumbc.vercel.app](https://planumbc.vercel.app).
 
 
 ## Installation
@@ -51,14 +51,3 @@ To install and run planUMBC locally, follow these steps:
     ```bash
     npm start
     ``` 
-
-## Contributing
-
-Pull requests are welcome. For major changes, please open an issue first
-to discuss what you would like to change.
-
-Please make sure to update tests as appropriate.
-
-## License
-
-[MIT](https://choosealicense.com/licenses/mit/)

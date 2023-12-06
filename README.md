@@ -20,7 +20,7 @@ To install and run planUMBC locally, follow these steps:
 2. Navigate to the project directory:
 
     ```bash
-    cd planUMBC
+    cd CSCoursePlanner
     ```
 
 3. Install the required dependencies using [pip](https://pip.pypa.io/en/stable/):
@@ -28,27 +28,26 @@ To install and run planUMBC locally, follow these steps:
     ```bash
     pip install -r requirements.txt
     ```
-
-## Usage
-
-This app is hosted at 'https://planumbc.vercel.app'
-
-You can run it locally following the steps below.
-
-1. Two terminals will be needed to run it locally
-2. First terminal will run the backend:
+4. Setup two terminals which will be needed to run it locally
+   
+5. First terminal will run the backend:
+   
    ```bash
    python3 main.py
    ```
-5. Second terminal will run the React app, navigate to the FrontEnd folder:
+   
+6. Second terminal will run the React app, navigate to the FrontEnd folder:
+   
     ```bash
    cd FrontEnd
     ```
 7. Install the necessary packages:
+    
    ```bash
    npm install
    ```
-9. Run the React app and the app will automatically open in your web browser:
+8. Run the React app and the app will automatically open in your web browser:
+    
     ```bash
     npm start
     ``` 

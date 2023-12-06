@@ -1,6 +1,6 @@
-# planUMBC
+# PlanUMBC
 
-Use this website to help make a readme file https://www.makeareadme.com/
+
 
 ## Overview
 

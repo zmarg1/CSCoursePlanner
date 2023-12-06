@@ -9,9 +9,6 @@ It was designed with the intent to help students quickly and intuitively design 
 
 The app will takes into account UMBC course data, course prerequisites, and past course frequencies.
 
-It is hosted at [https://planumbc.vercel.app](https://planumbc.vercel.app).
-
-
 ## Installation
 
 To install and run planUMBC locally, follow these steps:
@@ -36,7 +33,7 @@ To install and run planUMBC locally, follow these steps:
 
 ## Usage
 
-You can visit the app here: planUMBC[https://planumbc.vercel.app]
+You can visit the app here: [planUMBC](https://planumbc.vercel.app)
 
 To run planUMBC locally:
 
@@ -72,3 +69,7 @@ To run planUMBC locally:
 ## Contributors
 
 ![GitHub contributors](https://img.shields.io/github/contributors/zmarg1/CSCoursePlanner)
+
+## License
+
+[MIT](https://choosealicense.com/licenses/mit/)

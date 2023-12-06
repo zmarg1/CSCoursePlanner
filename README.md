@@ -4,7 +4,7 @@
 
 ## Overview
 
-planUMBC is a web application designed to improve the registration process of CMSC students at UMBC. It will eventually be updated to service all majors at UMBC. It is hosted at [https://planumbc.vercel.app](https://planumbc.vercel.app).
+planUMBC is a web application designed to improve the registration process of CMSC students at UMBC by showing relevant courses based on the year, term, and what has already been added to their plan. The user can then view and download their plan as a pdf. It will eventually be updated to service all majors at UMBC. It is hosted at [https://planumbc.vercel.app](https://planumbc.vercel.app).
 
 
 ## Installation

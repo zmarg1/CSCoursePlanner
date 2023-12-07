@@ -1,7 +1,7 @@
 from flask import Blueprint
 from setup import course, subject, semester, public_user_info, degree, prereq
 from setup import admin_course_schema, admin_courses_schema, semester_schema, semesters_schema, subject_schema, subjects_schema, degree_schema, degrees_schema, prereq_schema, prereqs_schema, public_user_schema, public_users_schema
-from setup import session, db, jsonify, request
+from setup import db, jsonify, request
 from setup import FAILED_GET, FAILED_DELETE, FAILED_POST, FAILED_PUT
 
 # create a blueprint object for admin

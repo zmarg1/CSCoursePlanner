@@ -5,6 +5,7 @@ Description: Makes objects of the databse tables, sends and recieves data from t
 """
 
 from setup import session, app, jsonify, request, db, requests
+from setup import admin_course_schema, admin_courses_schema, plan_schema, user_courses_schema, user_course_schema , plans_schema, taken_courses_schema
 from setup import course, subject, users, public_user_info, plan, taken, semester, requirement
 from setup import FAILED_EMAIL, FAILED_DELETE, FAILED_GET, FAILED_POST, FAILED_PLAN, FAILED_PLAN_ID, clerk_api_key
 from view import view_api

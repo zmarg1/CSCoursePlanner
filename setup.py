@@ -1,6 +1,7 @@
 from flask import Flask, request, session, jsonify
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
+import requests
 from marshmallow import fields
 from flask_marshmallow import Marshmallow
 from supabase import Client #import supabase.py not supabase

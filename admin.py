@@ -4,10 +4,16 @@ from setup import admin_course_schema, admin_courses_schema, semester_schema, se
 from setup import session, db, jsonify, request
 from setup import FAILED_GET, FAILED_DELETE, FAILED_POST, FAILED_PUT
 
+# create a blueprint object for admin
 admin_api = Blueprint('admin_api', __name__)
 
 FAILED_ADMIN = {"Failed": "User is not admin"}
 
+"""
+Generates response based on whether or not user is admin and HTTP method
+request
+Returns: JSON response as a string
+"""
 def route_reponse(admin, method):
     if not admin:
         return jsonify(FAILED_ADMIN)
@@ -458,27 +464,3 @@ def admin_delete_degree(admin, degree_id):
         return degree_schema.jsonify(deleted_degree)
     
     return route_reponse(admin, request.method)
-
-
-"""
-# Endpoint to delete all records and insert new data
-@admin_api.route('/admin/courses_offered/update', methods=['POST'])
-def update_course_offered():
-    try:
-        # Delete all records from the "course_offered" table
-        CourseOffered.query.delete()
-
-        # Insert new data into the "course_offered" table
-        new_data = request.get_json()
-        for row in new_data:
-            course = CourseOffered(**row)
-            db.session.add(course)
-
-        # Commit the changes
-        db.session.commit()
-
-        return jsonify({'message': 'Data updated successfully'}), 200
-
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-"""

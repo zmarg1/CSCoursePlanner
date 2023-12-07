@@ -11,6 +11,8 @@ import Config from '../config'; // Import your configuration file
 
 const URL = `${Config.backendURL}`
 
+// Typescript interfaces
+
 interface Course {
   course_id: number;
   course_num: string;
@@ -67,8 +69,6 @@ const MakePlan: React.FC = () => {
 
   const [isCreatePlanModalVisible, setIsCreatePlanModalVisible] = useState(false);
   const [customPlanName, setCustomPlanName] = useState('');
-  const [studentStatus, setStudentStatus] = useState('');
-
 
 
   const handleConfirmCreatePlan = async () => {
@@ -113,34 +113,34 @@ const MakePlan: React.FC = () => {
   };
 
 
-  const renamePlan = async (userEmail: string, planId: number, newName: string) => {
-    try {
-      // Construct the correct URL with path parameters
-      const url = `${URL}/user/plan/rename-plan/${userEmail}/${planId}`;
+  // const renamePlan = async (userEmail: string, planId: number, newName: string) => {
+  //   try {
+  //     // Construct the correct URL with path parameters
+  //     const url = `${URL}/user/plan/rename-plan/${userEmail}/${planId}`;
 
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ new_name: newName }) // Include new_name in the request body
-      });
+  //     const response = await fetch(url, {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json'
+  //       },
+  //       body: JSON.stringify({ new_name: newName }) // Include new_name in the request body
+  //     });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+  //     if (!response.ok) {
+  //       throw new Error(`HTTP error! status: ${response.status}`);
+  //     }
 
-      const result = await response.json();
-      if (result.Success) {
-        openPlanNotificationSuccess(`Plan renamed to "${newName}" successfully.`);
-      } else {
-        openPlanNotificationFailed(result.Failed);
-      }
+  //     const result = await response.json();
+  //     if (result.Success) {
+  //       openPlanNotificationSuccess(`Plan renamed to "${newName}" successfully.`);
+  //     } else {
+  //       openPlanNotificationFailed(result.Failed);
+  //     }
 
-    } catch (error) {
-      console.error('Error renaming plan:', error);
-    }
-  };
+  //   } catch (error) {
+  //     console.error('Error renaming plan:', error);
+  //   }
+  // };
 
 
   const openPlanNotificationSuccess = (title: string) => {
@@ -236,7 +236,7 @@ const MakePlan: React.FC = () => {
       }
 
       // Sort by Course Num
-      const sortedCoursesData = coursesData.sort((a: Course, b: Course) => {
+        const sortedCoursesData = coursesData.sort((a: Course, b: Course) => {
         const courseNumA = parseInt(a.course_num, 10);
         const courseNumB = parseInt(b.course_num, 10);
         return courseNumA - courseNumB;

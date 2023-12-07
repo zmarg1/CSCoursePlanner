@@ -16,6 +16,7 @@ import { GridContainer, GridItem, CourseItem, CourseDetails, ButtonContainer, Te
 
 const URL = `${Config.backendURL}`
 
+// Typescript interfaces
 interface PlanFromServer {
   plan_id: number;
   plan_name: string;
@@ -62,7 +63,6 @@ interface CourseToDelete {
 
 const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ isOpen, onClose, onConfirm, message }) => {
   if (!isOpen) return null;
-
   return (
     <div className="modal-overlay">
       <div className="modal-container">
@@ -106,9 +106,6 @@ const CourseDescriptionModal: React.FC<CourseDescriptionModalProps> = ({ isOpen,
 };
 
 
-
-
-
 const ViewUserPlan: React.FC = () => {
   const navigate = useNavigate();
   const [isCourseModalOpen, setIsCourseModalOpen] = useState(false);
@@ -139,7 +136,6 @@ const ViewUserPlan: React.FC = () => {
         // Handle case when course has no description
         console.error(description.result);
       } else {
-        // Display the description - consider using a modal or a tooltip
         setCurrentCourseDesc(description.result); // Store the description
         setIsCourseDescModalOpen(true); // Open the modal
       }
@@ -211,9 +207,8 @@ const ViewUserPlan: React.FC = () => {
     navigate('/user/plan/make-plan');
   };
 
-
   const confirmDelete = (courseId: number, planId: number, year: string, term: string) => {
-    setCourseToDelete({ courseId, planId, year, term }); // Ensure this matches the CourseToDelete type
+    setCourseToDelete({ courseId, planId, year, term }); 
     setIsCourseModalOpen(true);
   };
 
@@ -223,7 +218,6 @@ const ViewUserPlan: React.FC = () => {
     }
     setIsCourseModalOpen(false);
   };
-
 
   const removeCourseFromPlan = async (courseId: number, planId: number, year: string, term: string) => {
     const email = user?.emailAddresses[0]?.emailAddress;
@@ -241,7 +235,6 @@ const ViewUserPlan: React.FC = () => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      // Optionally handle the response if needed
       const responseData = await response.json();
       console.log(responseData.result);
 
@@ -287,7 +280,10 @@ const ViewUserPlan: React.FC = () => {
 
       if (responseResult.status == "Success") {
         const plansData: PlanFromServer[] = responseResult.result
+        
+        // sort plans
         const sortedPlans = plansData.sort((a, b) => a.plan_name.localeCompare(b.plan_name));
+
         setPlans(sortedPlans.map(plan => ({
           id: plan.plan_id,
           name: plan.plan_name
@@ -402,7 +398,6 @@ const ViewUserPlan: React.FC = () => {
         y += 15;
       });
     });
-
     doc.save(`${selectedPlanName}.pdf`);
   };
 

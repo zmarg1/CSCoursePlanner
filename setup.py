@@ -1,10 +1,16 @@
+"""
+Author: Amir Hawkins-Stewart
+
+Description: Contains the impoprts, constant variables, and functions used to run the app. Has the functions to interact with the Supabase tables.
+"""
+
 from flask import Flask, request, session, jsonify
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 import requests
 from marshmallow import fields
 from flask_marshmallow import Marshmallow
-from supabase import Client #import supabase.py not supabase
+from supabase import Client
 import datetime
 from datetime import timedelta, datetime
 
@@ -24,17 +30,17 @@ app.permanent_session_lifetime = timedelta(hours = 1) #How long the session data
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
 
-FAILED_EMAIL = {"Failed": "Incorrect Email given or missing"}
-FAILED_PLAN_ID = {"Failed": "Plan ID missing"}
-FAILED_SEM_ID = {"Failed": "Semester ID missing"}
-FAILED_CRS_ID = {"Failed": "Course ID missing"}
-FAILED_PLAN = {"Failed": "User doesn't have plan"}
-FAILED_GET = {"Failed": "Wrong method given expected GET"}
-FAILED_POST = {"Failed": "Wrong method given expected POST"}
-FAILED_DELETE = {"Failed": "Wrong method given expected DELETE"}
-FAILED_PUT = {"Failed": "Wrong method given expected PUT"}
+FAILED_EMAIL = {"status": "Failed", "reason": "Incorrect Email given or missing"}
+FAILED_PLAN_ID = {"status": "Failed", "reason": "Plan ID missing"}
+FAILED_SEM_ID = {"status": "Failed", "reason": "Semester ID missing"}
+FAILED_CRS_ID = {"status": "Failed", "reason": "Course ID missing"}
+FAILED_PLAN = {"status": "Failed", "reason": "User doesn't have plan"}
+FAILED_GET = {"status": "Failed", "reason": "Wrong method given expected GET"}
+FAILED_POST = {"status": "Failed", "reason": "Wrong method given expected POST"}
+FAILED_DELETE = {"status": "Failed", "reason": "Wrong method given expected DELETE"}
+FAILED_PUT = {"status": "Failed", "reason": "Wrong method given expected PUT"}
 BLACKLIST = [";", "&", "\\", "$", ">", "<", "`", "!", "|", ",", "#", ".", "'", "/", "+", "\""]
-FAILED_BLACKLIST = {"Failed": "A Blacklisted charachter was input"}
+FAILED_BLACKLIST = {"status": "Failed", "reason": "A Blacklisted charachter was input"}
 
 """
 Check user input to make sure its valid
@@ -93,7 +99,7 @@ class users():
             pub_usr = public_user_info.query.filter(public_user_info.user_id == usr_id).first()
             pub_usr.delete_commit()
 
-            return {"Success": "User deleted"}
+            return {"status": "Success", "result": "User deleted"}
     
         except Exception as e:
             return {"Error": e}
@@ -154,11 +160,11 @@ class users():
 
             if result:
                 new_plan.add_commit()
-                return {"Success": f"{result}"}
+                return {"status": "Success", "result": f"{result}"}
             
-            return {"Failed": "Error adding plan"}
+            return {"status": "Failed", "result": "Error adding plan"}
         
-        return {"Failed": "User has reached plan limit"}
+        return {"status": "Failed", "result": "User has reached plan limit"}
 
     #TODO: Have it check for credits instead
     def add_course(self, plan_id, crs_id, req_id, sem_id, grade):
@@ -189,25 +195,25 @@ class users():
                 add_to_plan = taken()
                 add_to_plan.add_course(plan_id, crs_id, req_id, sem_id, grade)
                 add_to_plan.add_commit()
-                return {"Success": f"Added {in_course.course_title} to {in_plan.plan_name} for {in_sem.term} {in_sem.year}"}
+                return {"status": "Success", "result": f"Added {in_course.course_title} to {in_plan.plan_name} for {in_sem.term} {in_sem.year}"}
         
             elif num_sem_courses >= self.brandon_limit:
-                return {"Failed": "User has reached the course limit for this Semester"}
+                return {"status": "Failed", "result": "User has reached the course limit for this Semester"}
             
             elif crs_in_taken:
-                return {"Failed": "Course already in chosen plan"}
+                return {"status": "Failed", "result": "Course already in chosen plan"}
         
             else:
-                return {"Failed": "User has reached the semester limit"}
+                return {"status": "Failed", "result": "User has reached the semester limit"}
 
         elif not in_plan:
-            return {"Failed": "Failed Plan id not in database"}
+            return {"status": "Failed", "result": "Failed Plan id not in database"}
         elif not in_course:
-            return {"Failed": "Failed Course id not in database"}
+            return {"status": "Failed", "result": "Failed Course id not in database"}
         elif not in_req:
-            return {"Failed": "Failed Requirement id not in database"}
+            return {"status": "Failed", "result": "Failed Requirement id not in database"}
         else:
-            return {"Failed": "Failed Semester id not in database"}
+            return {"status": "Failed", "result": "Failed Semester id not in database"}
 
     #Gets the course objects of a users plan
     def get_pln_courses(self, plan_id):
@@ -620,9 +626,9 @@ class plan(db.Model):
         if usr_plan:
             usr_plan.plan_name = new_name
             usr_plan.add_commit()
-            return {"Success": f"Plan nam changed to {new_name}"}
+            return {"status": "Success", "result": f"Plan nam changed to {new_name}"}
         else:
-            return {"Failed": "User doesn't have that plan"}
+            return {"status": "Failed", "result": "User doesn't have that plan"}
 
     """"
     Views current plan

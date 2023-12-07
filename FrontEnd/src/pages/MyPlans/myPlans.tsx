@@ -135,12 +135,12 @@ const ViewUserPlan: React.FC = () => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const description = await response.json();
-      if (description.Failed) {
+      if (description.status == "Failed") {
         // Handle case when course has no description
-        console.error(description.Failed);
+        console.error(description.result);
       } else {
         // Display the description - consider using a modal or a tooltip
-        setCurrentCourseDesc(description); // Store the description
+        setCurrentCourseDesc(description.result); // Store the description
         setIsCourseDescModalOpen(true); // Open the modal
       }
     } catch (error) {
@@ -187,14 +187,14 @@ const ViewUserPlan: React.FC = () => {
       }
 
       const responseData = await response.json();
-      if (responseData.Success) {
-        console.log(responseData.Success);
+      if (responseData.status == "Success") {
+        console.log(responseData.result);
         setPlans(prevPlans => prevPlans.filter(plan => plan.id !== planId));
         const deletedPlanName = plans.find(plan => plan.id === planId)?.name || "Unknown Plan";
         openDeletionNotification(deletedPlanName);
       }
       else {
-        throw new Error(responseData.Failed || 'Failed to delete the plan');
+        throw new Error(responseData.result || 'Failed to delete the plan');
       }
 
     } catch (error: any) {
@@ -243,7 +243,7 @@ const ViewUserPlan: React.FC = () => {
 
       // Optionally handle the response if needed
       const responseData = await response.json();
-      console.log(responseData);
+      console.log(responseData.result);
 
       // Update local state to reflect the change
       fetchUserPlan(selectedPlanId);
@@ -283,12 +283,17 @@ const ViewUserPlan: React.FC = () => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const plansData: PlanFromServer[] = await response.json();
-      const sortedPlans = plansData.sort((a, b) => a.plan_name.localeCompare(b.plan_name));
-      setPlans(sortedPlans.map(plan => ({
-        id: plan.plan_id,
-        name: plan.plan_name
-      })));
+      const responseResult = await response.json();
+
+      if (responseResult.status == "Success") {
+        const plansData: PlanFromServer[] = responseResult.result
+        const sortedPlans = plansData.sort((a, b) => a.plan_name.localeCompare(b.plan_name));
+        setPlans(sortedPlans.map(plan => ({
+          id: plan.plan_id,
+          name: plan.plan_name
+        })));
+
+      }
     } catch (error: any) {
       setError(error.message);
       console.error('Error fetching plans:', error);
@@ -303,8 +308,8 @@ const ViewUserPlan: React.FC = () => {
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
       const data = await response.json();
-      console.log(data);
-      setCourses(data);
+      console.log(data.result);
+      setCourses(data.result);
 
     } catch (error: any) {
       setError(error.message);
@@ -328,37 +333,37 @@ const ViewUserPlan: React.FC = () => {
   const generatePDF = () => {
     const doc = new jsPDF();
     let y = 20; // Starting vertical position
-  
+
     const headers = ["Course Title", "Subject Code", "Course Num", "Credits"];
     const columnWidths = [90, 30, 40, 30]; // Adjust as needed
-  
+
     doc.setFont("helvetica", "bold");
-  
+
     const splitText = (text: string, maxWidth: number) => {
       return doc.splitTextToSize(text, maxWidth);
     };
-  
+
     Object.entries(courses).forEach(([year, terms]) => {
       // Sorting terms in the desired order
       const sortedTerms = Object.entries(terms).sort(([term1], [term2]) => {
         const order = ['Spring', 'Summer', 'Fall', 'Winter'];
         return order.indexOf(term1) - order.indexOf(term2);
       });
-  
+
       sortedTerms.forEach(([term, coursesList]) => {
         let termTotalCredits = 0;
-  
+
         // Check if there is enough space for the header and content on the current page
         if (y + 40 > doc.internal.pageSize.height) {
           doc.addPage(); // Add a new page
           y = 20; // Reset vertical position
         }
-  
+
         doc.setTextColor(0, 0, 255);
         doc.setFontSize(14);
         doc.text(`${year} - ${term}`, 10, y);
         y += 10;
-  
+
         doc.setTextColor(0, 0, 0);
         doc.setFontSize(10);
         let x = 10;
@@ -367,40 +372,40 @@ const ViewUserPlan: React.FC = () => {
           x += columnWidths[index];
         });
         y += 10;
-  
+
         coursesList.forEach(course => {
           let x = 10;
           const courseCredits = course.credits || 0;
           const splitCourseTitle = splitText(course.course_title, columnWidths[0]);
           const lineHeight = 7;
           let maxY = y;
-  
+
           splitCourseTitle.forEach((line: string) => {
             doc.text(line, x, maxY);
             maxY += lineHeight;
           });
-  
+
           doc.text(course.subject_code, x + columnWidths[0], y);
           doc.text(course.course_num, x + columnWidths[0] + columnWidths[1], y);
           doc.text(courseCredits.toString(), x + columnWidths[0] + columnWidths[1] + columnWidths[2], y);
-  
+
           y = Math.max(maxY, y + lineHeight);
-  
+
           if (course.credits != null) {
             termTotalCredits += course.credits;
           }
         });
-  
+
         doc.setFontSize(12);
         doc.setTextColor(255, 0, 0);
         doc.text(`Total Credits for ${term}: ${termTotalCredits}`, 10, y);
         y += 15;
       });
     });
-  
+
     doc.save(`${selectedPlanName}.pdf`);
   };
-  
+
 
 
   return (

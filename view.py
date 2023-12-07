@@ -1,6 +1,12 @@
+"""
+Authors: Amir Hawkins-Stewart
+
+Description: The routes associated with viewing data from the Supabase database.
+"""
+
 from flask import Blueprint
 from setup import course, semester, users, plan, prereq
-from setup import jsonify, request, taken_courses_schema, plans_schema, semesters_schema, user_courses_schema, user_course_schema, prereqs_schema
+from setup import jsonify, request, taken_courses_schema, plans_schema, semesters_schema, user_courses_schema, user_course_schema
 from setup import FAILED_EMAIL, FAILED_GET, FAILED_PLAN, FAILED_PLAN_ID, FAILED_SEM_ID, FAILED_CRS_ID
 
 view_api = Blueprint('view_api', __name__)
@@ -19,12 +25,12 @@ def view_term_courses(user_email, plan_id, sem_id):
             sem_id = int(sem_id)
             all_courses = user.view_courses(plan_id, sem_id)
             courses_dump = user_courses_schema.dump(all_courses)
-            return jsonify(courses_dump)
+            return jsonify({"status": "Success", "result": courses_dump})
         
         elif plan_id == -1:
             all_courses = course.query.all()
             courses_dump = user_courses_schema.dump(all_courses)
-            return jsonify(courses_dump)
+            return jsonify({"status": "Success", "result": courses_dump})
         
         else:
             return jsonify(FAILED_PLAN)
@@ -50,7 +56,7 @@ def user_view_all_semesters():
     sem = semester()
     all_semesters = sem.get_year_order_objs()
     semester_dump = semesters_schema.dump(all_semesters)
-    return jsonify(semester_dump)
+    return jsonify({"status": "Success", "result": semester_dump})
 
 
 """
@@ -85,7 +91,7 @@ def user_view_plan(user_email, plan_id):
             usr_plan = user.to_dict(years, usr_plan, spring_dump)
             usr_plan = user.to_dict(years, usr_plan, summer_dump)
                 
-            return jsonify(usr_plan)
+            return jsonify({"status": "Success", "result": usr_plan})
         
         return jsonify(FAILED_PLAN)
     
@@ -93,10 +99,10 @@ def user_view_plan(user_email, plan_id):
         return jsonify(FAILED_EMAIL)
     
     elif not plan_id:
-        return jsonify({"Failed": "Plan Id not given"})
+        return jsonify({"status": "Failed", "result":  "Plan Id not given"})
     
     else:
-        return jsonify({"Failed": "Wrong method needs \"GET\" method"})
+        return jsonify({"status": "Failed", "result":  "Wrong method needs \"GET\" method"})
 
 """
 Views all the users plans 
@@ -109,10 +115,10 @@ def user_view_all_plans(user_email):
         usr_plans = user.get_plans()
         if usr_plans is not None:
             plans_dump = plans_schema.dump(usr_plans)
-            return jsonify(plans_dump)
+            return jsonify({"status": "Success", "result": plans_dump})
         else:
-            return jsonify({"Failed": "User has no plans"})
-    return jsonify({"Failed": "User not signed in"})
+            return jsonify({"status": "Failed", "result":  "User has no plans"})
+    return jsonify({"status": "Failed", "result": "User not signed in"})
 
 
 """
@@ -134,10 +140,10 @@ def view_semester_courses(user_email, plan_id, sem_id):
                 term_plan = {}
                 years = [sem.year]
                 term_plan = user.to_dict(years, term_plan, term_dump)
-                return jsonify(term_plan)
+                return jsonify({"status": "Success", "result": term_plan})
         
             elif not plan_courses:
-                return jsonify({"Failed": "Semester not in plan"})
+                return jsonify({"status": "Failed", "result": "Semester not in plan"})
         
         else:
             return(FAILED_PLAN)
@@ -146,10 +152,10 @@ def view_semester_courses(user_email, plan_id, sem_id):
         return jsonify(FAILED_EMAIL)
     
     elif not plan_id:
-        return jsonify({"Failed": "Expected Plan ID"})
+        return jsonify({"status": "Failed", "result": "Expected Plan ID"})
     
     elif not sem_id:
-        return jsonify({"Failed": "Expected Semester ID"})
+        return jsonify({"status": "Failed", "result": "Expected Semester ID"})
     
     else:
         return jsonify(FAILED_GET)
@@ -174,9 +180,9 @@ def view_prereqs(crs_id):
             i += 1
 
         if preq_crs_dump:
-            return preq_crs_dump
+            return jsonify({"status": "Success", "result": preq_crs_dump})
         else:
-            return jsonify({"Failed": "Course has no prereqs"})
+            return jsonify({"status": "Failed", "result": "Course has no prereqs"})
 
     elif not crs_id:
         return jsonify(FAILED_CRS_ID)
@@ -192,9 +198,9 @@ def view_description(crs_id):
         crs = course(crs_id)
         desc = crs.get_description()
         if desc:
-            return jsonify(desc)
+            return jsonify({"status":"Success", "result": desc})
         else:
-            return jsonify({"Failed": "Course has no description"})
+            return jsonify({"status": "Failed", "result": "Course has no description"})
 
     elif not crs_id:
         return jsonify(FAILED_CRS_ID)
@@ -202,6 +208,11 @@ def view_description(crs_id):
     else:
         return jsonify(FAILED_GET)
     
+
+"""
+Not used
+Returns: the courses description and its prereqs as a dictionary
+"""  
 @view_api.route("/user/course/view-description-and-prereqs/<crs_id>", methods=["GET"])
 def view_desc_prereqs(crs_id):
     if crs_id and request.method == "GET":
@@ -210,7 +221,7 @@ def view_desc_prereqs(crs_id):
         desc = crs.get_description()
 
         if not desc:
-            return jsonify({"Failed": "Course has no description"})
+            return jsonify({"status": "Failed", "result": "Course has no description"})
         
         preqs = prereq(crs_id)
         all_prereqs = preqs.get_prereqs()

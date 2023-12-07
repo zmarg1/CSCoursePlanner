@@ -97,11 +97,11 @@ const MakePlan: React.FC = () => {
       }
 
       const result = await response.json();
-      console.log('Plan creation result:', result);
+      console.log('Plan creation result:', result.result);
 
-      if (result.Success) {
+      if (result.status == "Failed") {
       } else {
-        openPlanNotificationFailed(result.Failed);
+        openPlanNotificationFailed(result.result);
       }
 
       await fetchPlans();
@@ -131,10 +131,10 @@ const MakePlan: React.FC = () => {
       }
 
       const result = await response.json();
-      if (result.Success) {
+      if (result.status == "Success") {
         openPlanNotificationSuccess(`Plan renamed to "${newName}" successfully.`);
       } else {
-        openPlanNotificationFailed(result.Failed);
+        openPlanNotificationFailed(result.result);
       }
 
     } catch (error) {
@@ -193,15 +193,20 @@ const MakePlan: React.FC = () => {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      const plansData: PlanFromServer[] = await response.json();
-      const sortedPlans = plansData.sort((a, b) => a.plan_name.localeCompare(b.plan_name));
+      const planResult = await response.json()
 
-      // Assuming you want to set the plan IDs in a state
-      setPlans(sortedPlans.map(plan => ({
-        id: plan.plan_id,
-        name: `${plan.plan_name}`
-        // You can add more fields if you have additional data for each plan
-      })));
+      if (planResult.status == "Success") {
+        const plansData: PlanFromServer[] = planResult.result;
+        const sortedPlans = plansData.sort((a, b) => a.plan_name.localeCompare(b.plan_name));
+
+        // Assuming you want to set the plan IDs in a state
+        setPlans(sortedPlans.map(plan => ({
+          id: plan.plan_id,
+          name: `${plan.plan_name}`
+          // You can add more fields if you have additional data for each plan
+        })));
+
+      }
     } catch (error) {
       console.error('Error fetching plans:', error);
     }
@@ -225,21 +230,21 @@ const MakePlan: React.FC = () => {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      let coursesData;
-      try {
-        coursesData = await response.json();
-      } catch (jsonParseError) {
-        console.error('Error parsing JSON:', jsonParseError);
+      const coursesResponse = await response.json();
+
+      if (coursesResponse.status == "Failed") {
+        console.error('Error parsing JSON:', coursesResponse.result);
         const rawResponse = await response.text();
         console.log('Raw response:', rawResponse);
         return;
       }
 
+      const coursesData = coursesResponse.result
       // Sort by Course Num
       const sortedCoursesData = coursesData.sort((a: Course, b: Course) => {
-        const courseNumA = parseInt(a.course_num, 10);
-        const courseNumB = parseInt(b.course_num, 10);
-        return courseNumA - courseNumB;
+      const courseNumA = parseInt(a.course_num, 10);
+      const courseNumB = parseInt(b.course_num, 10);
+      return courseNumA - courseNumB;
       });
 
       setCourses(sortedCoursesData.map((course: Course) => ({
@@ -267,7 +272,8 @@ const MakePlan: React.FC = () => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const semestersData: SemesterFromServer[] = await response.json();
+      const semResult = await response.json();
+      const semestersData: SemesterFromServer[] = semResult.result;
 
       setSemesters(semestersData.map(semester => ({
         id: semester.semester_id,
@@ -293,11 +299,11 @@ const MakePlan: React.FC = () => {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      const data = await response.json();
+      const coursesResult = await response.json();
 
-      if (!data.Failed) {
-        console.log("Semester Courses Data:", data);
-        setSemesterCourses(data);
+      if (coursesResult.status == "Success") {
+        console.log("Semester Courses Data:", coursesResult.result);
+        setSemesterCourses(coursesResult.result);
         setShowPreview(true)
       }
       else {
@@ -326,15 +332,15 @@ const MakePlan: React.FC = () => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const data = await response.json();
+      const prereqsResult = await response.json();
 
-      if (data.Failed) {
-        console.log(data.Failed)
+      if (prereqsResult.status == "Failed") {
+        console.log(prereqsResult.result)
         setShowPrereqs(false)
       }
       else {
-        console.log(`Course Prereqs`, data);
-        setPrereqCourses(data)
+        console.log(`Course Prereqs`, prereqsResult.result);
+        setPrereqCourses(prereqsResult.result)
         setShowPrereqs(true)
       }
 
@@ -360,19 +366,19 @@ const MakePlan: React.FC = () => {
         }
       });
 
-      const result = await response.json()
-
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      if (result.Success) {
-        openAddClassNotificationSuccess(result.Success)
+      const result = await response.json()
+
+      if (result.status == "Success") {
+        openAddClassNotificationSuccess(result.result)
         viewSemesterCourses(selectedPlanId, selectedSemesterId);
         fetchCourses(selectedPlanId, selectedSemesterId)
       }
       else {
-        openAddClassNotificationFailed(result.Failed)
+        openAddClassNotificationFailed(result.result)
       }
 
     } catch (error) {
@@ -476,7 +482,7 @@ const MakePlan: React.FC = () => {
                       <h6 style={{ color: '#333', textAlign: 'center' }}>{term} {year}</h6>
                       <ul style={{ listStyleType: 'none', paddingLeft: '5px' }}>
                         {coursesList.map((course, index) => (
-                          <li key={index} style={{marginBottom: '10px' }}>
+                          <li key={index} style={{ marginBottom: '10px' }}>
                             <div style={{ textAlign: 'center' }}>
                               <strong>{course.course_title} - {course.subject_code} {course.course_num}, {course.credits} credits</strong>
                             </div>

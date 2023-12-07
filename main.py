@@ -5,9 +5,8 @@ Description: Makes objects of the databse tables, sends and recieves data from t
 """
 
 from setup import session, app, jsonify, request, db, requests
-from setup import admin_course_schema, admin_courses_schema, plan_schema, user_courses_schema, user_course_schema , plans_schema, taken_courses_schema
-from setup import course, subject, users, public_user_info, plan, taken, semester, requirement
-from setup import FAILED_EMAIL, FAILED_DELETE, FAILED_GET, FAILED_POST, FAILED_PLAN, FAILED_PLAN_ID, clerk_api_key
+from setup import course, users, public_user_info, plan, taken
+from setup import FAILED_EMAIL, FAILED_DELETE, FAILED_POST, FAILED_PLAN, FAILED_PLAN_ID, clerk_api_key
 from view import view_api
 from admin import admin_api
 
@@ -44,7 +43,7 @@ def delete_webhook():
 
 """
 When a new clerk user is made it updates there private metadata
-if they have none
+if they have none and adds them to the Supabase databse
 """
 @app.route("/user-created", methods=["POST"])
 def user_created_webhook():
@@ -106,6 +105,9 @@ def user_created_webhook():
         print(f"Error processing webhook: {e}")
         return jsonify({'status': 'Error'}), 500
 
+"""
+When a user updates their Clerk profile name it sends the update to Supabase
+"""
 @app.route("/user-updated", methods=["POST"])
 def user_updated_webhook():
     try:

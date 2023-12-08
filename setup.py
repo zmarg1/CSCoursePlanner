@@ -1,7 +1,7 @@
 """
-Author: Amir Hawkins-Stewart
+Author: Amir Hawkins-Stewart & Zach Margulies
 
-Description: Contains the impoprts, constant variables, and functions used to run the app. Has the functions to interact with the Supabase tables.
+Description: Contains the impoprts, constant variables, object schemas, and functions used to run the app. The functions are used to interact with the Supabase tables.
 """
 
 from flask import Flask, request, session, jsonify

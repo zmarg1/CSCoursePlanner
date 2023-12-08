@@ -5,9 +5,8 @@ Description: Makes objects of the databse tables, sends and recieves data from t
 """
 
 from setup import session, app, jsonify, request, db, requests
-from setup import admin_course_schema, admin_courses_schema, plan_schema, user_courses_schema, user_course_schema , plans_schema, taken_courses_schema
-from setup import course, subject, users, public_user_info, plan, taken, semester, requirement
-from setup import FAILED_EMAIL, FAILED_DELETE, FAILED_GET, FAILED_POST, FAILED_PLAN, FAILED_PLAN_ID, clerk_api_key
+from setup import course, users, public_user_info, plan, taken
+from setup import FAILED_EMAIL, FAILED_DELETE, FAILED_POST, FAILED_PLAN, FAILED_PLAN_ID, clerk_api_key
 from view import view_api
 from admin import admin_api
 
@@ -44,7 +43,7 @@ def delete_webhook():
 
 """
 When a new clerk user is made it updates there private metadata
-if they have none
+if they have none and adds them to the Supabase databse
 """
 @app.route("/user-created", methods=["POST"])
 def user_created_webhook():
@@ -106,6 +105,9 @@ def user_created_webhook():
         print(f"Error processing webhook: {e}")
         return jsonify({'status': 'Error'}), 500
 
+"""
+When a user updates their Clerk profile name it sends the update to Supabase
+"""
 @app.route("/user-updated", methods=["POST"])
 def user_updated_webhook():
     try:
@@ -168,7 +170,7 @@ def user_make_plan(user_email):
         return jsonify(FAILED_EMAIL)
     
     elif "plan_name" in request.json:
-        return jsonify({"Failed": "Missing json \'plan_name\'"})
+        return jsonify({"status": "Failed", "result":  "Missing json \'plan_name\'"})
 
     else:
         return jsonify(FAILED_POST)
@@ -188,7 +190,7 @@ def rename_plan(user_email, plan_id):
             return jsonify(result)
         
         elif not new_name:
-            return jsonify({"Failed": "No name entered"})
+            return jsonify({"status": "Failed", "result":  "No name entered"})
 
         else:
             return jsonify(FAILED_PLAN)
@@ -200,7 +202,7 @@ def rename_plan(user_email, plan_id):
         return jsonify(FAILED_PLAN_ID)
     
     elif not "new_name" in request.json:
-        return jsonify({"Failed": "Missing json data \"new_name\""})
+        return jsonify({"status": "Failed", "result":  "Missing json data \"new_name\""})
     
     else:
         return jsonify(FAILED_POST)
@@ -220,15 +222,15 @@ def user_delete_plan(user_email, plan_id):
         if to_delete:
             plan_name = to_delete.plan_name
             to_delete.delete_commit()
-            return jsonify({"Success": f"Successfully deleted {plan_name}"})
+            return jsonify({"status": "Success", "result":  f"Successfully deleted {plan_name}"})
             
-        return jsonify({"Failed": "Current user can't delete this plan or plan not found"})
+        return jsonify({"status": "Failed", "result":  "Current user can't delete this plan or plan not found"})
     
     elif not user_email:
         return jsonify(FAILED_EMAIL)
     
     elif not plan_id:
-        return jsonify({"Failed": "Missing \"plan_id\""})
+        return jsonify({"status": "Failed", "result":  "Missing \"plan_id\""})
     
     else:
         return jsonify(FAILED_DELETE)
@@ -256,7 +258,7 @@ def user_add_course_to_plan(user_email, plan_id, crs_id, sem_id):
                 return jsonify(result)
             
             else:
-                return jsonify({"Failed": "Failed missing inputs expected plan_id, course_id, semester_id"})
+                return jsonify({"status": "Failed", "result":  "Failed missing inputs expected plan_id, course_id, semester_id"})
         
         else:
             return jsonify(FAILED_PLAN)
@@ -285,20 +287,20 @@ def user_delete_planned_course(user_email, crs_id, plan_id):
                 crs_obj = course.query.get(in_taken.course_id)
                 crs_title = crs_obj.course_title
                 in_taken.delete_commit()
-                return jsonify({"Success": f"Successfully deleted {crs_title} from {usr_plan.get_plan_name()}"})
+                return jsonify({"status": "Success", "result": f"Successfully deleted {crs_title} from {usr_plan.get_plan_name()}"})
             
-            return jsonify({"Failed": "Course not in plan"})
+            return jsonify({"status": "Failed", "result": "Course not in plan"})
         
-        return jsonify({"Failed": "User doesn't have plan"})
+        return jsonify(FAILED_PLAN)
                 
     elif "curr_plan_id" not in session:
-        return jsonify({"Failed": "No plan in session"})  
+        return jsonify({"status": "Failed", "result": "No plan in session"})  
       
     elif "course_id" not in request.json:
-        return jsonify({"Failed": "Missing \"course_id\" field in json"})
+        return jsonify({"status": "Failed", "result": "Missing \"course_id\" field in json"})
     
     else:
-        return jsonify({"Failed": "No Form"})
+        return jsonify({"status": "Failed", "result": "No Form"})
 
 
 """ 

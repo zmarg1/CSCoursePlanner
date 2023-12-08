@@ -1,3 +1,9 @@
+"""
+Authors: Amir Hawkins-Stewart & Zach Margulies
+
+Description: The routes used for the admin page to modify Supabase tables through the app.
+"""
+
 from flask import Blueprint
 from setup import course, subject, semester, public_user_info, degree, prereq
 from setup import admin_course_schema, admin_courses_schema, semester_schema, semesters_schema, subject_schema, subjects_schema, degree_schema, degrees_schema, prereq_schema, prereqs_schema, public_user_schema, public_users_schema

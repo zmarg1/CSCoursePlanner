@@ -1,11 +1,8 @@
-# planUMBC
-
-planUMBC is a webapp to help students map out a multiyear undergraduate plan. 
+# PlanUMBC
 
 ## Overview
 
-This webapp was developed as main project for CMSC 447 during the Fall 2023 semester. 
-It was designed with the intent to help students quickly and intuitively design a class plan for UMBC before registering for classes.
+planUMBC is a web application designed to improve the registration process of CMSC students at UMBC by showing relevant courses based on the year, term, and what has already been added to their plan. The user can then view and download their plan as a pdf. It will eventually be updated to service all majors at UMBC. It is hosted at [https://planumbc.vercel.app](https://planumbc.vercel.app).
 
 The app will takes into account UMBC course data, course prerequisites, and past course frequencies.
 

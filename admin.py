@@ -10,7 +10,7 @@ from setup import admin_course_schema, admin_courses_schema, semester_schema, se
 from setup import session, db, jsonify, request
 from setup import FAILED_GET, FAILED_DELETE, FAILED_POST, FAILED_PUT
 
-# create a blueprint object for admin objects
+# create a blueprint object for admin file
 admin_api = Blueprint('admin_api', __name__)
 
 FAILED_ADMIN = {"Failed": "User is not admin"}

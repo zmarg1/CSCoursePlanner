@@ -1,7 +1,7 @@
 """
 Authors: Amir Hawkins-Stewart
 
-Description: Makes objects of the databse tables, sends and recieves data from the supabase databse.
+Description: Makes objects of the database tables, sends and recieves data from the supabase databse.
 """
 
 from setup import session, app, jsonify, request, db, requests

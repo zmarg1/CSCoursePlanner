@@ -1,5 +1,5 @@
-import { lazy, Suspense, useState } from "react";
-import { Routes, Route } from "react-router-dom";
+import { lazy, Suspense, useEffect, useState } from "react";
+import { Routes, Route, useNavigate } from "react-router-dom";
 import Footer from "../components/Footer/footerIndex";
 import Header from "../components/Header/headerIndex";
 import routes from "./config";
@@ -7,7 +7,9 @@ import { Styles } from "../styles/styles";
 import MakePlan from "../pages/MakePlan";
 import ViewUserPlan from "../pages/MyPlans/myPlans";
 import AdminPage from "../pages/Admin/AdminPage";
-import { useUser } from "@clerk/clerk-react";
+import { SignIn, SignUp, useUser, SignedIn, SignedOut } from "@clerk/clerk-react";
+import LandingPage from "../pages/LandingPage"; // Import your landing page component
+import Home from '../pages/Home/home'; // Adjust the path based on your project structure
 
 import ListCoursePage from "../pages/Course/ListCoursePage";
 import CreateCourse from "../pages/Course/CreateCourse";
@@ -34,54 +36,98 @@ import CreateDegree from "../pages/Degree/CreateDegree";
 import EditDegree from "../pages/Degree/EditDegree";
 
 const Router = () => {
-  const { user } = useUser();
-  const isAdmin = useState(user?.publicMetadata.admin);
+  const { isSignedIn, user } = useUser();
+  const navigate = useNavigate();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    if (isSignedIn) {
+      setIsAdmin(!!user?.publicMetadata?.admin);
+      console.log(user); // This will print the user object to the console
+      navigate('/home'); // Redirect to home upon sign-in
+    }
+  }, [isSignedIn, user, navigate]);
+
+
+  // Define components for routes
+  const AdminRoutes = (
+    <>
+      <Route path="/admin-page" element={<AdminPage />} />
+      <Route path="/admin-courses" element={<ListCoursePage />} />
+      <Route path="/admin-courses/addnewcourse" element={<CreateCourse />} />
+      <Route path="/admin-courses/course/:id/edit" element={<EditCourse />} />
+
+      <Route path="/admin-subjects" element={<ListSubjectPage />} />
+      <Route path="/admin-subjects/addnewsubject" element={<CreateSubject />} />
+      <Route path="/admin-subjects/subject/:id/edit" element={<EditSubject />} />
+
+      <Route path="/admin-semesters" element={<ListSemesterPage />} />
+      <Route path="/admin-semesters/addnewsemester" element={<CreateSemester />} />
+      <Route path="/admin-semesters/semester/:id/edit" element={<EditSemester />} />
+
+      <Route path="/admin-users" element={<ListUserPage />} />
+      <Route path="/admin-users/addnewuser" element={<CreateUser />} />
+      <Route path="/admin-users/user/:id/edit" element={<EditUser />} />
+
+      <Route path="/admin-prereqs" element={<ListPrereqPage />} />
+      <Route path="/admin-prereqs/addnewprereq" element={<CreatePrereq />} />
+      <Route path="/admin-prereqs/prereq/:id/edit" element={<EditPrereq />} />
+
+      <Route path="/admin-degrees" element={<ListDegreePage />} />
+      <Route path="/admin-degrees/addnewdegree" element={<CreateDegree />} />
+      <Route path="/admin-degrees/degree/:id/edit" element={<EditDegree />} />
+    </>
+  );
+
+  // Components for your authenticated routes
+  const AuthenticatedRoutes = (
+    <>
+      <Route path="/home" element={<Home />} />
+      {routes.map((routeItem) => {
+        const Component = lazy(() => import(`../pages/${routeItem.component}`));
+        return (
+          <Route
+            key={routeItem.key}
+            path={routeItem.path}
+            element={<Component />}
+          />
+        );
+      })}
+      {/* Your authenticated routes */}
+      <Route path="/user/plan/make-plan" element={<MakePlan />} />
+      <Route path="/user/plan/view-plan/:userEmail" element={<ViewUserPlan />} />
+    </>
+  );
+  
+  //Components for your public routes (like landing pages, marketing material, etc.)
+  //const PublicRoutes = () => (
+  //  <>
+  //    <Route path="/" element={<LandingPage />} />
+  //    <Route path="/sign-in" element={<SignIn />} />
+  //    <Route path="/sign-up" element={<SignUp />} />
+  //  </>
+  //);
 
   return (
     <Suspense fallback={<div>Loading...</div>}>
-      <Styles />
-      <Header />
       <Routes>
-        {routes.map((routeItem) => {
-          // Dynamically create the JSX element for the lazy component
-          const Component = lazy(() => import(`../pages/${routeItem.component}`));
-          return (
-            <Route
-              key={routeItem.key} // Make sure to use a unique key for each route
-              path={routeItem.path}
-              element={<Component />} // Use the 'element' prop for JSX elements
-            />
-          );
-        })}
-        <Route path="/user/plan/make-plan" element={<MakePlan />} />
-        <Route path="/user/plan/view-plan/:userEmail" element={<ViewUserPlan />} />
-
-        <Route path="/admin-page" element={<AdminPage />} />
-        <Route path="/admin-courses" element={<ListCoursePage />} />
-        <Route path="/admin-courses/addnewcourse" element={<CreateCourse />} />
-        <Route path="/admin-courses/course/:id/edit" element={<EditCourse />} />
-
-        <Route path="/admin-subjects" element={<ListSubjectPage />} />
-        <Route path="/admin-subjects/addnewsubject" element={<CreateSubject />} />
-        <Route path="/admin-subjects/subject/:id/edit" element={<EditSubject />} />
-
-        <Route path="/admin-semesters" element={<ListSemesterPage />} />
-        <Route path="/admin-semesters/addnewsemester" element={<CreateSemester />} />
-        <Route path="/admin-semesters/semester/:id/edit" element={<EditSemester />} />
-
-        <Route path="/admin-users" element={<ListUserPage />} />
-        <Route path="/admin-users/addnewuser" element={<CreateUser />} />
-        <Route path="/admin-users/user/:id/edit" element={<EditUser />} />
-
-        <Route path="/admin-prereqs" element={<ListPrereqPage />} />
-        <Route path="/admin-prereqs/addnewprereq" element={<CreatePrereq />} />
-        <Route path="/admin-prereqs/prereq/:id/edit" element={<EditPrereq />} />
-
-        <Route path="/admin-degrees" element={<ListDegreePage />} />
-        <Route path="/admin-degrees/addnewdegree" element={<CreateDegree />} />
-        <Route path="/admin-degrees/degree/:id/edit" element={<EditDegree />} />
+        <Route path="/" element={<SignedOut><LandingPage /></SignedOut>} />
+        <Route path="/sign-in" element={<SignedOut><SignIn /></SignedOut>} />
+        <Route path="/sign-up" element={<SignedOut><SignUp /></SignedOut>} />
+        <Route path="*" element={
+          <SignedIn>
+            <>
+              <Styles />
+              <Header />
+              <Routes>
+                {isAdmin && AdminRoutes}
+                {AuthenticatedRoutes}
+              </Routes>
+              <Footer />
+            </>
+          </SignedIn>
+        } />
       </Routes>
-      <Footer />
     </Suspense>
   );
 };

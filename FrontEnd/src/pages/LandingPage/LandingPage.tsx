@@ -1,7 +1,7 @@
 // LandingPage.tsx
 import React from 'react';
 //import { useNavigate } from 'react-router-dom';
-import { SvgIcon } from "../common/SvgIcon/svgIcon"
+import { SvgIcon } from "../../common/SvgIcon/svgIcon"
 
 //import { SignedIn, SignedOut, useClerk, UserButton } from '@clerk/clerk-react';
 //import { useUser } from '@clerk/clerk-react';

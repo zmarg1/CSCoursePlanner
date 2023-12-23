@@ -39,9 +39,9 @@ const Header = ({ t }: any) => {
 
   const clerk = useClerk();
 
-  const handleSignInClick = () => {
-    clerk.openSignIn();
-  };
+  //const handleSignInClick = () => {
+  //  clerk.openSignIn();
+  //};
 
   const handlePlanClick = () => {
     navigate('/user/plan/make-plan');
@@ -67,10 +67,10 @@ const Header = ({ t }: any) => {
         <CustomNavLinkSmall onClick={handleMyPlanClick}>
           <Span>{t("MyPlans")}</Span>
         </CustomNavLinkSmall>
-        <CustomNavLinkSmall onClick={() => handleNavigationClick('/', 'about')}>
+        <CustomNavLinkSmall onClick={() => handleNavigationClick('/home', 'about')}>
           <Span>{t("About")}</Span>
         </CustomNavLinkSmall>
-        <CustomNavLinkSmall onClick={() => handleNavigationClick('/', 'contact')}>
+        <CustomNavLinkSmall onClick={() => handleNavigationClick('/home', 'contact')}>
           <Span>{t("Contact")}</Span>
         </CustomNavLinkSmall>
 
@@ -88,7 +88,7 @@ const Header = ({ t }: any) => {
       <Container>
         <Row align="middle" style={{ display: 'flex', justifyContent: 'space-between' }}>
           <Col style={{ flex: 1.3 }}>
-            <LogoContainer to="/" aria-label="homepage">
+            <LogoContainer to="/home" aria-label="homepage">
               <SvgIcon src="logo.svg" width="141px" height="64px" />
             </LogoContainer>
           </Col>
@@ -100,11 +100,13 @@ const Header = ({ t }: any) => {
           </Col>
 
           <Col style={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
+            {/* 
             <SignedOut>
               <CustomNavLinkSmall onClick={handleSignInClick}>
                 <Span>{t("Sign In")}</Span>
               </CustomNavLinkSmall>
-            </SignedOut>
+            </SignedOut> 
+            */}
             <SignedIn>
               <UserButton />
             </SignedIn>

@@ -1,5 +1,5 @@
-import { lazy, Suspense, useEffect, useState } from "react";
-import { Routes, Route, useNavigate } from "react-router-dom";
+import { lazy, Suspense, useEffect, useState, useRef } from "react";
+import { Routes, Route, useNavigate  } from "react-router-dom";
 import Footer from "../components/Footer/footerIndex";
 import Header from "../components/Header/headerIndex";
 import routes from "./config";
@@ -39,12 +39,15 @@ const Router = () => {
   const { isSignedIn, user } = useUser();
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState(false);
+  const initialLogin = useRef(true);
+
+ 
 
   useEffect(() => {
-    if (isSignedIn) {
+    if (isSignedIn && initialLogin.current) {
       setIsAdmin(!!user?.publicMetadata?.admin);
-      console.log(user); // This will print the user object to the console
-      navigate('/home'); // Redirect to home upon sign-in
+      navigate('/home');
+      initialLogin.current = false; // Ensures this logic runs only once
     }
   }, [isSignedIn, user, navigate]);
 
@@ -52,6 +55,16 @@ const Router = () => {
   // Define components for routes
   const AdminRoutes = (
     <>
+      {routes.map((routeItem) => {
+        const Component = lazy(() => import(`../pages/${routeItem.component}`));
+        return (
+          <Route
+            key={routeItem.key}
+            path={routeItem.path}
+            element={<Component />}
+          />
+        );
+      })}
       <Route path="/admin-page" element={<AdminPage />} />
       <Route path="/admin-courses" element={<ListCoursePage />} />
       <Route path="/admin-courses/addnewcourse" element={<CreateCourse />} />
@@ -82,7 +95,6 @@ const Router = () => {
   // Components for your authenticated routes
   const AuthenticatedRoutes = (
     <>
-      <Route path="/home" element={<Home />} />
       {routes.map((routeItem) => {
         const Component = lazy(() => import(`../pages/${routeItem.component}`));
         return (
@@ -93,20 +105,12 @@ const Router = () => {
           />
         );
       })}
-      {/* Your authenticated routes */}
+      <Route path="/home" element={<Home />} />
       <Route path="/user/plan/make-plan" element={<MakePlan />} />
       <Route path="/user/plan/view-plan/:userEmail" element={<ViewUserPlan />} />
     </>
   );
   
-  //Components for your public routes (like landing pages, marketing material, etc.)
-  //const PublicRoutes = () => (
-  //  <>
-  //    <Route path="/" element={<LandingPage />} />
-  //    <Route path="/sign-in" element={<SignIn />} />
-  //    <Route path="/sign-up" element={<SignUp />} />
-  //  </>
-  //);
 
   return (
     <Suspense fallback={<div>Loading...</div>}>

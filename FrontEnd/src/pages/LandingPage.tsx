@@ -1,7 +1,12 @@
 // LandingPage.tsx
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+//import { useNavigate } from 'react-router-dom';
 import { SvgIcon } from "../common/SvgIcon/svgIcon"
+
+//import { SignedIn, SignedOut, useClerk, UserButton } from '@clerk/clerk-react';
+//import { useUser } from '@clerk/clerk-react';
+
+import { useClerk, UserButton } from '@clerk/clerk-react';
 
 import {
   LandingContainer,
@@ -12,20 +17,32 @@ import {
   Button,
   ButtonGroup,
   LogoContainer,
-  WelcomeContainer
+  WelcomeContainer, 
+  StyledButton
 } from './LandingPageStyles';
 
 const LandingPage = () => {
-  const navigate = useNavigate();
+  //const navigate = useNavigate();
 
-  const handleSignIn = () => {
+  //const handleSignIn = () => {
     // Navigate to the centered clerk component
-    navigate('/sign-in');
+    //navigate('/sign-in');
+  //};
+
+  //const handleSignUp = () => {
+    //navigate('/sign-up');
+  //};
+
+  const clerk = useClerk();
+
+  const handleSignInClick = () => {
+    clerk.openSignIn();
   };
 
-  const handleSignUp = () => {
-    navigate('/sign-up');
+  const handleSignUpClick = () => {
+    clerk.openSignUp();
   };
+
 
   return (
     <LandingContainer>
@@ -40,8 +57,8 @@ const LandingPage = () => {
       <RightSide>
         <DescriptionText>Get started</DescriptionText>
         <ButtonGroup>
-          <Button onClick={handleSignIn}>Sign In</Button>
-          <Button onClick={handleSignUp}>Sign Up</Button>
+          <StyledButton onClick={handleSignInClick}>Sign In</StyledButton>
+          <StyledButton onClick={handleSignUpClick}>Sign Up</StyledButton>
         </ButtonGroup>
       </RightSide>
     </LandingContainer>

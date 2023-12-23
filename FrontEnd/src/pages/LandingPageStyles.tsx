@@ -1,7 +1,6 @@
 // LandingPageStyles.tsx
 import styled from 'styled-components';
 
-
 export const LandingContainer = styled.div`
   display: flex;
   text-align: center;
@@ -39,11 +38,11 @@ export const WelcomeContainer = styled.div`
   margin-bottom: 30px; /* Adjust the margin as needed */
 `;
 
-export const WelcomeText = styled.h1`
+export const WelcomeText = styled("h1")`
   margin-bottom: 20px;
 `;
 
-export const DescriptionText = styled.h1`
+export const DescriptionText = styled("h1")`
   margin-bottom: 30px;
 `;
 
@@ -64,4 +63,31 @@ export const Button = styled.button`
 export const ButtonGroup = styled.div`
   display: flex;
   justify-content: center;
+`;
+
+export const StyledButton = styled("button")<any>`
+  background: #ffffff; // White background
+  color: #fdb515; // Yellow text
+  font-size: 1rem;
+  font-weight: 700;
+  width: 180px; // Fixed width
+  border: 2px solid #000000;
+  border-radius: 4px;
+  padding: 13px 0;
+  cursor: pointer;
+  margin-top: 0.625rem;
+  transition: all 0.3s ease-in-out;
+  box-shadow: 0 16px 30px rgb(23 31 114 / 20%);
+  text-align: center; // Center the text
+  white-space: nowrap; // Prevent text wrapping
+  overflow: hidden; // Hide overflowed text
+  text-overflow: ellipsis; // Add ellipsis if text is too long
+
+  &:hover,
+  &:active,
+  &:focus {
+    color: #fff; // White text on hover
+    border: 2px solid #000000;
+    background-color: #636466; // Dark background on hover
+  }
 `;

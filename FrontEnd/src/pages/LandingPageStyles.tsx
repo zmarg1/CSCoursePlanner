@@ -39,25 +39,13 @@ export const WelcomeContainer = styled.div`
 `;
 
 export const WelcomeText = styled("h1")`
-  margin-bottom: 20px;
+  margin-bottom: 0px;
+  font-size: 3rem;
 `;
 
 export const DescriptionText = styled("h1")`
-  margin-bottom: 30px;
-`;
-
-export const Button = styled.button`
-  margin: 10px;
-  padding: 10px 20px;
-  background-color: #0057ff; /* Adjust the color to match your app's theme */
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-
-  &:hover {
-    opacity: 0.9;
-  }
+  margin-bottom: 0px;
+  font-size: 2rem;
 `;
 
 export const ButtonGroup = styled.div`
@@ -66,9 +54,10 @@ export const ButtonGroup = styled.div`
 `;
 
 export const StyledButton = styled("button")<any>`
+  margin: 10px;
   background: #ffffff; // White background
   color: #fdb515; // Yellow text
-  font-size: 1rem;
+  font-size: 1.5rem;
   font-weight: 700;
   width: 180px; // Fixed width
   border: 2px solid #000000;

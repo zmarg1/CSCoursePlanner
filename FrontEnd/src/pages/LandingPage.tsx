@@ -14,7 +14,6 @@ import {
   RightSide,
   WelcomeText,
   DescriptionText,
-  Button,
   ButtonGroup,
   LogoContainer,
   WelcomeContainer, 
@@ -55,10 +54,10 @@ const LandingPage = () => {
         </WelcomeContainer>
       </LeftSide>
       <RightSide>
-        <DescriptionText>Get started</DescriptionText>
+        <DescriptionText>Start Planning</DescriptionText>
         <ButtonGroup>
-          <StyledButton onClick={handleSignInClick}>Sign In</StyledButton>
-          <StyledButton onClick={handleSignUpClick}>Sign Up</StyledButton>
+          <StyledButton onClick={handleSignInClick}>Login</StyledButton>
+          <StyledButton onClick={handleSignUpClick}>Sign-Up</StyledButton>
         </ButtonGroup>
       </RightSide>
     </LandingContainer>

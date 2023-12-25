@@ -8,8 +8,8 @@ import MakePlan from "../pages/MakePlan";
 import ViewUserPlan from "../pages/MyPlans/myPlans";
 import AdminPage from "../pages/Admin/AdminPage";
 import { SignIn, SignUp, useUser, SignedIn, SignedOut } from "@clerk/clerk-react";
-import LandingPage from "../pages/LandingPage/LandingPage"; // Import your landing page component
-import Home from '../pages/Home/home'; // Adjust the path based on your project structure
+import LandingPage from "../pages/LandingPage/LandingPage";
+import Home from '../pages/Home/home';
 
 import ListCoursePage from "../pages/Course/ListCoursePage";
 import CreateCourse from "../pages/Course/CreateCourse";

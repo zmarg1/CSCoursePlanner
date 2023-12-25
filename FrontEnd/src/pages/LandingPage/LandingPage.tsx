@@ -21,17 +21,6 @@ import {
 } from './LandingPageStyles';
 
 const LandingPage = () => {
-  //const navigate = useNavigate();
-
-  //const handleSignIn = () => {
-    // Navigate to the centered clerk component
-    //navigate('/sign-in');
-  //};
-
-  //const handleSignUp = () => {
-    //navigate('/sign-up');
-  //};
-
   const clerk = useClerk();
 
   const handleSignInClick = () => {

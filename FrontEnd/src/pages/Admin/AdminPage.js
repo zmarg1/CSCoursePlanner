@@ -3,6 +3,7 @@ import { Nav } from 'react-bootstrap';
 import Navbar from 'react-bootstrap/Navbar';
 import './AdminStyles.css'
 import { CustomNavLinkSmall } from '../../components/Header/styles';
+import { Link, Outlet } from 'react-router-dom';
 
 export default function AdminPage() {
 
@@ -14,32 +15,34 @@ export default function AdminPage() {
 
             <Nav className="me-auto">
               <CustomNavLinkSmall>
-                <Nav.Link href="/admin-courses">Courses</Nav.Link>
+                <Link to="admin-courses" className="nav-link">Courses</Link>
               </CustomNavLinkSmall>
 
               <CustomNavLinkSmall>
-                <Nav.Link href="/admin-subjects">Subjects</Nav.Link>
+                <Link to="admin-subjects" className="nav-link">Subjects</Link>
               </CustomNavLinkSmall>
 
               <CustomNavLinkSmall>
-                <Nav.Link href="/admin-semesters">Semesters</Nav.Link>
+                <Link to="admin-semesters" className="nav-link">Semesters</Link>
               </CustomNavLinkSmall>
               
               <CustomNavLinkSmall>
-                <Nav.Link href="/admin-users">Users</Nav.Link>
+                <Link to="admin-users" className="nav-link">Users</Link>
               </CustomNavLinkSmall>
 
               <CustomNavLinkSmall>
-                <Nav.Link href="/admin-degrees">Degrees</Nav.Link>
+                <Link to="admin-degrees" className="nav-link">Degrees</Link>
               </CustomNavLinkSmall>
 
               <CustomNavLinkSmall>
-                <Nav.Link href="/admin-prereqs">Prereqs</Nav.Link>
+                <Link to="admin-prereqs" className="nav-link">Prereqs</Link>
               </CustomNavLinkSmall>
             </Nav>
           </Container>
         </Navbar>
         <br></br>
+        {/* Outlet to render the content of the selected admin option */}
+        <Outlet />
       </div>
     </div>
   );

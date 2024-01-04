@@ -2,9 +2,9 @@ import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "@clerk/clerk-react";
-import Config from "../../config";
+import Config from "../../../config";
 
-export default function CreateDegree() {
+export default function CreateSemester() {
   const URL = `${Config.backendURL}`
   const { user } = useUser();
   const admin = user.publicMetadata.admin;
@@ -21,9 +21,9 @@ export default function CreateDegree() {
   const handleSubmit = (event) => {
     event.preventDefault();
 
-    axios.post(`${URL}/admin/degrees/create_degree/${admin}`, inputs).then(function (response) {
+    axios.post(`${URL}/admin/semesters/create_semester/${admin}`, inputs).then(function (response) {
       console.log(response.data);
-      navigate('/admin-degrees');
+      navigate('/admin-semesters');
     });
 
   }
@@ -34,15 +34,15 @@ export default function CreateDegree() {
         <div className="row">
           <div className="col-2"></div>
           <div className="col-8">
-            <h1>Create Degree</h1>
+            <h1>Create Semester</h1>
             <form onSubmit={handleSubmit}>
               <div className="mb-3">
-                <label>Degree Name</label>
-                <input type="text" className="form-control" name="deg_name" onChange={handleChange} required/>
+                <label>Term</label>
+                <input type="text" className="form-control" name="term" onChange={handleChange} required/>
               </div>
               <div className="mb-3">
-                <label>Degree Type</label>
-                <input type="text" className="form-control" name="deg_type" onChange={handleChange} required/>
+                <label>Year</label>
+                <input type="number" className="form-control" name="year" onChange={handleChange} required/>
               </div>
               <button type="submit" name="add" className="btn btn-primary">Save</button>
             </form>

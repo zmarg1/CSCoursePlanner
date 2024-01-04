@@ -2,7 +2,7 @@ import {useEffect, useState } from 'react';
 import axios from "axios"
 import {Link} from 'react-router-dom';
 import { useUser } from '@clerk/clerk-react';
-import Config from '../../config';
+import Config from '../../../config';
 
 export default function ListCoursePage(){
     const URL = `${Config.backendURL}`

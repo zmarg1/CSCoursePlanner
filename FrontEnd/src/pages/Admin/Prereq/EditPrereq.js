@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import { useUser } from "@clerk/clerk-react";
-import Config from "../../config";
+import Config from "../../../config";
 
 export default function EditPrereq() {
   const URL = `${Config.backendURL}`

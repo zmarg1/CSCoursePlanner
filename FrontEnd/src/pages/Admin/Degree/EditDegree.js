@@ -2,9 +2,9 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import { useUser } from "@clerk/clerk-react";
-import Config from "../../config";
+import Config from "../../../config";
 
-export default function EditSubject() {
+export default function EditDegree() {
     const URL = `${Config.backendURL}`
     const { user } = useUser();
     const admin = user.publicMetadata.admin;
@@ -16,11 +16,11 @@ export default function EditSubject() {
     const { id } = useParams();
 
     useEffect(() => {
-        getSubject();
+        getDegree();
     }, []);
 
-    function getSubject() {
-        axios.get(`${URL}/admin/subjects/${admin}/${id}`).then(function (response) {
+    function getDegree() {
+        axios.get(`${URL}/admin/degrees/${admin}/${id}`).then(function (response) {
             console.log(response.data);
             setInputs(response.data);
         });
@@ -34,9 +34,9 @@ export default function EditSubject() {
     const handleSubmit = (event) => {
         event.preventDefault();
 
-        axios.put(`${URL}/admin/subjects/update_subject/${admin}/${id}`, inputs).then(function (response) {
+        axios.put(`${URL}/admin/degrees/update_degree/${admin}/${id}`, inputs).then(function (response) {
             console.log(response.data);
-            navigate('/admin-subjects');
+            navigate('/admin-degrees');
         });
 
     }
@@ -47,15 +47,15 @@ export default function EditSubject() {
                 <div className="row">
                     <div className="col-2"></div>
                     <div className="col-8">
-                        <h1>Edit Subject</h1>
+                        <h1>Edit Degree</h1>
                         <form onSubmit={handleSubmit}>
                             <div className="mb-3">
-                                <label>Subject Code</label>
-                                <input type="text" value={inputs.subject_code} className="form-control" name="subject_code" onChange={handleChange} required/>
+                                <label>Degree Name</label>
+                                <input type="text" value={inputs.term} className="form-control" name="deg_name" onChange={handleChange} required/>
                             </div>
                             <div className="mb-3">
-                                <label>Subject Name</label>
-                                <input type="text" value={inputs.subject_name} className="form-control" name="subject_name" onChange={handleChange} required/>
+                                <label>Degree Type</label>
+                                <input type="text" value={inputs.year} className="form-control" name="deg_type" onChange={handleChange} required/>
                             </div>
                             <button type="submit" name="update" className="btn btn-primary">Save</button>
                         </form>

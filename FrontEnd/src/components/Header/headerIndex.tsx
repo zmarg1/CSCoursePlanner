@@ -74,11 +74,13 @@ const Header = ({ t }: any) => {
           <Span>{t("Contact")}</Span>
         </CustomNavLinkSmall>
 
+        {/* Disable Admin page temporarily
         {isAdmin && (
           <CustomNavLinkSmall onClick={handleAdminClick}>
             <Span>{t("Admin Page")}</Span>
           </CustomNavLinkSmall>
         )}
+        */}
       </>
     );
   };

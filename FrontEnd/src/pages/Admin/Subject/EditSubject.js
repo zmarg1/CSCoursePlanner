@@ -2,9 +2,9 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import { useUser } from "@clerk/clerk-react";
-import Config from "../../config";
+import Config from "../../../config";
 
-export default function EditSemester() {
+export default function EditSubject() {
     const URL = `${Config.backendURL}`
     const { user } = useUser();
     const admin = user.publicMetadata.admin;
@@ -16,11 +16,11 @@ export default function EditSemester() {
     const { id } = useParams();
 
     useEffect(() => {
-        getSemester();
+        getSubject();
     }, []);
 
-    function getSemester() {
-        axios.get(`${URL}/admin/semesters/${admin}/${id}`).then(function (response) {
+    function getSubject() {
+        axios.get(`${URL}/admin/subjects/${admin}/${id}`).then(function (response) {
             console.log(response.data);
             setInputs(response.data);
         });
@@ -34,9 +34,9 @@ export default function EditSemester() {
     const handleSubmit = (event) => {
         event.preventDefault();
 
-        axios.put(`${URL}/admin/semesters/update_semester/${admin}/${id}`, inputs).then(function (response) {
+        axios.put(`${URL}/admin/subjects/update_subject/${admin}/${id}`, inputs).then(function (response) {
             console.log(response.data);
-            navigate('/admin-semesters');
+            navigate('/admin-subjects');
         });
 
     }
@@ -47,15 +47,15 @@ export default function EditSemester() {
                 <div className="row">
                     <div className="col-2"></div>
                     <div className="col-8">
-                        <h1>Edit Semester</h1>
+                        <h1>Edit Subject</h1>
                         <form onSubmit={handleSubmit}>
                             <div className="mb-3">
-                                <label>Term</label>
-                                <input type="text" value={inputs.term} className="form-control" name="term" onChange={handleChange} required/>
+                                <label>Subject Code</label>
+                                <input type="text" value={inputs.subject_code} className="form-control" name="subject_code" onChange={handleChange} required/>
                             </div>
                             <div className="mb-3">
-                                <label>Year</label>
-                                <input type="number" value={inputs.year} className="form-control" name="year" onChange={handleChange} required/>
+                                <label>Subject Name</label>
+                                <input type="text" value={inputs.subject_name} className="form-control" name="subject_name" onChange={handleChange} required/>
                             </div>
                             <button type="submit" name="update" className="btn btn-primary">Save</button>
                         </form>

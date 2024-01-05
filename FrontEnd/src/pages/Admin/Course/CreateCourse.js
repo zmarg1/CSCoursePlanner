@@ -2,10 +2,10 @@ import React, { useState  } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "@clerk/clerk-react";
-import Config from "../../../config";
+import Config from "../../../config"
  
 export default function CreateCourse(){
-  const URL = `${Config.backendURL}`
+    const URL = `${Config.backendURL}`
     const {user} = useUser();
     const admin = user.publicMetadata.admin;
   

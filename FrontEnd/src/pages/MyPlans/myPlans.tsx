@@ -14,7 +14,9 @@ import Config from '../../config'; // Import your configuration file
 import { GridContainer, GridItem, CourseItem, CourseDetails, ButtonContainer, TermHeading, YearHeading } from './myPlansStyles';
 
 
-const URL = `${Config.backendURL}`
+//const URL = `${Config.backendURL}`
+
+const URL = process.env.REACT_APP_BACKEND_URL
 
 // Typescript interfaces
 interface PlanFromServer {

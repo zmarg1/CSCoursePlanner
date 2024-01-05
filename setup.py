@@ -13,18 +13,25 @@ from flask_marshmallow import Marshmallow
 from supabase import Client
 import datetime
 from datetime import timedelta, datetime
+from dotenv import load_dotenv
+import os
 
-client_key ="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF3eWRrbHp3dmJyZ3Zkb21oeGpiIiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTU0MDcxNjcsImV4cCI6MjAxMDk4MzE2N30.UNZJCMI1NxpSyFr8bBooIIGPqTbDe3N-_YV9ZHbE_1g"
-secret_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF3eWRrbHp3dmJyZ3Zkb21oeGpiIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTY5NTQwNzE2NywiZXhwIjoyMDEwOTgzMTY3fQ.5IP6Kh6jI3mL_3poMSKcjE_cANIjhqvGHJVjK5RNVMw"
-url = "https://qwydklzwvbrgvdomhxjb.supabase.co"
+# Load environment variables
+load_dotenv()
+
+# Retrieve keys from environmental variables
+client_key = os.getenv("SUPABASE_CLIENT_KEY")
+secret_key = os.getenv("SUPABASE_SECRET_KEY")
+url = os.getenv("SUPABASE_URL")
+clerk_api_key = os.getenv("CLERK_API_KEY")
+database_uri = os.getenv("DATABASE_URI")
+
 client = Client(url, client_key)
-
-clerk_api_key = 'sk_test_8Fvp5UH4vZplPHK24IdPQXnFqMipUQGYN7WmkomiHG'
 
 app = Flask(__name__)
 CORS(app)
 app.secret_key = secret_key #Secret key needed for sessions to get the encrypted data
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:2&?jL!Un?SV$Q5j@db.qwydklzwvbrgvdomhxjb.supabase.co:5432/postgres'
+app.config['SQLALCHEMY_DATABASE_URI'] = database_uri
 app.permanent_session_lifetime = timedelta(hours = 1) #How long the session data will be saved for
 
 db = SQLAlchemy(app)

@@ -4,12 +4,12 @@
   "section": [
     {
       "title": "Why was it made?",
-      "content": "This website was developed as main project for CMSC 447 during the Fall 2023 semester. It was designed with the intent to help students quickly and intuitively design a class plan for UMBC before registering for classes.",
+      "content": "This website was developed as main project for CMSC 447 during the Fall 2023 semester. It was designed to help students quickly and intuitively design a class plan for UMBC before registering for classes.",
       "icon": "notes.svg"
     },
     {
       "title": "Who created it?",
-      "content": "The creators were Zachary Margulies, Alan Valdez, Amir Hawkins-Stewart, Rodolfo Argueta-Rios, and Brandon Price all under the guidance of professor Samit Shivadekar and TA Jayalakshmi Mangalagiri.",
+      "content": "The creators were Zachary Margulies, Alan Valdez, Amir Hawkins-Stewart, Rodolfo Argueta-Rios, and Brandon Price all under the guidance of Professor Samit Shivadekar and TA Jayalakshmi Mangalagiri.",
       "icon": "notes.svg"
     }
   ]

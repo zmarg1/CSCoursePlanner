@@ -10,13 +10,9 @@ import { useNavigate } from 'react-router-dom';
 import '../../common/PlanStyling/Plan.css';
 import { notification } from "antd";
 import { StyledContainer } from '../../common/Container/custContainerStyles';
-import Config from '../../config'; // Import your configuration file  
 import { GridContainer, GridItem, CourseItem, CourseDetails, ButtonContainer, TermHeading, YearHeading } from './myPlansStyles';
 
-
-//const URL = `${Config.backendURL}`
-
-const URL = process.env.REACT_APP_BACKEND_URL
+const URL = process.env.REACT_APP_BACKEND_URL || 'http://127.0.0.1:5000';
 
 // Typescript interfaces
 interface PlanFromServer {

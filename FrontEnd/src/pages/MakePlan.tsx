@@ -7,11 +7,8 @@ import '../common/PlanStyling/Plan.css';
 import { useNavigate } from 'react-router-dom';
 import { notification } from "antd";
 import { StyledContainer, ButtonContainerMakePlan } from '../common/Container/custContainerStyles';
-import Config from '../config'; // Import your configuration file  
 
-//const URL = `${Config.backendURL}`
-
-const URL = process.env.REACT_APP_BACKEND_URL
+const URL = process.env.REACT_APP_BACKEND_URL || 'http://127.0.0.1:5000';
 
 // Typescript interfaces
 

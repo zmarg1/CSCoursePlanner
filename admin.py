@@ -34,16 +34,6 @@ def route_reponse(admin, method):
 
 
 """
-Enters main admin page for admin functionality
-Returns:
-string: A welcome message
-"""
-@admin_api.route('/admin')
-def admin_pg():
-    return "Welcome to the Admin page"
-
-
-"""
 Endpoint for getting one courses
 """
 @admin_api.route('/admin/courses/<admin>/<course_id>', methods = ['GET'])

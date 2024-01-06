@@ -56,7 +56,7 @@ export const ButtonGroup = styled.div`
 export const StyledButton = styled("button")<any>`
   margin: 10px;
   background: #000000; // Black background
-  color: #fdb515; // Yellow text
+  color: #ffffff; // Yellow text
   font-size: 1.5rem;
   font-weight: 700;
   width: 180px; // Fixed width

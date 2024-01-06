@@ -55,8 +55,8 @@ export const ButtonGroup = styled.div`
 
 export const StyledButton = styled("button")<any>`
   margin: 10px;
-  background: #ffffff; // White background
-  color: #000000; // Black text
+  background: #000000; // Black background
+  color: #fdb515; // Yellow text
   font-size: 1.5rem;
   font-weight: 700;
   width: 180px; // Fixed width
@@ -76,7 +76,7 @@ export const StyledButton = styled("button")<any>`
   &:active,
   &:focus {
     color: #fff; // White text on hover
-    border: 2px solid #000000;
+    border: 2px solid #fdb515;
     background-color: #636466; // Dark background on hover
   }
 `;

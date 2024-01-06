@@ -18,7 +18,8 @@ import {
   LogoContainer,
   WelcomeContainer, 
   StyledButton
-} from './LandingPageStyles';
+} 
+from './LandingPageStyles';
 
 const LandingPage = () => {
   const clerk = useClerk();

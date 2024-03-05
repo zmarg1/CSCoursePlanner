@@ -73,7 +73,3 @@ To run planUMBC locally:
 - [Brandon Price](https://github.com/branprice)
 - [Amir Stewart](https://github.com/AmirStew101)
 - [Alan Valdez](https://github.com/avaldez92)
-
-## License
-
-[MIT](https://choosealicense.com/licenses/mit/)

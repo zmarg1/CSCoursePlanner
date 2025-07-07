@@ -30,9 +30,6 @@ To install and run planUMBC locally, follow these steps:
 
 ## Usage
 
-You can visit the app here: [planUMBC](https://planumbc.vercel.app). Then,
-make sure to login or sign-up to use.
-
 To run planUMBC locally:
 
 1. Open two terminals:
